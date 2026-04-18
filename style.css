@@ -1,0 +1,120 @@
+body{
+  margin:0;
+  font-family: system-ui;
+  background:#f0f2f5;
+}
+
+/* header */
+.header{
+  background:#1877f2;
+  color:white;
+  padding:12px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* post box */
+.upload{
+  background:white;
+  padding:10px;
+  display:flex;
+  gap:10px;
+  border-bottom:1px solid #ddd;
+}
+
+.upload input{
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:1px solid #ddd;
+}
+
+.upload button{
+  background:#1877f2;
+  border:none;
+  color:white;
+  padding:10px 15px;
+  border-radius:20px;
+}
+
+/* post */
+.post{
+  background:white;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
+
+/* username */
+.post-user{
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+/* text */
+.post-text{
+  margin:10px 0;
+  font-size:15px;
+}
+
+/* actions */
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+.actions button{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:5px;
+  background:#e4e6eb;
+}
+
+/* comment */
+.comment{
+  background:#f0f2f5;
+  padding:5px 10px;
+  border-radius:10px;
+  margin-top:5px;
+}
+
+/* comment box */
+.comment-box{
+  display:flex;
+  gap:5px;
+  margin-top:5px;
+}
+
+.comment-box input{
+  flex:1;
+  padding:8px;
+  border-radius:20px;
+  border:1px solid #ccc;
+}
+
+.comment-box button{
+  background:#1877f2;
+  color:white;
+  border:none;
+  border-radius:20px;
+  padding:8px 12px;
+}
+
+/* bottom nav */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:white;
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+  border-top:1px solid #ddd;
+}
+
+.nav a{
+  text-decoration:none;
+  font-size:20px;
+}

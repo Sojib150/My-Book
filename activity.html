@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
+.header{padding:15px;text-align:center;border-bottom:1px solid #222;}
+.noti{padding:10px;border-bottom:1px solid #222;}
+</style>
+</head>
+
+<body>
+
+<div class="header">🔔 Activity</div>
+<div id="list"></div>
+
+<script type="module">
+import { db, auth } from "./config.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth,(user)=>{
+if(user){
+onValue(ref(db,"notifications/"+user.uid),snap=>{
+let data = snap.val();
+let html = "";
+
+for(let id in data){
+html += `<div class="noti">${data[id].text}</div>`;
+}
+
+document.getElementById("list").innerHTML = html;
+});
+}else{
+location.href="login.html";
+}
+});
+</script>
+
+</body>
+</html>

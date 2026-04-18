@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container {
+  width:90%;
+  max-width:400px;
+}
+
+.card {
+  background: rgba(255,255,255,0.1);
+  padding:20px;
+  border-radius:15px;
+  backdrop-filter: blur(10px);
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#ff4b5c;
+  color:white;
+  font-size:16px;
+}
+
+.small {
+  font-size:14px;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<div class="card">
+
+<h2>Login / Create Account</h2>
+
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="register()">Create Account</button>
+<button onclick="login()">Login</button>
+
+<div class="small">
+New user? <a href="register.html">Go Back</a>
+</div>
+
+</div>
+</div>
+
+<script type="module">
+import { auth, db } from "./config.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ref, set } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// REGISTER
+window.register = async function(){
+
+let email = document.getElementById("email").value;
+let pass = document.getElementById("pass").value;
+
+if(!email || !pass){
+  alert("Email & Password দাও");
+  return;
+}
+
+try{
+let userCred = await createUserWithEmailAndPassword(auth,email,pass);
+let uid = userCred.user.uid;
+
+// get previous data
+let name = localStorage.getItem("name");
+let username = localStorage.getItem("username");
+let dob = localStorage.getItem("dob");
+let relation = localStorage.getItem("relation");
+let photo = localStorage.getItem("photo");
+
+// save in database
+await set(ref(db,"users/"+uid),{
+  name,
+  username,
+  dob,
+  relation,
+  photo,
+  verified:false,
+  verifyRequest:"none"
+});
+
+alert("Account Created ✅");
+
+// clear temp data
+localStorage.clear();
+
+window.location.href="home.html";
+
+}catch(e){
+alert(e.message);
+}
+}
+
+// LOGIN
+window.login = async function(){
+
+let email = document.getElementById("email").value;
+let pass = document.getElementById("pass").value;
+
+try{
+await signInWithEmailAndPassword(auth,email,pass);
+
+alert("Login Success ✅");
+window.location.href="home.html";
+
+}catch(e){
+alert("Wrong email/password ❌");
+}
+}
+
+</script>
+
+</body>
+</html>

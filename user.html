@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f0f2f5;}
+.header{background:#1877f2;color:white;padding:15px;text-align:center;}
+.user{background:white;margin:10px;padding:10px;border-radius:10px;display:flex;justify-content:space-between;}
+button{background:#1877f2;color:white;border:none;padding:6px 10px;border-radius:5px;}
+</style>
+</head>
+
+<body>
+
+<div class="header">Users</div>
+<div id="list"></div>
+
+<script type="module">
+import { db, auth } from "./config.js";
+import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+let uid;
+
+onAuthStateChanged(auth,(user)=>{
+if(user){
+uid = user.uid;
+loadUsers();
+}else{
+location.href="login.html";
+}
+});
+
+function loadUsers(){
+onValue(ref(db,"users"),snap=>{
+let data = snap.val();
+let html="";
+
+for(let id in data){
+
+if(id===uid) continue;
+
+let u = data[id];
+
+html+=`
+<div class="user">
+<div>${u.username || "User"}</div>
+<button onclick="sendReq('${id}')">Add</button>
+</div>
+`;
+}
+
+document.getElementById("list").innerHTML = html;
+});
+}
+
+// 📩 SEND REQUEST
+window.sendReq = function(target){
+set(ref(db,"requests/"+target+"/"+uid),true);
+alert("Request Sent");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post</title>
+
+<style>
+body{background:#0f0f0f;color:white;text-align:center;}
+img{width:100%;}
+</style>
+</head>
+
+<body>
+
+<h2>Post</h2>
+
+<div id="post"></div>
+
+<script type="module">
+import { db } from "./config.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+let params = new URLSearchParams(location.search);
+let id = params.get("id");
+
+let snap = await get(ref(db,"posts/"+id));
+let p = snap.val();
+
+document.getElementById("post").innerHTML = `
+<img src="${p.image}">
+<p>❤️ ${p.likes}</p>
+`;
+</script>
+
+</body>
+</html>

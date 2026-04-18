@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background:#0f0f0f;
+  color:white;
+}
+
+.header{
+  padding:15px;
+  text-align:center;
+  border-bottom:1px solid #222;
+}
+
+.user{
+  background:#1c1c1c;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
+
+button{
+  padding:8px;
+  margin:5px;
+  border:none;
+  border-radius:6px;
+  color:white;
+}
+
+.approve{ background:green; }
+.reject{ background:red; }
+</style>
+</head>
+
+<body>
+
+<div class="header">👑 Admin Panel</div>
+
+<div id="list"></div>
+
+<script type="module">
+import { db, auth } from "./config.js";
+import { ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+let adminEmail = "Sojib150@email.com"; // 🔥 এখানে তোমার email দাও
+
+// admin check
+onAuthStateChanged(auth,(user)=>{
+if(!user || user.email !== adminEmail){
+alert("Not Admin ❌");
+window.location.href="home.html";
+}
+});
+
+// load users
+onValue(ref(db,"users"),snap=>{
+let data = snap.val();
+let html = "";
+
+for(let uid in data){
+
+let user = data[uid];
+
+if(user.verifyRequest === "pending"){
+
+html += `
+<div class="user">
+<img src="${user.photo}" width="50"><br>
+<b>${user.name}</b><br>
+${user.username}
+
+<br>
+
+<button class="approve" onclick="approve('${uid}')">Approve</button>
+<button class="reject" onclick="reject('${uid}')">Reject</button>
+</div>
+`;
+}
+}
+
+document.getElementById("list").innerHTML = html;
+});
+
+// approve
+window.approve = function(uid){
+update(ref(db,"users/"+uid),{
+verified:true,
+verifyRequest:"approved"
+});
+}
+
+// reject
+window.reject = function(uid){
+update(ref(db,"users/"+uid),{
+verifyRequest:"none"
+});
+}
+
+</script>
+
+</body>
+</html>

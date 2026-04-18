@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inbox</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
+.header{padding:15px;text-align:center;border-bottom:1px solid #222;}
+.user{display:flex;align-items:center;padding:10px;border-bottom:1px solid #222;}
+.user img{width:40px;height:40px;border-radius:50%;margin-right:10px;}
+</style>
+</head>
+
+<body>
+
+<div class="header">💬 Inbox</div>
+<div id="list"></div>
+
+<script type="module">
+import { db, auth } from "./config.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+let myId;
+
+onAuthStateChanged(auth,(user)=>{
+if(user){
+myId = user.uid;
+}else{
+location.href="login.html";
+}
+});
+
+// load users
+onValue(ref(db,"users"),snap=>{
+let data = snap.val();
+let html = "";
+
+for(let uid in data){
+
+if(uid === myId) continue;
+
+let u = data[uid];
+
+html += `
+<div class="user" onclick="openChat('${uid}')">
+<img src="${u.photo}">
+<div>${u.name}</div>
+</div>
+`;
+}
+
+document.getElementById("list").innerHTML = html;
+});
+
+window.openChat = function(uid){
+location.href = "chat.html?uid="+uid;
+}
+</script>
+
+</body>
+</html>

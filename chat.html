@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
+.header{padding:10px;text-align:center;border-bottom:1px solid #222;}
+.chat{padding:10px;height:65vh;overflow:auto;}
+.msg{margin:5px;padding:8px;border-radius:10px;max-width:70%;}
+.me{background:#ff4b5c;margin-left:auto;}
+.other{background:#333;}
+img{max-width:100%;border-radius:10px;margin-top:5px;}
+.input{position:fixed;bottom:0;width:100%;display:flex;}
+input{flex:1;padding:10px;border:none;}
+button{padding:10px;background:#ff4b5c;color:white;border:none;}
+.status{font-size:12px;color:#0f0;}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+💬 Chat
+<div id="status" class="status"></div>
+</div>
+
+<div id="chatBox" class="chat"></div>
+
+<div class="input">
+<input id="msg" placeholder="Type message...">
+<input type="file" id="img">
+<button onclick="send()">Send</button>
+</div>
+
+<script type="module">
+import { db, auth, storage } from "./config.js";
+import { ref, push, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+let params = new URLSearchParams(location.search);
+let otherId = params.get("uid");
+
+let myId;
+
+// online status
+onAuthStateChanged(auth,(user)=>{
+if(user){
+myId = user.uid;
+
+// set online
+set(ref(db,"status/"+myId),"online");
+
+window.addEventListener("beforeunload",()=>{
+set(ref(db,"status/"+myId),"offline");
+});
+
+loadChat();
+}else{
+location.href="login.html";
+}
+});
+
+// show other user status
+onValue(ref(db,"status/"+otherId),snap=>{
+let s = snap.val();
+document.getElementById("status").innerText = s;
+});
+
+// room id
+function getRoom(){
+return myId < otherId ? myId+"_"+otherId : otherId+"_"+myId;
+}
+
+// send message
+window.send = async function(){
+
+let text = document.getElementById("msg").value;
+let file = document.getElementById("img").files[0];
+
+let msgData = {
+sender: myId,
+seen:false
+};
+
+// text
+if(text){
+msgData.text = text;
+}
+
+// image
+if(file){
+let imgRef = sRef(storage,"chat/"+Date.now());
+await uploadBytes(imgRef,file);
+let url = await getDownloadURL(imgRef);
+msgData.image = url;
+}
+
+// send
+push(ref(db,"chats/"+getRoom()),msgData);
+
+// clear
+document.getElementById("msg").value="";
+document.getElementById("img").value="";
+}
+
+// load chat
+function loadChat(){
+
+onValue(ref(db,"chats/"+getRoom()),snap=>{
+let data = snap.val();
+let html = "";
+
+for(let id in data){
+let m = data[id];
+
+let cls = m.sender === myId ? "me" : "other";
+
+// seen update
+if(m.sender !== myId){
+update(ref(db,"chats/"+getRoom()+"/"+id),{
+seen:true
+});
+}
+
+html += `<div class="msg ${cls}">
+${m.text ? m.text : ""}
+${m.image ? `<img src="${m.image}">` : ""}
+<br>
+<span style="font-size:10px;color:#aaa">
+${m.sender === myId ? (m.seen ? "✔✔ Seen" : "✔ Sent") : ""}
+</span>
+</div>`;
+}
+
+document.getElementById("chatBox").innerHTML = html;
+});
+}
+
+</script>
+
+</body>
+</html>

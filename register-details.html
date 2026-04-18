@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complete Profile</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background: linear-gradient(135deg,#141e30,#243b55);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container {
+  width:90%;
+  max-width:400px;
+}
+
+.card {
+  background: rgba(255,255,255,0.1);
+  padding:20px;
+  border-radius:15px;
+  backdrop-filter: blur(10px);
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:#ff4b5c;
+  color:white;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+  <h2>Complete Profile</h2>
+
+  <input id="name" placeholder="Full Name">
+  <input id="username" placeholder="Username (@name)">
+  <input id="dob" type="date">
+  
+  <select id="relation">
+    <option value="">Relationship Status</option>
+    <option>Single</option>
+    <option>In Relationship</option>
+    <option>Married</option>
+  </select>
+
+  <input type="file" id="photo">
+
+  <button onclick="next()">Next</button>
+</div>
+
+</div>
+
+<script type="module">
+import { db, storage } from "./config.js";
+import { ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+window.next = async function(){
+
+let name = document.getElementById("name").value;
+let username = document.getElementById("username").value;
+let dob = document.getElementById("dob").value;
+let relation = document.getElementById("relation").value;
+let file = document.getElementById("photo").files[0];
+
+if(!name || !username || !dob){
+  alert("সব তথ্য দাও");
+  return;
+}
+
+// upload image
+let imgRef = sRef(storage,"profiles/"+Date.now());
+await uploadBytes(imgRef,file);
+let photoURL = await getDownloadURL(imgRef);
+
+// temp save (local)
+localStorage.setItem("name", name);
+localStorage.setItem("username", username);
+localStorage.setItem("dob", dob);
+localStorage.setItem("relation", relation);
+localStorage.setItem("photo", photoURL);
+
+// go next
+window.location.href="login.html";
+
+}
+</script>
+
+</body>
+</html>
