@@ -1,28 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
 
-<!-- ✅ External CSS -->
-<link rel="stylesheet" href="style.css">
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f0f2f5;
+}
 
+/* header */
+.header{
+  background:#1877f2;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* post box */
+.postBox{
+  display:flex;
+  padding:10px;
+  background:white;
+}
+.postBox input{
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:1px solid #ddd;
+}
+.postBox button{
+  margin-left:10px;
+  padding:10px;
+  border:none;
+  background:#1877f2;
+  color:white;
+  border-radius:20px;
+}
+
+/* post */
+.post{
+  background:white;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+}
+
+.top{
+  font-weight:bold;
+}
+
+.actions button{
+  margin:5px;
+}
+
+/* comment */
+.comment{
+  background:#f0f2f5;
+  padding:8px;
+  border-radius:10px;
+  margin-top:5px;
+}
+
+.reply{
+  margin-left:20px;
+  background:#e4e6eb;
+}
+
+.small{
+  font-size:12px;
+  color:#555;
+  cursor:pointer;
+}
+
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:white;
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+  border-top:1px solid #ddd;
+}
+</style>
 </head>
 
 <body>
 
 <div class="header">🔥 My Social</div>
 
-<div class="upload">
-<input type="text" id="text" placeholder="Write something...">
-<button onclick="postText()">Post</button>
+<div class="postBox">
+<input id="text" placeholder="Write something...">
+<button onclick="post()">Post</button>
 </div>
 
 <div id="feed"></div>
 
 <div class="nav">
 <a href="home.html">🏠</a>
-<a href="chat.html">💬</a>
+<a href="inbox.html">💬</a>
 <a href="profile.html">👤</a>
 </div>
 
@@ -31,164 +112,188 @@ import { db, auth } from "./config.js";
 import { ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let currentUser = null;
+let uid;
 
-// 🔐 Auth check
 onAuthStateChanged(auth,(user)=>{
 if(user){
-currentUser = user.uid;
+uid = user.uid;
 }else{
-alert("Login first");
-location.href="login.html";
+location.href="index.html";
 }
 });
 
-// 🔥 POST TEXT
-window.postText = async function(){
+// 📌 POST
+window.post = async function(){
 
 let text = document.getElementById("text").value;
+if(!text) return;
 
-if(!text){
-alert("কিছু লিখো");
-return;
-}
+let userSnap = await get(ref(db,"users/"+uid));
+let user = userSnap.val();
 
-try{
-
-let snap = await get(ref(db,"users/"+currentUser));
-let userData = snap.val();
-
-// ✅ safe username
-let username = "User";
-if(userData && userData.username){
-username = userData.username;
-}
-
-await push(ref(db,"posts"),{
-text:text,
+push(ref(db,"posts"),{
+text,
+user:user.username,
+owner:uid,
 likes:0,
-likedBy:{},
-comments:{},
-user: username,
-owner: currentUser
+likedBy:{}
 });
 
-document.getElementById("text").value = "";
-
-}catch(e){
-alert("Error: "+e.message);
+document.getElementById("text").value="";
 }
 
-}
-
-// 🔥 SHOW POSTS
+// 📌 SHOW POSTS
 onValue(ref(db,"posts"),snap=>{
 let data = snap.val();
-
-if(!data){
-document.getElementById("feed").innerHTML = "No post yet";
-return;
-}
-
-let html = "";
+let html="";
 
 for(let id in data){
 
-let post = data[id];
+let p = data[id];
 
-// liked users
-let likedNames = "";
-if(post.likedBy){
-likedNames = Object.values(post.likedBy).join(", ");
-}
-
-// comments
-let commentsHTML = "";
-if(post.comments){
-for(let c in post.comments){
-commentsHTML += `<div class="comment">${post.comments[c]}</div>`;
-}
-}
-
-html += `
 html += `
 <div class="post">
-
-<div class="post-user">${post.user}</div>
-
-<div class="post-text">${post.text || ""}</div>
+<div class="top">👤 ${p.user}</div>
+<p>${p.text}</p>
 
 <div class="actions">
-<button onclick="likePost('${id}')">👍 ${post.likes || 0}</button>
-<button>💬 Comment</button>
+<button onclick="like('${id}')">❤️ ${p.likes||0}</button>
 </div>
 
-<div style="font-size:12px;color:#666">${likedNames}</div>
+<div id="comments_${id}"></div>
 
-<div class="comment-box">
 <input placeholder="Write comment..." id="c_${id}">
 <button onclick="addComment('${id}')">Send</button>
-</div>
-
-${commentsHTML}
 
 </div>
 `;
 
-<div style="font-size:12px;color:#888">${likedNames}</div>
+loadComments(id);
 
-<input placeholder="Comment..." id="c_${id}">
-<button onclick="addComment('${id}')">Send</button>
-
-${commentsHTML}
-
-</div>
-`;
 }
 
 document.getElementById("feed").innerHTML = html;
 });
 
-// ❤️ LIKE
-window.likePost = async function(postId){
+// ❤️ LIKE POST
+window.like = async function(id){
 
-let snap = await get(ref(db,"posts/"+postId));
-let post = snap.val();
+let snap = await get(ref(db,"posts/"+id));
+let p = snap.val();
 
-let likedBy = post.likedBy || {};
+let liked = p.likedBy || {};
 
-let userSnap = await get(ref(db,"users/"+currentUser));
-let userData = userSnap.val();
-
-let username = "User";
-if(userData && userData.username){
-username = userData.username;
-}
-
-if(likedBy[currentUser]){
-delete likedBy[currentUser];
+if(liked[uid]){
+delete liked[uid];
 }else{
-likedBy[currentUser] = username;
+liked[uid]=true;
 }
 
-let newCount = Object.keys(likedBy).length;
-
-update(ref(db,"posts/"+postId),{
-likedBy: likedBy,
-likes: newCount
+update(ref(db,"posts/"+id),{
+likedBy:liked,
+likes:Object.keys(liked).length
 });
-
 }
 
-// 💬 COMMENT
-window.addComment = function(id){
-let text = document.getElementById("c_"+id).value;
+// 💬 ADD COMMENT
+window.addComment = function(postId){
+
+let text = document.getElementById("c_"+postId).value;
 if(!text) return;
 
-push(ref(db,"posts/"+id+"/comments"),text);
-
-document.getElementById("c_"+id).value = "";
+push(ref(db,"comments/"+postId),{
+text,
+user:uid,
+likes:0,
+likedBy:{}
+});
 }
+
+// 📥 LOAD COMMENTS
+function loadComments(postId){
+
+onValue(ref(db,"comments/"+postId),snap=>{
+
+let data = snap.val();
+let html="";
+
+for(let cid in data){
+
+let c = data[cid];
+
+html += `
+<div class="comment">
+${c.text}
+<br>
+<span class="small" onclick="likeComment('${postId}','${cid}')">❤️ ${c.likes||0}</span>
+<span class="small" onclick="reply('${postId}','${cid}')">Reply</span>
+
+<div id="reply_${cid}"></div>
+
+<input id="r_${cid}" placeholder="Reply...">
+<button onclick="sendReply('${postId}','${cid}')">Send</button>
+
+</div>
+`;
+
+loadReplies(postId,cid);
+
+}
+
+document.getElementById("comments_"+postId).innerHTML = html;
+
+});
+}
+
+// ❤️ LIKE COMMENT
+window.likeComment = async function(postId,cid){
+
+let snap = await get(ref(db,"comments/"+postId+"/"+cid));
+let c = snap.val();
+
+let liked = c.likedBy || {};
+
+if(liked[uid]){
+delete liked[uid];
+}else{
+liked[uid]=true;
+}
+
+update(ref(db,"comments/"+postId+"/"+cid),{
+likedBy:liked,
+likes:Object.keys(liked).length
+});
+}
+
+// 🔁 REPLY
+window.sendReply = function(postId,cid){
+
+let text = document.getElementById("r_"+cid).value;
+if(!text) return;
+
+push(ref(db,"replies/"+postId+"/"+cid),{
+text,
+user:uid
+});
+}
+
+// 📥 LOAD REPLIES
+function loadReplies(postId,cid){
+
+onValue(ref(db,"replies/"+postId+"/"+cid),snap=>{
+
+let data = snap.val();
+let html="";
+
+for(let r in data){
+html += `<div class="comment reply">${data[r].text}</div>`;
+}
+
+document.getElementById("reply_"+cid).innerHTML = html;
+
+});
+}
+
 </script>
 
 </body>
