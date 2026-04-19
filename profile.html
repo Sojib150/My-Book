@@ -4,236 +4,227 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-
 <style>
 body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:#f0f2f5;
-}
-
-/* header */
-.header{
-  background:#1877f2;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:18px;
-  font-weight:600;
+margin:0;
+font-family:Arial;
+background:#f0f2f5;
 }
 
 /* cover */
 .cover{
-  height:140px;
-  background:linear-gradient(135deg,#1877f2,#4facfe);
+height:150px;
+background:#1877f2;
 }
 
-/* profile section */
+/* profile */
 .profile{
-  background:white;
-  margin-top:-60px;
-  text-align:center;
-  padding:20px;
-  border-radius:15px 15px 0 0;
+text-align:center;
+margin-top:-50px;
 }
 
-/* profile img */
 .profile img{
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  border:4px solid white;
-  margin-top:-70px;
+width:100px;
+height:100px;
+border-radius:50%;
+border:4px solid white;
 }
 
-/* name */
 .name{
-  font-size:20px;
-  font-weight:600;
-  margin-top:10px;
+font-size:20px;
+font-weight:bold;
 }
 
-/* badge */
-.badge{
-  color:#1877f2;
-  font-size:14px;
-}
-
-/* bio */
 .bio{
-  color:#666;
-  margin:5px 0;
+color:#555;
 }
 
 /* buttons */
-.btns{
-  margin-top:10px;
-}
-
 .btn{
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  margin:5px;
-  font-size:14px;
+padding:8px 12px;
+border:none;
+border-radius:6px;
+margin:5px;
 }
 
-.follow{background:#1877f2;color:white;}
-.edit{background:#e4e6eb;}
+.blue{background:#1877f2;color:white;}
+.gray{background:#e4e6eb;}
 
-/* stats */
-.stats{
-  display:flex;
-  justify-content:space-around;
-  margin-top:15px;
-}
-
-.stats div{
-  font-size:14px;
-}
-
-/* posts */
-.post{
-  background:white;
-  margin:10px;
-  padding:15px;
-  border-radius:10px;
+/* card */
+.card{
+background:white;
+margin:10px;
+padding:10px;
+border-radius:10px;
 }
 
 /* nav */
 .nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:white;
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-  border-top:1px solid #ddd;
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:space-around;
+padding:10px;
+border-top:1px solid #ddd;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">Profile</div>
-
 <div class="cover"></div>
 
 <div class="profile">
 
-<img id="photo" src="https://i.pravatar.cc/150?img=3">
+<img id="photo" src="https://i.pravatar.cc/150">
 
-<div class="name">
-  <span id="name">User</span> ✔️
-</div>
+<br><br>
+
+<input type="file" id="img">
+
+<br>
+
+<button class="btn blue" onclick="uploadPhoto()">Upload Photo</button>
+
+<div class="name" id="name">User</div>
+
+<input id="newName" placeholder="Edit name">
+
+<br>
+
+<button class="btn gray" onclick="saveName()">Save</button>
 
 <div class="bio" id="bio">No bio</div>
 
-<div class="btns">
-<button class="btn edit" onclick="editProfile()">Edit</button>
-<button class="btn follow" onclick="followUser()">Follow</button>
-</div>
+<input id="newBio" placeholder="Edit bio">
 
-<div class="stats">
-<div><b id="followers">0</b><br>Followers</div>
-<div><b id="postsCount">0</b><br>Posts</div>
-</div>
+<br>
+
+<button class="btn gray" onclick="saveBio()">Save Bio</button>
 
 </div>
 
+<!-- friend requests -->
+<div class="card">
+<h3>Friend Requests</h3>
+<div id="req"></div>
+</div>
+
+<!-- posts -->
+<div class="card">
+<h3>My Posts</h3>
 <div id="posts"></div>
+</div>
+
+<button class="btn gray" onclick="logout()">Logout</button>
 
 <div class="nav">
 <a href="home.html">🏠</a>
-<a href="inbox.html">💬</a>
+<a href="chat.html">💬</a>
 <a href="profile.html">👤</a>
 </div>
 
 <script type="module">
-import { db, auth } from "./config.js";
+import { db, auth, storage } from "./config.js";
 import { ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let uid;
 
+// load user
 onAuthStateChanged(auth,(user)=>{
-if(user){
+if(!user) location.href="index.html";
 uid = user.uid;
-loadProfile();
-}else{
-location.href="index.html";
-}
-});
 
-function loadProfile(){
-
-// user info
+// load profile
 onValue(ref(db,"users/"+uid),snap=>{
 let d = snap.val();
-if(!d) return;
 
-document.getElementById("name").innerText = d.username || "User";
-document.getElementById("bio").innerText = d.bio || "No bio";
+name.innerText = d?.username || "User";
+bio.innerText = d?.bio || "No bio";
 
-if(d.photo){
-document.getElementById("photo").src = d.photo;
-}
+if(d?.photo) photo.src = d.photo;
 });
 
-// followers
-onValue(ref(db,"followers/"+uid),snap=>{
-let data = snap.val();
-let count = data ? Object.keys(data).length : 0;
-document.getElementById("followers").innerText = count;
-});
-
-// posts
+// load posts
 onValue(ref(db,"posts"),snap=>{
 let data = snap.val();
 let html="";
-let count=0;
 
 for(let id in data){
-let p=data[id];
-if(p.owner===uid){
-count++;
-html+=`<div class="post">${p.text}</div>`;
+let p = data[id];
+if(p.owner === uid){
+html += `<div>${p.text}</div>`;
 }
 }
 
-document.getElementById("posts").innerHTML = html;
-document.getElementById("postsCount").innerText = count;
+posts.innerHTML = html;
 });
 
+// requests
+onValue(ref(db,"requests/"+uid),snap=>{
+let data = snap.val();
+let html="";
+
+for(let from in data){
+html += `
+<div>
+${from}
+<button onclick="accept('${from}')">Accept</button>
+</div>
+`;
 }
 
-// ✏️ edit profile
-window.editProfile = function(){
-
-let name = prompt("Enter name");
-let bio = prompt("Enter bio");
-
-if(name){
-update(ref(db,"users/"+uid),{
-username:name,
-bio:bio
+req.innerHTML = html;
 });
+
+});
+
+// upload photo
+window.uploadPhoto = async function(){
+let file = document.getElementById("img").files[0];
+if(!file) return alert("Select image");
+
+let imgRef = sRef(storage,"profile/"+uid);
+await uploadBytes(imgRef,file);
+
+let url = await getDownloadURL(imgRef);
+
+update(ref(db,"users/"+uid),{photo:url});
 }
 
+// save name
+window.saveName = function(){
+let n = newName.value;
+if(!n) return;
+
+update(ref(db,"users/"+uid),{username:n});
 }
 
-// ❤️ follow system
-window.followUser = async function(){
+// save bio
+window.saveBio = function(){
+let b = newBio.value;
+if(!b) return;
 
-let target = prompt("Enter UID to follow");
+update(ref(db,"users/"+uid),{bio:b});
+}
 
-if(!target) return;
+// accept friend
+window.accept = async function(from){
 
-await set(ref(db,"followers/"+target+"/"+uid),true);
+await set(ref(db,"friends/"+uid+"/"+from),true);
+await set(ref(db,"friends/"+from+"/"+uid),true);
 
-alert("Followed!");
+await set(ref(db,"requests/"+uid+"/"+from),null);
+}
+
+// logout
+window.logout = function(){
+signOut(auth);
+location.href="index.html";
 }
 </script>
 
