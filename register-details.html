@@ -1,3 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Details</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f0f2f5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.box{
+  background:white;
+  padding:25px;
+  border-radius:10px;
+  width:300px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+
+button{
+  margin-top:15px;
+  padding:10px;
+  width:100%;
+  border:none;
+  background:#1877f2;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>Register</h2>
+
+<input id="username" placeholder="Username">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="register()">Create Account</button>
+
+<br><br>
+<a href="index.html">Back to Login</a>
+</div>
+
 <script type="module">
 import { auth, db } from "./config.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -16,11 +72,9 @@ return;
 
 try{
 
-// 🔐 create account
 let userCred = await createUserWithEmailAndPassword(auth,email,password);
 let uid = userCred.user.uid;
 
-// 💾 save extra data
 await set(ref(db,"users/"+uid),{
 username: username,
 email: email
@@ -28,7 +82,7 @@ email: email
 
 alert("Account Created ✅");
 
-// 👉 redirect
+// 👉 home page
 window.location.href = "home.html";
 
 }catch(e){
@@ -37,3 +91,6 @@ alert(e.message);
 
 }
 </script>
+
+</body>
+</html>
