@@ -4,134 +4,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-
 <style>
-body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:#f0f2f5;
-}
-
-/* header */
-.header{
-  background:#1877f2;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-weight:600;
-}
-
-/* post box */
-.upload{
-  display:flex;
-  gap:10px;
-  padding:10px;
-  background:white;
-}
-
-.upload input{
-  flex:1;
-  padding:10px;
-  border-radius:20px;
-  border:1px solid #ccc;
-}
-
-.upload button{
-  background:#1877f2;
-  color:white;
-  border:none;
-  padding:10px 15px;
-  border-radius:20px;
-}
-
-/* feed */
-.feed{
-  padding:10px;
-}
-
-.post{
-  background:white;
-  margin-bottom:12px;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-.post-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.avatar{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:#1877f2;
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.username{
-  font-weight:600;
-}
-
-.post-text{
-  margin:10px 0;
-}
-
-/* actions */
-.actions{
-  display:flex;
-  justify-content:space-around;
-  border-top:1px solid #eee;
-  padding-top:8px;
-}
-
-.actions button{
-  background:none;
-  border:none;
-  font-size:14px;
-  color:#555;
-}
-
-/* comments */
-.comment-box{
-  margin-top:10px;
-}
-
-.comment{
-  background:#f0f2f5;
-  padding:8px;
-  border-radius:8px;
-  margin-top:5px;
-  font-size:14px;
-}
-
-.reply{
-  margin-left:20px;
-}
-
-/* nav */
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:white;
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-  border-top:1px solid #ddd;
-}
+body{margin:0;font-family:Arial;background:#f0f2f5;}
+.header{background:#1877f2;color:white;padding:15px;text-align:center;}
+.upload{display:flex;padding:10px;background:white;}
+.upload input{flex:1;padding:10px;}
+.feed{padding:10px;}
+.post{background:white;margin-bottom:10px;padding:10px;border-radius:10px;}
+.nav{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px;}
 </style>
 </head>
 
 <body>
 
-<div class="header">🔥 My Social</div>
+<div class="header">Home</div>
 
 <div class="upload">
 <input id="text" placeholder="Write something...">
@@ -151,192 +37,80 @@ import { db, auth } from "./config.js";
 import { ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let currentUser = null;
+let currentUser;
 
-// auth check
 onAuthStateChanged(auth,(user)=>{
-if(user){
-currentUser = user.uid;
-}else{
-location.href="index.html";
-}
+if(user){currentUser=user.uid;}
+else location.href="index.html";
 });
 
-// POST
+// post
 window.postText = async function(){
-
 let text = document.getElementById("text").value;
-if(!text) return alert("Write something");
+if(!text) return;
 
 let snap = await get(ref(db,"users/"+currentUser));
-let userData = snap.val();
+let u = snap.val();
 
 await push(ref(db,"posts"),{
 text:text,
+user:u.username,
+owner:currentUser,
 likes:0,
-comments:{},
-user:userData?.username || "User",
-owner:currentUser
+likedBy:{}
 });
-
-document.getElementById("text").value = "";
 }
 
-// LOAD POSTS
+// show posts
 onValue(ref(db,"posts"),snap=>{
 let data = snap.val();
-
-if(!data){
-feed.innerHTML = "No posts yet";
-return;
-}
-
 let html="";
 
 for(let id in data){
+let p=data[id];
 
-let post = data[id];
-
-html += `
+html+=`
 <div class="post">
 
-<div class="post-header">
-<div class="avatar">👤</div>
-<div class="username">${post.user || "User"}</div>
+<div onclick="openProfile('${p.owner}')">
+<b>${p.user}</b>
 </div>
 
-<div class="post-text">${post.text}</div>
+<p>${p.text}</p>
 
-<div class="actions">
-<button onclick="likePost('${id}')">❤️ ${post.likes||0}</button>
-<button onclick="toggleComment('${id}')">💬 Comment</button>
-<button onclick="sharePost()">🔗 Share</button>
-</div>
-
-<div id="cbox_${id}" class="comment-box" style="display:none">
-
-<input id="c_${id}" placeholder="Write comment...">
-<button onclick="addComment('${id}')">Send</button>
-
-<div id="comments_${id}"></div>
-
-</div>
+<button onclick="likePost('${id}')">❤️ ${p.likes||0}</button>
 
 </div>
 `;
 }
 
-feed.innerHTML = html;
-
-// load comments
-for(let id in data){
-loadComments(id, data[id].comments);
-}
+feed.innerHTML=html;
 });
 
-// LIKE POST
+// like fix
 window.likePost = async function(id){
 let snap = await get(ref(db,"posts/"+id));
-let data = snap.val();
+let p = snap.val();
+
+let likedBy = p.likedBy || {};
+
+if(likedBy[currentUser]){
+delete likedBy[currentUser];
+}else{
+likedBy[currentUser]=true;
+}
 
 update(ref(db,"posts/"+id),{
-likes:(data.likes||0)+1
+likedBy:likedBy,
+likes:Object.keys(likedBy).length
 });
 }
 
-// COMMENT TOGGLE
-window.toggleComment = function(id){
-let box = document.getElementById("cbox_"+id);
-box.style.display = box.style.display==="none"?"block":"none";
+// open profile
+window.openProfile = function(uid){
+localStorage.setItem("viewUser",uid);
+location.href="user.html";
 }
-
-// ADD COMMENT
-window.addComment = function(id){
-let text = document.getElementById("c_"+id).value;
-if(!text) return;
-
-push(ref(db,"posts/"+id+"/comments"),{
-text:text,
-likes:0,
-replies:{}
-});
-}
-
-// LOAD COMMENTS
-function loadComments(postId, comments){
-
-if(!comments) return;
-
-let html="";
-
-for(let cid in comments){
-
-let c = comments[cid];
-
-html += `
-<div class="comment">
-${c.text}
-
-<br>
-<button onclick="likeComment('${postId}','${cid}')">❤️ ${c.likes||0}</button>
-<button onclick="replyBox('${cid}')">Reply</button>
-
-<div id="rbox_${cid}" style="display:none">
-<input id="r_${cid}" placeholder="Reply...">
-<button onclick="addReply('${postId}','${cid}')">Send</button>
-</div>
-
-${loadReplies(postId, cid, c.replies)}
-
-</div>
-`;
-}
-
-document.getElementById("comments_"+postId).innerHTML = html;
-}
-
-// REPLY BOX
-window.replyBox = function(cid){
-let box = document.getElementById("rbox_"+cid);
-box.style.display = box.style.display==="none"?"block":"none";
-}
-
-// ADD REPLY
-window.addReply = function(p,c){
-let text = document.getElementById("r_"+c).value;
-if(!text) return;
-
-push(ref(db,"posts/"+p+"/comments/"+c+"/replies"),{
-text:text
-});
-}
-
-// LOAD REPLIES
-function loadReplies(p,c,replies){
-if(!replies) return "";
-
-let html="";
-for(let r in replies){
-html += `<div class="comment reply">${replies[r].text}</div>`;
-}
-return html;
-}
-
-// LIKE COMMENT
-window.likeComment = async function(p,c){
-let snap = await get(ref(db,"posts/"+p+"/comments/"+c));
-let data = snap.val();
-
-update(ref(db,"posts/"+p+"/comments/"+c),{
-likes:(data.likes||0)+1
-});
-}
-
-// SHARE
-window.sharePost = function(){
-alert("Share coming soon 😎");
-}
-
 </script>
 
 </body>
