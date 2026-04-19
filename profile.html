@@ -4,10 +4,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
+  font-family:'Poppins',sans-serif;
   background:#f0f2f5;
 }
 
@@ -18,70 +20,85 @@ body{
   padding:15px;
   text-align:center;
   font-size:18px;
+  font-weight:600;
 }
 
-/* profile box */
+/* cover */
+.cover{
+  height:140px;
+  background:linear-gradient(135deg,#1877f2,#4facfe);
+}
+
+/* profile section */
 .profile{
   background:white;
-  padding:20px;
+  margin-top:-60px;
   text-align:center;
+  padding:20px;
+  border-radius:15px 15px 0 0;
 }
 
+/* profile img */
 .profile img{
-  width:100px;
-  height:100px;
+  width:110px;
+  height:110px;
   border-radius:50%;
+  border:4px solid white;
+  margin-top:-70px;
 }
 
+/* name */
 .name{
   font-size:20px;
-  font-weight:bold;
+  font-weight:600;
+  margin-top:10px;
 }
 
+/* badge */
 .badge{
   color:#1877f2;
   font-size:14px;
 }
 
+/* bio */
 .bio{
-  color:#555;
-  margin-top:5px;
+  color:#666;
+  margin:5px 0;
+}
+
+/* buttons */
+.btns{
+  margin-top:10px;
 }
 
 .btn{
-  padding:8px 12px;
+  padding:8px 14px;
   border:none;
-  border-radius:5px;
+  border-radius:6px;
   margin:5px;
+  font-size:14px;
 }
 
-.blue{background:#1877f2;color:white;}
-.gray{background:#ddd;}
+.follow{background:#1877f2;color:white;}
+.edit{background:#e4e6eb;}
 
-/* edit popup */
-.popup{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.5);
-  display:none;
-  justify-content:center;
-  align-items:center;
+/* stats */
+.stats{
+  display:flex;
+  justify-content:space-around;
+  margin-top:15px;
 }
 
-.popup-box{
+.stats div{
+  font-size:14px;
+}
+
+/* posts */
+.post{
   background:white;
-  padding:20px;
+  margin:10px;
+  padding:15px;
   border-radius:10px;
-  width:300px;
-}
-
-.popup input{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
 }
 
 /* nav */
@@ -102,38 +119,31 @@ body{
 
 <div class="header">Profile</div>
 
+<div class="cover"></div>
+
 <div class="profile">
 
-<img id="photo" src="https://i.pravatar.cc/150">
+<img id="photo" src="https://i.pravatar.cc/150?img=3">
 
 <div class="name">
-<span id="name">User</span>
-<span id="badge" class="badge"></span>
+  <span id="name">User</span> ✔️
 </div>
 
 <div class="bio" id="bio">No bio</div>
 
-<button class="btn gray" onclick="openEdit()">Edit Profile</button>
-<button class="btn blue" id="followBtn" onclick="follow()">Follow</button>
+<div class="btns">
+<button class="btn edit" onclick="editProfile()">Edit</button>
+<button class="btn follow" onclick="followUser()">Follow</button>
+</div>
 
-<div id="followers">0 Followers</div>
+<div class="stats">
+<div><b id="followers">0</b><br>Followers</div>
+<div><b id="postsCount">0</b><br>Posts</div>
+</div>
 
 </div>
 
-<!-- ✏️ popup -->
-<div class="popup" id="popup">
-<div class="popup-box">
-
-<h3>Edit Profile</h3>
-
-<input id="newName" placeholder="Name">
-<input id="newBio" placeholder="Bio">
-
-<button class="btn blue" onclick="save()">Save</button>
-<button class="btn gray" onclick="closeEdit()">Cancel</button>
-
-</div>
-</div>
+<div id="posts"></div>
 
 <div class="nav">
 <a href="home.html">🏠</a>
@@ -143,107 +153,88 @@ body{
 
 <script type="module">
 import { db, auth } from "./config.js";
-import { ref, onValue, update, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let uid;
-let profileId = new URLSearchParams(location.search).get("uid");
 
 onAuthStateChanged(auth,(user)=>{
 if(user){
 uid = user.uid;
-if(!profileId) profileId = uid;
 loadProfile();
 }else{
 location.href="index.html";
 }
 });
 
-// 🔥 LOAD PROFILE
 function loadProfile(){
 
-onValue(ref(db,"users/"+profileId),snap=>{
+// user info
+onValue(ref(db,"users/"+uid),snap=>{
 let d = snap.val();
 if(!d) return;
 
-name.innerText = d.username || "User";
-bio.innerText = d.bio || "No bio";
+document.getElementById("name").innerText = d.username || "User";
+document.getElementById("bio").innerText = d.bio || "No bio";
 
-if(d.photo) photo.src = d.photo;
-
-// ✔️ verified badge
-if(d.verified){
-badge.innerText = " ✔️";
-}else{
-badge.innerText = "";
-}
-
-});
-
-// followers count
-onValue(ref(db,"followers/"+profileId),snap=>{
-let count = snap.val() ? Object.keys(snap.val()).length : 0;
-followers.innerText = count+" Followers";
-});
-
-// follow button state
-get(ref(db,"followers/"+profileId+"/"+uid)).then(snap=>{
-if(snap.exists()){
-followBtn.innerText="Following";
-}else{
-followBtn.innerText="Follow";
+if(d.photo){
+document.getElementById("photo").src = d.photo;
 }
 });
 
+// followers
+onValue(ref(db,"followers/"+uid),snap=>{
+let data = snap.val();
+let count = data ? Object.keys(data).length : 0;
+document.getElementById("followers").innerText = count;
+});
+
+// posts
+onValue(ref(db,"posts"),snap=>{
+let data = snap.val();
+let html="";
+let count=0;
+
+for(let id in data){
+let p=data[id];
+if(p.owner===uid){
+count++;
+html+=`<div class="post">${p.text}</div>`;
+}
 }
 
-// ❤️ FOLLOW SYSTEM
-window.follow = async function(){
-
-if(profileId===uid) return;
-
-let ref1 = ref(db,"followers/"+profileId+"/"+uid);
-let ref2 = ref(db,"following/"+uid+"/"+profileId);
-
-let snap = await get(ref1);
-
-if(snap.exists()){
-// unfollow
-set(ref1,null);
-set(ref2,null);
-followBtn.innerText="Follow";
-}else{
-// follow
-set(ref1,true);
-set(ref2,true);
-followBtn.innerText="Following";
-}
+document.getElementById("posts").innerHTML = html;
+document.getElementById("postsCount").innerText = count;
+});
 
 }
 
-// ✏️ EDIT UI
-window.openEdit = function(){
-popup.style.display="flex";
-}
+// ✏️ edit profile
+window.editProfile = function(){
 
-window.closeEdit = function(){
-popup.style.display="none";
-}
+let name = prompt("Enter name");
+let bio = prompt("Enter bio");
 
-// 💾 SAVE PROFILE
-window.save = function(){
-
-let n = newName.value;
-let b = newBio.value;
-
+if(name){
 update(ref(db,"users/"+uid),{
-username:n,
-bio:b
+username:name,
+bio:bio
 });
-
-closeEdit();
 }
 
+}
+
+// ❤️ follow system
+window.followUser = async function(){
+
+let target = prompt("Enter UID to follow");
+
+if(!target) return;
+
+await set(ref(db,"followers/"+target+"/"+uid),true);
+
+alert("Followed!");
+}
 </script>
 
 </body>
