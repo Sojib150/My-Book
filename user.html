@@ -1,64 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Users</title>
-
-<style>
-body{margin:0;font-family:Arial;background:#f0f2f5;}
-.header{background:#1877f2;color:white;padding:15px;text-align:center;}
-.user{background:white;margin:10px;padding:10px;border-radius:10px;display:flex;justify-content:space-between;}
-button{background:#1877f2;color:white;border:none;padding:6px 10px;border-radius:5px;}
-</style>
+<title>User</title>
 </head>
 
 <body>
 
-<div class="header">Users</div>
-<div id="list"></div>
+<h2 id="name">User</h2>
+
+<button id="btn"></button>
+
+<div id="posts"></div>
 
 <script type="module">
 import { db, auth } from "./config.js";
-import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let uid;
+let viewUID = localStorage.getItem("viewUser");
 
 onAuthStateChanged(auth,(user)=>{
-if(user){
-uid = user.uid;
-loadUsers();
-}else{
-location.href="login.html";
-}
+uid=user.uid;
+load();
 });
 
-function loadUsers(){
-onValue(ref(db,"users"),snap=>{
-let data = snap.val();
+function load(){
+
+// name
+onValue(ref(db,"users/"+viewUID),snap=>{
+name.innerText = snap.val()?.username || "User";
+});
+
+// posts
+onValue(ref(db,"posts"),snap=>{
+let data=snap.val();
 let html="";
-
 for(let id in data){
-
-if(id===uid) continue;
-
-let u = data[id];
-
-html+=`
-<div class="user">
-<div>${u.username || "User"}</div>
-<button onclick="sendReq('${id}')">Add</button>
-</div>
-`;
+let p=data[id];
+if(p.owner===viewUID){
+html+=`<p>${p.text}</p>`;
 }
-
-document.getElementById("list").innerHTML = html;
+}
+posts.innerHTML=html;
 });
+
+// friend status
+get(ref(db,"friends/"+uid+"/"+viewUID)).then(snap=>{
+if(snap.exists()){
+btn.innerText="Friends";
+}else{
+btn.innerText="Add Friend";
+btn.onclick=sendRequest;
+}
+});
+
 }
 
-// 📩 SEND REQUEST
-window.sendReq = function(target){
-set(ref(db,"requests/"+target+"/"+uid),true);
+// send request
+window.sendRequest = async function(){
+await set(ref(db,"requests/"+viewUID+"/"+uid),true);
 alert("Request Sent");
 }
 </script>
