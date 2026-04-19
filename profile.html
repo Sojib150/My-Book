@@ -4,92 +4,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
 
-<link rel="stylesheet" href="style.css">
-
 <style>
 body{
   margin:0;
-  font-family:Poppins;
+  font-family:Arial;
   background:#f0f2f5;
 }
 
-/* cover */
-.cover{
-  height:150px;
+.header{
   background:#1877f2;
-  position:relative;
+  color:white;
+  padding:15px;
+  text-align:center;
 }
 
-.cover img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+.profile{
+  background:white;
+  padding:20px;
+  text-align:center;
 }
 
-/* profile pic */
-.profile-pic{
+.profile img{
   width:100px;
   height:100px;
   border-radius:50%;
-  border:4px solid white;
-  position:absolute;
-  bottom:-50px;
-  left:50%;
-  transform:translateX(-50%);
 }
 
-/* info */
-.info{
-  text-align:center;
-  margin-top:60px;
-}
-
-.username{
+.name{
   font-size:20px;
-  font-weight:600;
+  font-weight:bold;
 }
 
-.bio{
+.info{
   color:#555;
+  margin-top:5px;
 }
 
-/* stats */
-.stats{
-  display:flex;
-  justify-content:space-around;
-  margin:15px;
-}
-
-.stats div{
-  text-align:center;
-}
-
-/* buttons */
-.btn{
-  padding:8px 12px;
-  border:none;
-  border-radius:6px;
-  margin:5px;
-}
-
-.blue{background:#1877f2;color:white;}
-.gray{background:#e4e6eb;}
-
-/* posts grid */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  padding:5px;
-}
-
-.grid img{
-  width:100%;
-  height:100px;
-  object-fit:cover;
-}
-
-/* nav */
 .nav{
   position:fixed;
   bottom:0;
@@ -105,64 +55,34 @@ body{
 
 <body>
 
-<!-- cover -->
-<div class="cover">
-<img id="coverImg" src="https://via.placeholder.com/400x150">
-<img id="photo" class="profile-pic" src="https://i.pravatar.cc/150">
+<div class="header">Profile</div>
+
+<div class="profile">
+<img id="photo" src="https://i.pravatar.cc/150">
+
+<div class="name" id="name">User</div>
+
+<div class="info" id="email"></div>
+<div class="info" id="dob"></div>
+
 </div>
 
-<div class="info">
-<div class="username" id="name">User</div>
-<div class="bio" id="bio">No bio</div>
-
-<input id="newName" placeholder="Edit name"><br>
-<input id="newBio" placeholder="Edit bio"><br>
-
-<button class="btn gray" onclick="saveProfile()">Save</button>
-
-<br>
-
-<input type="file" id="photoInput">
-<button class="btn blue" onclick="uploadPhoto()">Photo</button>
-
-<input type="file" id="coverInput">
-<button class="btn blue" onclick="uploadCover()">Cover</button>
-
-<br>
-
-<button id="followBtn" class="btn blue" onclick="follow()">Follow</button>
-</div>
-
-<!-- stats -->
-<div class="stats">
-<div><b id="postCount">0</b><br>Posts</div>
-<div><b id="followers">0</b><br>Followers</div>
-<div><b id="following">0</b><br>Following</div>
-</div>
-
-<!-- posts -->
-<div class="grid" id="posts"></div>
-
-<!-- nav -->
 <div class="nav">
 <a href="home.html">🏠</a>
-<a href="chat.html">💬</a>
+<a href="inbox.html">💬</a>
 <a href="profile.html">👤</a>
 </div>
 
 <script type="module">
-import { db, auth, storage } from "./config.js";
-import { ref, onValue, update, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { db, auth } from "./config.js";
+import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let uid;
-let profileId = new URLSearchParams(location.search).get("uid");
 
 onAuthStateChanged(auth,(user)=>{
 if(user){
 uid = user.uid;
-if(!profileId) profileId = uid;
 loadProfile();
 }else{
 location.href="index.html";
@@ -171,108 +91,20 @@ location.href="index.html";
 
 function loadProfile(){
 
-// user data
-onValue(ref(db,"users/"+profileId),snap=>{
+onValue(ref(db,"users/"+uid),snap=>{
+
 let d = snap.val();
 if(!d) return;
 
-name.innerText = d.username || "User";
-bio.innerText = d.bio || "No bio";
+document.getElementById("name").innerText = d.username || "User";
+document.getElementById("email").innerText = d.email || "";
+document.getElementById("dob").innerText = d.dob || "";
 
-if(d.photo) photo.src = d.photo;
-if(d.cover) coverImg.src = d.cover;
+if(d.photo){
+document.getElementById("photo").src = d.photo;
+}
+
 });
-
-// followers
-onValue(ref(db,"followers/"+profileId),snap=>{
-let count = snap.val() ? Object.keys(snap.val()).length : 0;
-followers.innerText = count;
-});
-
-// following
-onValue(ref(db,"following/"+profileId),snap=>{
-let count = snap.val() ? Object.keys(snap.val()).length : 0;
-following.innerText = count;
-});
-
-// posts
-onValue(ref(db,"posts"),snap=>{
-let data = snap.val();
-let html="";
-let count=0;
-
-for(let id in data){
-let p=data[id];
-if(p.owner===profileId){
-count++;
-if(p.image){
-html+=`<img src="${p.image}">`;
-}
-}
-}
-
-postCount.innerText = count;
-posts.innerHTML = html;
-});
-
-}
-
-// ✏️ save profile
-window.saveProfile = function(){
-let n = newName.value;
-let b = newBio.value;
-
-update(ref(db,"users/"+uid),{
-username:n,
-bio:b
-});
-}
-
-// 📸 photo
-window.uploadPhoto = async function(){
-let file = photoInput.files[0];
-if(!file) return;
-
-let r = sRef(storage,"profile/"+uid);
-await uploadBytes(r,file);
-let url = await getDownloadURL(r);
-
-update(ref(db,"users/"+uid),{photo:url});
-}
-
-// 🖼 cover
-window.uploadCover = async function(){
-let file = coverInput.files[0];
-if(!file) return;
-
-let r = sRef(storage,"cover/"+uid);
-await uploadBytes(r,file);
-let url = await getDownloadURL(r);
-
-update(ref(db,"users/"+uid),{cover:url});
-}
-
-// ❤️ follow system
-window.follow = async function(){
-
-if(profileId===uid) return;
-
-let ref1 = ref(db,"followers/"+profileId+"/"+uid);
-let ref2 = ref(db,"following/"+uid+"/"+profileId);
-
-let snap = await get(ref1);
-
-if(snap.exists()){
-// unfollow
-set(ref1,null);
-set(ref2,null);
-followBtn.innerText="Follow";
-}else{
-// follow
-set(ref1,true);
-set(ref2,true);
-followBtn.innerText="Following";
-}
 
 }
 </script>
