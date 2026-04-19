@@ -1,14 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inbox</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
-.header{padding:15px;text-align:center;border-bottom:1px solid #222;}
-.user{display:flex;align-items:center;padding:10px;border-bottom:1px solid #222;}
-.user img{width:40px;height:40px;border-radius:50%;margin-right:10px;}
+body{margin:0;font-family:Arial;background:#f0f2f5;}
+.header{background:#1877f2;color:white;padding:15px;text-align:center;}
+.user{
+  background:white;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.name{font-weight:bold;}
+button{
+  padding:6px 10px;
+  border:none;
+  background:#1877f2;
+  color:white;
+  border-radius:5px;
+}
 </style>
 </head>
 
@@ -19,43 +34,58 @@ body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
 
 <script type="module">
 import { db, auth } from "./config.js";
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let myId;
+let uid;
 
 onAuthStateChanged(auth,(user)=>{
 if(user){
-myId = user.uid;
+uid = user.uid;
+loadFriends();
 }else{
-location.href="login.html";
+location.href="index.html";
 }
 });
 
-// load users
-onValue(ref(db,"users"),snap=>{
+// 👥 load friends
+function loadFriends(){
+
+onValue(ref(db,"friends/"+uid), async snap=>{
+
 let data = snap.val();
-let html = "";
+let html="";
 
-for(let uid in data){
+if(!data){
+html = "<p style='text-align:center'>No friends</p>";
+document.getElementById("list").innerHTML = html;
+return;
+}
 
-if(uid === myId) continue;
+for(let fid in data){
 
-let u = data[uid];
+let userSnap = await get(ref(db,"users/"+fid));
+let user = userSnap.val();
 
 html += `
-<div class="user" onclick="openChat('${uid}')">
-<img src="${u.photo}">
-<div>${u.name}</div>
+<div class="user">
+<div class="name">${user?.username || "User"}</div>
+<button onclick="openChat('${fid}')">Chat</button>
 </div>
 `;
+
 }
 
 document.getElementById("list").innerHTML = html;
+
 });
 
-window.openChat = function(uid){
-location.href = "chat.html?uid="+uid;
+}
+
+// 👉 open chat
+window.openChat = function(fid){
+localStorage.setItem("chatUser", fid);
+window.location.href = "chat.html";
 }
 </script>
 
