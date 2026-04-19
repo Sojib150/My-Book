@@ -4,10 +4,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
+  font-family:'Poppins',sans-serif;
   background:#f0f2f5;
 }
 
@@ -17,66 +19,103 @@ body{
   color:white;
   padding:15px;
   text-align:center;
-  font-size:18px;
-  font-weight:bold;
+  font-weight:600;
 }
 
 /* post box */
-.postBox{
+.upload{
   display:flex;
+  gap:10px;
   padding:10px;
   background:white;
 }
-.postBox input{
+
+.upload input{
   flex:1;
   padding:10px;
   border-radius:20px;
-  border:1px solid #ddd;
+  border:1px solid #ccc;
 }
-.postBox button{
-  margin-left:10px;
-  padding:10px;
-  border:none;
+
+.upload button{
   background:#1877f2;
   color:white;
+  border:none;
+  padding:10px 15px;
   border-radius:20px;
 }
 
-/* post */
-.post{
-  background:white;
-  margin:10px;
+/* feed */
+.feed{
   padding:10px;
-  border-radius:10px;
 }
 
-.top{
-  font-weight:bold;
+.post{
+  background:white;
+  margin-bottom:12px;
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.post-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#1877f2;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.username{
+  font-weight:600;
+}
+
+.post-text{
+  margin:10px 0;
+}
+
+/* actions */
+.actions{
+  display:flex;
+  justify-content:space-around;
+  border-top:1px solid #eee;
+  padding-top:8px;
 }
 
 .actions button{
-  margin:5px;
+  background:none;
+  border:none;
+  font-size:14px;
+  color:#555;
 }
 
-/* comment */
+/* comments */
+.comment-box{
+  margin-top:10px;
+}
+
 .comment{
   background:#f0f2f5;
   padding:8px;
-  border-radius:10px;
+  border-radius:8px;
   margin-top:5px;
+  font-size:14px;
 }
 
 .reply{
   margin-left:20px;
-  background:#e4e6eb;
 }
 
-.small{
-  font-size:12px;
-  color:#555;
-  cursor:pointer;
-}
-
+/* nav */
 .nav{
   position:fixed;
   bottom:0;
@@ -94,16 +133,16 @@ body{
 
 <div class="header">🔥 My Social</div>
 
-<div class="postBox">
+<div class="upload">
 <input id="text" placeholder="Write something...">
-<button onclick="post()">Post</button>
+<button onclick="postText()">Post</button>
 </div>
 
-<div id="feed"></div>
+<div id="feed" class="feed"></div>
 
 <div class="nav">
 <a href="home.html">🏠</a>
-<a href="inbox.html">💬</a>
+<a href="chat.html">💬</a>
 <a href="profile.html">👤</a>
 </div>
 
@@ -112,186 +151,190 @@ import { db, auth } from "./config.js";
 import { ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let uid;
+let currentUser = null;
 
+// auth check
 onAuthStateChanged(auth,(user)=>{
 if(user){
-uid = user.uid;
+currentUser = user.uid;
 }else{
 location.href="index.html";
 }
 });
 
-// 📌 POST
-window.post = async function(){
+// POST
+window.postText = async function(){
 
 let text = document.getElementById("text").value;
-if(!text) return;
+if(!text) return alert("Write something");
 
-let userSnap = await get(ref(db,"users/"+uid));
-let user = userSnap.val();
+let snap = await get(ref(db,"users/"+currentUser));
+let userData = snap.val();
 
-push(ref(db,"posts"),{
-text,
-user:user.username,
-owner:uid,
+await push(ref(db,"posts"),{
+text:text,
 likes:0,
-likedBy:{}
+comments:{},
+user:userData?.username || "User",
+owner:currentUser
 });
 
-document.getElementById("text").value="";
+document.getElementById("text").value = "";
 }
 
-// 📌 SHOW POSTS
+// LOAD POSTS
 onValue(ref(db,"posts"),snap=>{
 let data = snap.val();
+
+if(!data){
+feed.innerHTML = "No posts yet";
+return;
+}
+
 let html="";
 
 for(let id in data){
 
-let p = data[id];
+let post = data[id];
 
 html += `
 <div class="post">
-<div class="top">👤 ${p.user}</div>
-<p>${p.text}</p>
+
+<div class="post-header">
+<div class="avatar">👤</div>
+<div class="username">${post.user || "User"}</div>
+</div>
+
+<div class="post-text">${post.text}</div>
 
 <div class="actions">
-<button onclick="like('${id}')">❤️ ${p.likes||0}</button>
+<button onclick="likePost('${id}')">❤️ ${post.likes||0}</button>
+<button onclick="toggleComment('${id}')">💬 Comment</button>
+<button onclick="sharePost()">🔗 Share</button>
 </div>
+
+<div id="cbox_${id}" class="comment-box" style="display:none">
+
+<input id="c_${id}" placeholder="Write comment...">
+<button onclick="addComment('${id}')">Send</button>
 
 <div id="comments_${id}"></div>
 
-<input placeholder="Write comment..." id="c_${id}">
-<button onclick="addComment('${id}')">Send</button>
+</div>
 
 </div>
 `;
-
-loadComments(id);
-
 }
 
-document.getElementById("feed").innerHTML = html;
+feed.innerHTML = html;
+
+// load comments
+for(let id in data){
+loadComments(id, data[id].comments);
+}
 });
 
-// ❤️ LIKE POST
-window.like = async function(id){
-
+// LIKE POST
+window.likePost = async function(id){
 let snap = await get(ref(db,"posts/"+id));
-let p = snap.val();
-
-let liked = p.likedBy || {};
-
-if(liked[uid]){
-delete liked[uid];
-}else{
-liked[uid]=true;
-}
+let data = snap.val();
 
 update(ref(db,"posts/"+id),{
-likedBy:liked,
-likes:Object.keys(liked).length
+likes:(data.likes||0)+1
 });
 }
 
-// 💬 ADD COMMENT
-window.addComment = function(postId){
+// COMMENT TOGGLE
+window.toggleComment = function(id){
+let box = document.getElementById("cbox_"+id);
+box.style.display = box.style.display==="none"?"block":"none";
+}
 
-let text = document.getElementById("c_"+postId).value;
+// ADD COMMENT
+window.addComment = function(id){
+let text = document.getElementById("c_"+id).value;
 if(!text) return;
 
-push(ref(db,"comments/"+postId),{
-text,
-user:uid,
+push(ref(db,"posts/"+id+"/comments"),{
+text:text,
 likes:0,
-likedBy:{}
+replies:{}
 });
 }
 
-// 📥 LOAD COMMENTS
-function loadComments(postId){
+// LOAD COMMENTS
+function loadComments(postId, comments){
 
-onValue(ref(db,"comments/"+postId),snap=>{
+if(!comments) return;
 
-let data = snap.val();
 let html="";
 
-for(let cid in data){
+for(let cid in comments){
 
-let c = data[cid];
+let c = comments[cid];
 
 html += `
 <div class="comment">
 ${c.text}
+
 <br>
-<span class="small" onclick="likeComment('${postId}','${cid}')">❤️ ${c.likes||0}</span>
-<span class="small" onclick="reply('${postId}','${cid}')">Reply</span>
+<button onclick="likeComment('${postId}','${cid}')">❤️ ${c.likes||0}</button>
+<button onclick="replyBox('${cid}')">Reply</button>
 
-<div id="reply_${cid}"></div>
-
+<div id="rbox_${cid}" style="display:none">
 <input id="r_${cid}" placeholder="Reply...">
-<button onclick="sendReply('${postId}','${cid}')">Send</button>
+<button onclick="addReply('${postId}','${cid}')">Send</button>
+</div>
+
+${loadReplies(postId, cid, c.replies)}
 
 </div>
 `;
-
-loadReplies(postId,cid);
-
 }
 
 document.getElementById("comments_"+postId).innerHTML = html;
-
-});
 }
 
-// ❤️ LIKE COMMENT
-window.likeComment = async function(postId,cid){
-
-let snap = await get(ref(db,"comments/"+postId+"/"+cid));
-let c = snap.val();
-
-let liked = c.likedBy || {};
-
-if(liked[uid]){
-delete liked[uid];
-}else{
-liked[uid]=true;
+// REPLY BOX
+window.replyBox = function(cid){
+let box = document.getElementById("rbox_"+cid);
+box.style.display = box.style.display==="none"?"block":"none";
 }
 
-update(ref(db,"comments/"+postId+"/"+cid),{
-likedBy:liked,
-likes:Object.keys(liked).length
-});
-}
-
-// 🔁 REPLY
-window.sendReply = function(postId,cid){
-
-let text = document.getElementById("r_"+cid).value;
+// ADD REPLY
+window.addReply = function(p,c){
+let text = document.getElementById("r_"+c).value;
 if(!text) return;
 
-push(ref(db,"replies/"+postId+"/"+cid),{
-text,
-user:uid
+push(ref(db,"posts/"+p+"/comments/"+c+"/replies"),{
+text:text
 });
 }
 
-// 📥 LOAD REPLIES
-function loadReplies(postId,cid){
+// LOAD REPLIES
+function loadReplies(p,c,replies){
+if(!replies) return "";
 
-onValue(ref(db,"replies/"+postId+"/"+cid),snap=>{
-
-let data = snap.val();
 let html="";
-
-for(let r in data){
-html += `<div class="comment reply">${data[r].text}</div>`;
+for(let r in replies){
+html += `<div class="comment reply">${replies[r].text}</div>`;
+}
+return html;
 }
 
-document.getElementById("reply_"+cid).innerHTML = html;
+// LIKE COMMENT
+window.likeComment = async function(p,c){
+let snap = await get(ref(db,"posts/"+p+"/comments/"+c));
+let data = snap.val();
 
+update(ref(db,"posts/"+p+"/comments/"+c),{
+likes:(data.likes||0)+1
 });
+}
+
+// SHARE
+window.sharePost = function(){
+alert("Share coming soon 😎");
 }
 
 </script>
