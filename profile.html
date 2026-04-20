@@ -3,203 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Profile - My Book</title>
+    <title>My Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen pb-20">
 
-    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4">
+    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <a href="home.html" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-50 transition">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="font-bold text-gray-800">প্রোফাইল</h1>
-            <button id="editNameBtn" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded-full font-bold shadow-md active:scale-95 transition">EDIT NAME</button>
+            <a href="home.html" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></a>
+            <h1 id="topName" class="font-bold text-gray-800 text-sm uppercase tracking-widest">আমার প্রোফাইল</h1>
+            <a href="edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto bg-white shadow-sm border-b relative">
-        <div class="h-40 bg-gradient-to-r from-blue-400 to-blue-600 relative group overflow-hidden">
+    <div class="max-w-md mx-auto bg-white shadow-sm border-b overflow-hidden">
+        <div class="h-40 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
             <img id="coverImg" src="" class="w-full h-full object-cover hidden">
-            <div id="coverPlaceholder" class="w-full h-full flex items-center justify-center text-white/50 italic text-sm">No Cover Photo</div>
-            <label class="absolute bottom-3 right-3 bg-black/40 backdrop-blur-md text-white p-2 rounded-full cursor-pointer hover:bg-black/60 transition shadow-lg">
-                <i class="fas fa-camera"></i>
-                <input type="file" id="coverInput" class="hidden" accept="image/*">
-            </label>
         </div>
-        
-        <div class="px-6 pb-6">
+
+        <div class="px-6 pb-6 text-center">
             <div class="relative flex justify-center -mt-16">
-                <div class="relative">
-                    <div id="uAvatar" class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
-                        <img id="profileImg" src="" class="w-full h-full object-cover hidden">
-                        <span id="initialText">?</span>
-                    </div>
-                    <label class="absolute bottom-1 right-1 bg-blue-600 text-white w-9 h-9 rounded-full border-4 border-white flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition">
-                        <i class="fas fa-pen text-[12px]"></i>
-                        <input type="file" id="profileInput" class="hidden" accept="image/*">
-                    </label>
+                <div class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
+                    <img id="profileImg" src="" class="w-full h-full object-cover hidden">
+                    <span id="initialText">?</span>
                 </div>
-            </div>
-            
-            <div class="text-center mt-4">
-                <h2 id="uName" class="text-2xl font-black text-gray-800 tracking-tight leading-none">Loading...</h2>
-                <p id="uEmail" class="text-gray-400 text-xs mt-2 font-medium"></p>
             </div>
 
-            <div class="flex justify-center gap-12 mt-8 border-t pt-5 text-center">
-                <div class="group cursor-pointer">
-                    <p id="pCount" class="font-black text-xl text-gray-800">0</p>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest group-hover:text-blue-500 transition">Posts</p>
+            <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none italic">লোড হচ্ছে...</h2>
+            <p id="uBio" class="text-gray-400 text-xs mt-2 px-4"></p>
+
+            <div class="mt-5">
+                <a href="edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-95 transition">
+                    Edit Profile
+                </a>
+            </div>
+
+            <div class="flex justify-around mt-8 border-t pt-6">
+                <div class="cursor-pointer">
+                    <p id="pCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Posts</p>
                 </div>
-                <div class="group cursor-pointer">
-                    <p class="font-black text-xl text-gray-800">0</p>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest group-hover:text-blue-500 transition">Followers</p>
+                <div class="cursor-pointer" onclick="openModal('followers')">
+                    <p id="followerCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Followers</p>
+                </div>
+                <div class="cursor-pointer" onclick="openModal('following')">
+                    <p id="followingCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Following</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-2 bg-white">
-        <div class="flex border-b">
-            <button class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600 transition">
-                <i class="fas fa-th"></i>
-            </button>
-            <button class="flex-1 py-3 text-gray-400 hover:text-gray-600 transition">
-                <i class="fas fa-video"></i>
-            </button>
-            <button class="flex-1 py-3 text-gray-400 hover:text-gray-600 transition">
-                <i class="fas fa-bookmark"></i>
-            </button>
-        </div>
-        
-        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5">
+    <div class="max-w-md mx-auto mt-2 bg-white min-h-screen">
+        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
+    </div>
+
+    <div id="listModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 h-[70vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-sm">List</h3>
+                <button onclick="closeModal()" class="text-gray-400 text-xl">&times;</button>
             </div>
+            <div id="modalList" class="space-y-4"></div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        const cloudName = "dlpwdx288";
-        const uploadPreset = "Video_upload";
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if(!user) return;
-            loadUserData(user);
-            loadUserPosts(user.uid);
+        let uid = null;
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                uid = user.uid;
+                loadProfile();
+                loadStats();
+                loadPosts();
+            } else { window.location.href = "index.html"; }
         });
 
-        // Load User Data (Name, Profile Pic, Cover)
-        async function loadUserData(user) {
-            const name = user.displayName || user.email.split('@')[0];
-            document.getElementById('uName').innerText = name;
-            document.getElementById('uEmail').innerText = user.email;
-            document.getElementById('initialText').innerText = name[0].toUpperCase();
-
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                if (data.profilePic) {
-                    const pImg = document.getElementById('profileImg');
-                    pImg.src = data.profilePic;
-                    pImg.classList.remove('hidden');
+        // প্রোফাইল ডাটা লোড
+        async function loadProfile() {
+            const snap = await getDoc(doc(db, "users", uid));
+            if(snap.exists()) {
+                const d = snap.data();
+                const name = d.name || auth.currentUser.email.split('@')[0];
+                document.getElementById('uName').innerText = name;
+                document.getElementById('topName').innerText = name;
+                document.getElementById('uBio').innerText = d.bio || "No bio yet.";
+                document.getElementById('initialText').innerText = name[0].toUpperCase();
+                
+                if(d.profilePic) {
+                    const img = document.getElementById('profileImg');
+                    img.src = d.profilePic; img.classList.remove('hidden');
                     document.getElementById('initialText').classList.add('hidden');
                 }
-                if (data.coverPic) {
-                    const cImg = document.getElementById('coverImg');
-                    cImg.src = data.coverPic;
-                    cImg.classList.remove('hidden');
-                    document.getElementById('coverPlaceholder').classList.add('hidden');
+                if(d.coverPic) {
+                    const img = document.getElementById('coverImg');
+                    img.src = d.coverPic; img.classList.remove('hidden');
                 }
             }
         }
 
-        // 3. Icon & Cloudinary Integration
-        async function uploadToCloudinary(file) {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", uploadPreset);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: formData });
-            const data = await res.json();
-            return data.secure_url;
+        // ফলোয়ার ও ফলোয়িং সংখ্যা
+        function loadStats() {
+            onSnapshot(collection(db, "users", uid, "followers"), s => document.getElementById('followerCount').innerText = s.size);
+            onSnapshot(collection(db, "users", uid, "following"), s => document.getElementById('followingCount').innerText = s.size);
         }
 
-        // Profile Update
-        document.getElementById('profileInput').onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            try {
-                const url = await uploadToCloudinary(file);
-                await setDoc(doc(db, "users", auth.currentUser.uid), { profilePic: url }, { merge: true });
-                location.reload();
-            } catch (err) { alert("আপলোড ব্যর্থ হয়েছে!"); }
-        };
-
-        // Cover Update
-        document.getElementById('coverInput').onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            try {
-                const url = await uploadToCloudinary(file);
-                await setDoc(doc(db, "users", auth.currentUser.uid), { coverPic: url }, { merge: true });
-                location.reload();
-            } catch (err) { alert("আপলোড ব্যর্থ হয়েছে!"); }
-        };
-
-        // Name Update
-        document.getElementById('editNameBtn').onclick = async () => {
-            const n = prompt("আপনার নতুন নাম লিখুন:");
-            if (n && n.trim().length > 2) {
-                await updateProfile(auth.currentUser, { displayName: n });
-                await setDoc(doc(db, "users", auth.currentUser.uid), { name: n }, { merge: true });
-                alert("নাম সফলভাবে আপডেট হয়েছে!");
-                location.reload();
-            }
-        };
-
-        // Load Posts Grid
-        function loadUserPosts(uid) {
+        // নিজের পোস্ট গ্রিড
+        function loadPosts() {
             const q = query(collection(db, "posts"), where("userId", "==", uid));
-            onSnapshot(q, snap => {
-                const container = document.getElementById('uPosts');
-                container.innerHTML = "";
-                document.getElementById('pCount').innerText = snap.size;
-                
-                if(snap.empty) {
-                    container.innerHTML = `<div class="col-span-3 text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest">No Posts Yet</div>`;
-                    return;
-                }
-
-                snap.forEach(d => {
+            onSnapshot(q, s => {
+                const container = document.getElementById('uPosts'); container.innerHTML = "";
+                document.getElementById('pCount').innerText = s.size;
+                s.forEach(d => {
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 overflow-hidden relative group cursor-pointer";
-                    
-                    let media = "";
-                    if(p.fileUrl) {
-                        if(p.fileType === 'video') {
-                            media = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
-                                     <div class="absolute inset-0 flex items-center justify-center bg-black/10"><i class="fas fa-play text-white text-[10px]"></i></div>`;
-                        } else {
-                            media = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
-                        }
-                    } else {
-                        media = `<div class="p-3 text-[9px] text-gray-600 h-full flex items-center justify-center text-center font-medium bg-blue-50">${p.text.substring(0, 40)}...</div>`;
-                    }
-                    
-                    div.innerHTML = media;
+                    div.className = "aspect-square bg-gray-100 relative overflow-hidden";
+                    div.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px]">${p.text?.slice(0,30)}</div>`;
                     container.appendChild(div);
                 });
             });
         }
+
+        // লিস্ট দেখার পপআপ লজিক
+        window.openModal = async (type) => {
+            const modal = document.getElementById('listModal');
+            const listDiv = document.getElementById('modalList');
+            document.getElementById('modalTitle').innerText = type === 'followers' ? 'Followers' : 'Following';
+            
+            modal.classList.remove('hidden');
+            listDiv.innerHTML = "<p class='text-center text-xs text-gray-400'>Loading...</p>";
+
+            const snap = await getDoc(doc(db, "users", uid));
+            const subCol = collection(db, "users", uid, type);
+            onSnapshot(subCol, async s => {
+                listDiv.innerHTML = "";
+                if(s.empty) listDiv.innerHTML = "<p class='text-center text-xs text-gray-400'>No list found</p>";
+                
+                for(const docRef of s.docs) {
+                    const uSnap = await getDoc(doc(db, "users", docRef.id));
+                    if(uSnap.exists()){
+                        const u = uSnap.data();
+                        listDiv.innerHTML += `
+                            <a href="user.html?id=${docRef.id}" class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">${u.name || 'User'}</p>
+                                    <p class="text-[10px] text-gray-400">View Profile</p>
+                                </div>
+                            </a>`;
+                    }
+                }
+            });
+        };
+
+        window.closeModal = () => document.getElementById('listModal').classList.add('hidden');
     </script>
 </body>
 </html>
