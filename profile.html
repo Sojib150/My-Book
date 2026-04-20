@@ -1,218 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile</title>
-
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:#f0f2f5;
-}
-
-/* cover */
-.cover{
-height:150px;
-background:#1877f2;
-}
-
-/* profile */
-.profile{
-text-align:center;
-margin-top:-50px;
-}
-
-.profile img{
-width:100px;
-height:100px;
-border-radius:50%;
-border:4px solid white;
-}
-
-.name{
-font-size:20px;
-font-weight:bold;
-}
-
-.bio{
-color:#555;
-}
-
-/* buttons */
-.btn{
-padding:8px 12px;
-border:none;
-border-radius:6px;
-margin:5px;
-}
-
-.blue{background:#1877f2;color:white;}
-.gray{background:#e4e6eb;}
-
-/* card */
-.card{
-background:white;
-margin:10px;
-padding:10px;
-border-radius:10px;
-}
-
-/* nav */
-.nav{
-position:fixed;
-bottom:0;
-width:100%;
-background:white;
-display:flex;
-justify-content:space-around;
-padding:10px;
-border-top:1px solid #ddd;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="cover"></div>
+<div class="header">Profile</div>
 
-<div class="profile">
-
-<img id="photo" src="https://i.pravatar.cc/150">
-
-<br><br>
-
-<input type="file" id="img">
-
-<br>
-
-<button class="btn blue" onclick="uploadPhoto()">Upload Photo</button>
-
-<div class="name" id="name">User</div>
+<h2 id="name"></h2>
 
 <input id="newName" placeholder="Edit name">
+<button onclick="save()">Save</button>
 
-<br>
-
-<button class="btn gray" onclick="saveName()">Save</button>
-
-<div class="bio" id="bio">No bio</div>
-
-<input id="newBio" placeholder="Edit bio">
-
-<br>
-
-<button class="btn gray" onclick="saveBio()">Save Bio</button>
-
-</div>
-
-<!-- friend requests -->
-<div class="card">
 <h3>Friend Requests</h3>
 <div id="req"></div>
-</div>
 
-<!-- posts -->
-<div class="card">
-<h3>My Posts</h3>
-<div id="posts"></div>
-</div>
-
-<button class="btn gray" onclick="logout()">Logout</button>
-
-<div class="nav">
-<a href="home.html">🏠</a>
-<a href="chat.html">💬</a>
-<a href="profile.html">👤</a>
-</div>
+<button onclick="logout()">Logout</button>
 
 <script type="module">
-import { db, auth, storage } from "./config.js";
+import { db, auth } from "./config.js";
 import { ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 let uid;
 
-// load user
-onAuthStateChanged(auth,(user)=>{
-if(!user) location.href="index.html";
-uid = user.uid;
+onAuthStateChanged(auth,(u)=>{
+uid=u.uid;
 
-// load profile
+// name
 onValue(ref(db,"users/"+uid),snap=>{
-let d = snap.val();
-
-name.innerText = d?.username || "User";
-bio.innerText = d?.bio || "No bio";
-
-if(d?.photo) photo.src = d.photo;
-});
-
-// load posts
-onValue(ref(db,"posts"),snap=>{
-let data = snap.val();
-let html="";
-
-for(let id in data){
-let p = data[id];
-if(p.owner === uid){
-html += `<div>${p.text}</div>`;
-}
-}
-
-posts.innerHTML = html;
+name.innerText=snap.val().username;
 });
 
 // requests
 onValue(ref(db,"requests/"+uid),snap=>{
-let data = snap.val();
+let d=snap.val();
 let html="";
 
-for(let from in data){
-html += `
-<div>
-${from}
-<button onclick="accept('${from}')">Accept</button>
-</div>
-`;
+for(let f in d){
+html+=`${f} <button onclick="accept('${f}')">Accept</button><br>`;
 }
 
-req.innerHTML = html;
+req.innerHTML=html;
 });
-
 });
-
-// upload photo
-window.uploadPhoto = async function(){
-let file = document.getElementById("img").files[0];
-if(!file) return alert("Select image");
-
-let imgRef = sRef(storage,"profile/"+uid);
-await uploadBytes(imgRef,file);
-
-let url = await getDownloadURL(imgRef);
-
-update(ref(db,"users/"+uid),{photo:url});
-}
 
 // save name
-window.saveName = function(){
-let n = newName.value;
-if(!n) return;
-
-update(ref(db,"users/"+uid),{username:n});
+window.save=function(){
+update(ref(db,"users/"+uid),{
+username:newName.value
+});
 }
 
-// save bio
-window.saveBio = function(){
-let b = newBio.value;
-if(!b) return;
-
-update(ref(db,"users/"+uid),{bio:b});
-}
-
-// accept friend
+// accept
 window.accept = async function(from){
 
 await set(ref(db,"friends/"+uid+"/"+from),true);
@@ -222,7 +64,7 @@ await set(ref(db,"requests/"+uid+"/"+from),null);
 }
 
 // logout
-window.logout = function(){
+window.logout=function(){
 signOut(auth);
 location.href="index.html";
 }
