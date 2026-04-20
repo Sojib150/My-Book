@@ -3,76 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>Professional Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <nav class="bg-blue-600 p-4 text-white flex items-center gap-4 sticky top-0 z-50 shadow-md">
-        <a href="home.html" class="text-xl font-bold">←</a>
-        <h1 class="font-bold">My Profile</h1>
+<body class="bg-gray-50 min-h-screen">
+
+    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <a href="home.html" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-50 transition">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="font-bold text-gray-800">প্রোফাইল</h1>
+            <button id="editNameBtn" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded-full font-bold shadow-md active:scale-95 transition">EDIT NAME</button>
+        </div>
     </nav>
 
-    <div class="max-w-md mx-auto bg-white p-6 text-center border-b shadow-sm">
-        <div id="uInit" class="w-24 h-24 bg-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl font-bold text-white border-4 border-blue-100 shadow-lg">?</div>
-        <h2 id="uName" class="text-xl font-bold text-gray-800">Loading...</h2>
-        <p id="uEmail" class="text-gray-400 text-sm italic mb-4"></p>
+    <div class="max-w-md mx-auto bg-white shadow-sm border-b relative">
+        <div class="h-40 bg-gradient-to-r from-blue-400 to-blue-600 relative group overflow-hidden">
+            <img id="coverImg" src="" class="w-full h-full object-cover hidden">
+            <div id="coverPlaceholder" class="w-full h-full flex items-center justify-center text-white/50 italic text-sm">No Cover Photo</div>
+            <label class="absolute bottom-3 right-3 bg-black/40 backdrop-blur-md text-white p-2 rounded-full cursor-pointer hover:bg-black/60 transition shadow-lg">
+                <i class="fas fa-camera"></i>
+                <input type="file" id="coverInput" class="hidden" accept="image/*">
+            </label>
+        </div>
         
-        <div class="flex justify-around border-t pt-4">
-            <div><p id="pCount" class="font-bold">0</p><p class="text-[10px] text-gray-400">POSTS</p></div>
-            <div><p class="font-bold">0</p><p class="text-[10px] text-gray-400">FOLLOWERS</p></div>
+        <div class="px-6 pb-6">
+            <div class="relative flex justify-center -mt-16">
+                <div class="relative">
+                    <div id="uAvatar" class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
+                        <img id="profileImg" src="" class="w-full h-full object-cover hidden">
+                        <span id="initialText">?</span>
+                    </div>
+                    <label class="absolute bottom-1 right-1 bg-blue-600 text-white w-9 h-9 rounded-full border-4 border-white flex items-center justify-center cursor-pointer shadow-md hover:bg-blue-700 transition">
+                        <i class="fas fa-pen text-[12px]"></i>
+                        <input type="file" id="profileInput" class="hidden" accept="image/*">
+                    </label>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <h2 id="uName" class="text-2xl font-black text-gray-800 tracking-tight leading-none">Loading...</h2>
+                <p id="uEmail" class="text-gray-400 text-xs mt-2 font-medium"></p>
+            </div>
+
+            <div class="flex justify-center gap-12 mt-8 border-t pt-5 text-center">
+                <div class="group cursor-pointer">
+                    <p id="pCount" class="font-black text-xl text-gray-800">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest group-hover:text-blue-500 transition">Posts</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <p class="font-black text-xl text-gray-800">0</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest group-hover:text-blue-500 transition">Followers</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="uPosts" class="max-w-md mx-auto grid grid-cols-3 gap-1 p-1 mt-2">
+    <div class="max-w-md mx-auto mt-2 bg-white">
+        <div class="flex border-b">
+            <button class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600 transition">
+                <i class="fas fa-th"></i>
+            </button>
+            <button class="flex-1 py-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-video"></i>
+            </button>
+            <button class="flex-1 py-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-bookmark"></i>
+            </button>
         </div>
+        
+        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5">
+            </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const app = initializeApp({ apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92" });
-        const db = getFirestore(app); const auth = getAuth(app);
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        const cloudName = "dlpwdx288";
+        const uploadPreset = "Video_upload";
 
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async (user) => {
             if(!user) return;
+            loadUserData(user);
+            loadUserPosts(user.uid);
+        });
+
+        // Load User Data (Name, Profile Pic, Cover)
+        async function loadUserData(user) {
             const name = user.displayName || user.email.split('@')[0];
             document.getElementById('uName').innerText = name;
             document.getElementById('uEmail').innerText = user.email;
-            document.getElementById('uInit').innerText = name[0].toUpperCase();
-            
-            // পোস্ট লোড করা
-            const q = query(collection(db, "posts"), where("userId", "==", user.uid));
+            document.getElementById('initialText').innerText = name[0].toUpperCase();
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.profilePic) {
+                    const pImg = document.getElementById('profileImg');
+                    pImg.src = data.profilePic;
+                    pImg.classList.remove('hidden');
+                    document.getElementById('initialText').classList.add('hidden');
+                }
+                if (data.coverPic) {
+                    const cImg = document.getElementById('coverImg');
+                    cImg.src = data.coverPic;
+                    cImg.classList.remove('hidden');
+                    document.getElementById('coverPlaceholder').classList.add('hidden');
+                }
+            }
+        }
+
+        // 3. Icon & Cloudinary Integration
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: formData });
+            const data = await res.json();
+            return data.secure_url;
+        }
+
+        // Profile Update
+        document.getElementById('profileInput').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const url = await uploadToCloudinary(file);
+                await setDoc(doc(db, "users", auth.currentUser.uid), { profilePic: url }, { merge: true });
+                location.reload();
+            } catch (err) { alert("আপলোড ব্যর্থ হয়েছে!"); }
+        };
+
+        // Cover Update
+        document.getElementById('coverInput').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const url = await uploadToCloudinary(file);
+                await setDoc(doc(db, "users", auth.currentUser.uid), { coverPic: url }, { merge: true });
+                location.reload();
+            } catch (err) { alert("আপলোড ব্যর্থ হয়েছে!"); }
+        };
+
+        // Name Update
+        document.getElementById('editNameBtn').onclick = async () => {
+            const n = prompt("আপনার নতুন নাম লিখুন:");
+            if (n && n.trim().length > 2) {
+                await updateProfile(auth.currentUser, { displayName: n });
+                await setDoc(doc(db, "users", auth.currentUser.uid), { name: n }, { merge: true });
+                alert("নাম সফলভাবে আপডেট হয়েছে!");
+                location.reload();
+            }
+        };
+
+        // Load Posts Grid
+        function loadUserPosts(uid) {
+            const q = query(collection(db, "posts"), where("userId", "==", uid));
             onSnapshot(q, snap => {
                 const container = document.getElementById('uPosts');
                 container.innerHTML = "";
                 document.getElementById('pCount').innerText = snap.size;
-
-                if (snap.empty) {
-                    container.innerHTML = "<p class='col-span-3 text-center py-10 text-gray-400 text-sm'>কোনো পোস্ট পাওয়া যায়নি</p>";
+                
+                if(snap.empty) {
+                    container.innerHTML = `<div class="col-span-3 text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest">No Posts Yet</div>`;
+                    return;
                 }
 
                 snap.forEach(d => {
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-300 overflow-hidden relative";
+                    div.className = "aspect-square bg-gray-100 overflow-hidden relative group cursor-pointer";
                     
-                    let content = "";
+                    let media = "";
                     if(p.fileUrl) {
                         if(p.fileType === 'video') {
-                            content = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><span class="absolute top-1 right-1 text-[8px] bg-black/50 text-white p-0.5 rounded">▶</span>`;
+                            media = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
+                                     <div class="absolute inset-0 flex items-center justify-center bg-black/10"><i class="fas fa-play text-white text-[10px]"></i></div>`;
                         } else {
-                            content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
+                            media = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
                         }
                     } else {
-                        content = `<div class="p-2 text-[8px] text-gray-700 bg-blue-50 h-full flex items-center justify-center text-center italic">${p.text.substring(0, 30)}...</div>`;
+                        media = `<div class="p-3 text-[9px] text-gray-600 h-full flex items-center justify-center text-center font-medium bg-blue-50">${p.text.substring(0, 40)}...</div>`;
                     }
                     
-                    div.innerHTML = content;
+                    div.innerHTML = media;
                     container.appendChild(div);
                 });
             });
-        });
+        }
     </script>
 </body>
 </html>
