@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Book - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 pb-20">
     <nav class="bg-blue-600 p-3 text-white sticky top-0 z-50 shadow-lg">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold italic">My Book</h1>
             <div class="flex items-center gap-3">
-                <a href="profile.html" class="bg-blue-700 p-2 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold border border-blue-400">P</a>
+                <a href="profile.html" class="bg-blue-700 w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold border border-blue-400">P</a>
                 <a href="post.html" class="bg-white text-blue-600 px-3 py-1 rounded-full font-bold text-sm">+ Post</a>
-                <button id="logoutBtn" class="bg-red-500 text-[10px] px-2 py-1 rounded">Logout</button>
             </div>
         </div>
     </nav>
@@ -22,8 +22,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
@@ -31,16 +31,12 @@
 
         onAuthStateChanged(auth, user => { if(user) currentUser = user; else window.location.href="index.html"; });
 
-        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
-
         onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
             const feed = document.getElementById('feed'); feed.innerHTML = "";
             snap.forEach(postDoc => {
                 const p = postDoc.data(); const id = postDoc.id;
                 const isLiked = p.likedBy?.includes(currentUser?.uid);
-                
-                // সময় ফরম্যাট করা
-                const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour12: true}) : "এইমাত্র";
+                const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour: '2-digit', minute: '2-digit'}) : "এইমাত্র";
 
                 const card = document.createElement('div');
                 card.className = "bg-white mb-4 rounded-xl shadow-sm border border-gray-200 overflow-hidden";
@@ -48,26 +44,70 @@
                     <div class="p-3 flex items-center gap-3">
                         <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">${p.userName ? p.userName[0].toUpperCase() : 'U'}</a>
                         <div>
-                            <a href="user.html?id=${p.userId}" class="font-bold text-sm block">${p.userName || 'User'}</a>
-                            <p class="text-[9px] text-gray-400 uppercase font-semibold">${date}</p>
+                            <p class="font-bold text-sm">${p.userName || 'User'}</p>
+                            <p class="text-[9px] text-gray-400 uppercase">${date}</p>
                         </div>
                     </div>
-                    <p class="px-4 pb-3 text-sm text-gray-700 leading-snug">${p.text || ''}</p>
+                    <p class="px-4 pb-3 text-sm text-gray-700">${p.text || ''}</p>
                     ${p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" controls class="w-full max-h-96 bg-black"></video>`:`<img src="${p.fileUrl}" class="w-full">`) : ""}
+                    
                     <div class="p-2 border-t flex justify-around text-xs font-bold text-gray-500">
-                        <button onclick="window.like('${id}')" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : ''}">❤️ ${p.likes || 0} Like</button>
-                        <button class="flex items-center gap-1">💬 Comment</button>
+                        <button onclick="window.like('${id}')" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : ''}">
+                            <i class="fas fa-heart"></i> ${p.likes || 0} Like
+                        </button>
+                        <button onclick="document.getElementById('commentSection-${id}').classList.toggle('hidden')" class="flex items-center gap-1">
+                            <i class="fas fa-comment"></i> Comment
+                        </button>
+                    </div>
+
+                    <div id="commentSection-${id}" class="hidden bg-gray-50 border-t p-3">
+                        <div id="commentsList-${id}" class="max-h-32 overflow-y-auto mb-2 text-[11px] space-y-2"></div>
+                        <div class="flex gap-2">
+                            <input type="text" id="commentInput-${id}" placeholder="মন্তব্য লিখুন..." class="flex-1 p-2 border rounded-full text-xs outline-none focus:ring-1 focus:ring-blue-400">
+                            <button onclick="window.addComment('${id}')" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">Send</button>
+                        </div>
                     </div>
                 `;
                 feed.appendChild(card);
+                loadComments(id);
             });
         });
 
+        // লাইক ফাংশন
         window.like = async id => {
             const ref = doc(db, "posts", id);
             const isLiked = currentUser && (await (await fetch(`https://firestore.googleapis.com/v1/projects/seen-a1d92/databases/(default)/documents/posts/${id}`)).json()).fields.likedBy?.arrayValue?.values?.some(v => v.stringValue === currentUser.uid);
             await updateDoc(ref, { likes: increment(isLiked ? -1 : 1), likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
+
+        // কমেন্ট সেভ করা
+        window.addComment = async (postId) => {
+            const input = document.getElementById(`commentInput-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            await addDoc(collection(db, "posts", postId, "comments"), {
+                text: text,
+                userName: currentUser.displayName || currentUser.email.split('@')[0],
+                userId: currentUser.uid,
+                createdAt: serverTimestamp()
+            });
+            input.value = "";
+        };
+
+        // কমেন্ট লোড করা
+        function loadComments(postId) {
+            const list = document.getElementById(`commentsList-${postId}`);
+            onSnapshot(query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc")), snap => {
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const c = d.data();
+                    list.innerHTML += `<div class="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
+                        <span class="font-bold text-blue-600">${c.userName}:</span> ${c.text}
+                    </div>`;
+                });
+            });
+        }
     </script>
 </body>
 </html>
