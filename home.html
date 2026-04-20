@@ -87,8 +87,9 @@ let p=data[id];
 html+=`
 <div class="post">
 
-<div onclick="openProfile('${p.owner}')">
-<b>${p.user}</b>
+<div class="post-header">
+<div class="avatar">${p.user[0]}</div>
+<div class="username" onclick="openProfile('${p.owner}')">${p.user}</div>
 </div>
 
 <p>${p.text||""}</p>
