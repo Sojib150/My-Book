@@ -7,87 +7,158 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 pb-20">
+<body class="bg-gray-100 pb-24">
+
     <nav class="bg-blue-600 p-3 text-white sticky top-0 z-50 shadow-lg">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold italic">My Book</h1>
-            <div class="flex items-center gap-3">
-                <a href="profile.html" class="bg-blue-700 w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold border border-blue-400">P</a>
-                <a href="post.html" class="bg-white text-blue-600 px-3 py-1 rounded-full font-bold text-sm">+ Post</a>
+            <h1 class="text-xl font-bold italic tracking-tighter">My Book</h1>
+            
+            <div class="flex items-center gap-4">
+                <a href="search.html" class="text-white hover:text-blue-200 transition">
+                    <i class="fas fa-search text-lg"></i>
+                </a>
+                
+                <a href="profile.html" id="navProfile" class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold border border-blue-400 overflow-hidden">
+                    <span id="navInit">P</span>
+                    <img id="navPic" src="" class="w-full h-full object-cover hidden">
+                </a>
+
+                <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-[10px] px-2 py-1 rounded font-bold transition">
+                    LOGOUT
+                </button>
             </div>
         </div>
     </nav>
 
-    <div id="feed" class="max-w-md mx-auto p-2"></div>
+    <div id="feed" class="max-w-md mx-auto p-2 mt-2">
+        <div class="text-center py-10 text-gray-400 text-sm">পোস্ট লোড হচ্ছে...</div>
+    </div>
+
+    <a href="post.html" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:bg-blue-700 transition-all active:scale-90 z-50">
+        <i class="fas fa-plus"></i>
+    </a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92",
+            storageBucket: "seen-a1d92.firebasestorage.app",
+            messagingSenderId: "868584044532",
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
         let currentUser = null;
 
-        onAuthStateChanged(auth, user => { if(user) currentUser = user; else window.location.href="index.html"; });
+        // অথেনটিকেশন চেক
+        onAuthStateChanged(auth, async (user) => {
+            if(user) {
+                currentUser = user;
+                // ন্যাভ বারে প্রোফাইল ছবি দেখানো
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if(userDoc.exists() && userDoc.data().profilePic) {
+                    document.getElementById('navPic').src = userDoc.data().profilePic;
+                    document.getElementById('navPic').classList.remove('hidden');
+                    document.getElementById('navInit').classList.add('hidden');
+                } else {
+                    document.getElementById('navInit').innerText = (user.displayName || user.email)[0].toUpperCase();
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
 
+        // লগআউট ফাংশন
+        document.getElementById('logoutBtn').onclick = () => {
+            if(confirm("আপনি কি লগআউট করতে চান?")) {
+                signOut(auth).then(() => window.location.href = "index.html");
+            }
+        };
+
+        // পোস্ট লোড করা
         onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
-            const feed = document.getElementById('feed'); feed.innerHTML = "";
+            const feed = document.getElementById('feed');
+            feed.innerHTML = "";
+            
             snap.forEach(postDoc => {
-                const p = postDoc.data(); const id = postDoc.id;
+                const p = postDoc.data();
+                const id = postDoc.id;
                 const isLiked = p.likedBy?.includes(currentUser?.uid);
-                const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour: '2-digit', minute: '2-digit'}) : "এইমাত্র";
+                const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short'}) : "এইমাত্র";
 
                 const card = document.createElement('div');
                 card.className = "bg-white mb-4 rounded-xl shadow-sm border border-gray-200 overflow-hidden";
                 card.innerHTML = `
                     <div class="p-3 flex items-center gap-3">
-                        <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">${p.userName ? p.userName[0].toUpperCase() : 'U'}</a>
+                        <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-gray-100">
+                            ${p.userName ? p.userName[0].toUpperCase() : 'U'}
+                        </a>
                         <div>
-                            <p class="font-bold text-sm">${p.userName || 'User'}</p>
-                            <p class="text-[9px] text-gray-400 uppercase">${date}</p>
+                            <a href="user.html?id=${p.userId}" class="font-bold text-sm text-gray-800 hover:text-blue-600 transition">${p.userName || 'User'}</a>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${date}</p>
                         </div>
                     </div>
-                    <p class="px-4 pb-3 text-sm text-gray-700">${p.text || ''}</p>
-                    ${p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" controls class="w-full max-h-96 bg-black"></video>`:`<img src="${p.fileUrl}" class="w-full">`) : ""}
                     
-                    <div class="p-2 border-t flex justify-around text-xs font-bold text-gray-500">
-                        <button onclick="window.like('${id}')" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : ''}">
-                            <i class="fas fa-heart"></i> ${p.likes || 0} Like
+                    <p class="px-4 pb-3 text-sm text-gray-700 whitespace-pre-wrap">${p.text || ''}</p>
+                    
+                    ${p.fileUrl ? (p.fileType === 'video' ? 
+                        `<div class="bg-black flex items-center justify-center"><video src="${p.fileUrl}" controls class="w-full max-h-[450px]"></video></div>` : 
+                        `<img src="${p.fileUrl}" class="w-full object-cover max-h-[500px]">`) : ""}
+                    
+                    <div class="p-2 border-t flex justify-around text-xs font-bold text-gray-500 bg-gray-50/50">
+                        <button onclick="window.like('${id}')" class="flex items-center gap-2 py-1 px-4 rounded-lg hover:bg-gray-100 transition ${isLiked ? 'text-red-500' : ''}">
+                            <i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> 
+                            <span>${p.likes || 0}</span>
                         </button>
-                        <button onclick="document.getElementById('commentSection-${id}').classList.toggle('hidden')" class="flex items-center gap-1">
-                            <i class="fas fa-comment"></i> Comment
+                        <button onclick="document.getElementById('commentArea-${id}').classList.toggle('hidden')" class="flex items-center gap-2 py-1 px-4 rounded-lg hover:bg-gray-100 transition">
+                            <i class="far fa-comment text-lg"></i>
+                            <span>Comment</span>
                         </button>
                     </div>
 
-                    <div id="commentSection-${id}" class="hidden bg-gray-50 border-t p-3">
-                        <div id="commentsList-${id}" class="max-h-32 overflow-y-auto mb-2 text-[11px] space-y-2"></div>
-                        <div class="flex gap-2">
-                            <input type="text" id="commentInput-${id}" placeholder="মন্তব্য লিখুন..." class="flex-1 p-2 border rounded-full text-xs outline-none focus:ring-1 focus:ring-blue-400">
-                            <button onclick="window.addComment('${id}')" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">Send</button>
+                    <div id="commentArea-${id}" class="hidden border-t bg-white p-3">
+                        <div id="list-${id}" class="space-y-3 mb-4 max-h-40 overflow-y-auto"></div>
+                        <div class="flex gap-2 items-center bg-gray-100 p-1 rounded-full px-3">
+                            <input type="text" id="input-${id}" placeholder="আপনার মন্তব্য..." class="flex-1 bg-transparent border-none py-2 text-xs outline-none">
+                            <button onclick="window.addComment('${id}')" class="text-blue-600 hover:text-blue-800 transition px-2">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
                         </div>
                     </div>
                 `;
                 feed.appendChild(card);
-                loadComments(id);
+                renderComments(id);
             });
         });
 
-        // লাইক ফাংশন
-        window.like = async id => {
+        // লাইক লজিক
+        window.like = async (id) => {
             const ref = doc(db, "posts", id);
-            const isLiked = currentUser && (await (await fetch(`https://firestore.googleapis.com/v1/projects/seen-a1d92/databases/(default)/documents/posts/${id}`)).json()).fields.likedBy?.arrayValue?.values?.some(v => v.stringValue === currentUser.uid);
-            await updateDoc(ref, { likes: increment(isLiked ? -1 : 1), likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+            const snap = await getDoc(ref);
+            const p = snap.data();
+            const isLiked = p.likedBy?.includes(currentUser.uid);
+            
+            await updateDoc(ref, {
+                likes: increment(isLiked ? -1 : 1),
+                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+            });
         };
 
-        // কমেন্ট সেভ করা
+        // কমেন্ট যোগ করা
         window.addComment = async (postId) => {
-            const input = document.getElementById(`commentInput-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
+            const input = document.getElementById(`input-${postId}`);
+            const val = input.value.trim();
+            if(!val) return;
 
             await addDoc(collection(db, "posts", postId, "comments"), {
-                text: text,
+                text: val,
                 userName: currentUser.displayName || currentUser.email.split('@')[0],
                 userId: currentUser.uid,
                 createdAt: serverTimestamp()
@@ -95,16 +166,23 @@
             input.value = "";
         };
 
-        // কমেন্ট লোড করা
-        function loadComments(postId) {
-            const list = document.getElementById(`commentsList-${postId}`);
+        // কমেন্ট দেখানো
+        function renderComments(postId) {
+            const container = document.getElementById(`list-${postId}`);
             onSnapshot(query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc")), snap => {
-                list.innerHTML = "";
+                container.innerHTML = "";
                 snap.forEach(d => {
                     const c = d.data();
-                    list.innerHTML += `<div class="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                        <span class="font-bold text-blue-600">${c.userName}:</span> ${c.text}
-                    </div>`;
+                    const div = document.createElement('div');
+                    div.className = "flex gap-2 items-start";
+                    div.innerHTML = `
+                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-[10px] font-bold text-blue-600">${c.userName[0]}</div>
+                        <div class="bg-gray-100 p-2 rounded-2xl rounded-tl-none flex-1">
+                            <p class="text-[10px] font-black text-gray-800">${c.userName}</p>
+                            <p class="text-[11px] text-gray-700">${c.text}</p>
+                        </div>
+                    `;
+                    container.appendChild(div);
                 });
             });
         }
