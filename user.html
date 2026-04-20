@@ -1,68 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>User</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-600 p-4 text-white flex items-center">
+        <a href="home.html" class="mr-4">← Back</a>
+        <h1 class="font-bold">User Profile</h1>
+    </nav>
 
-<body>
+    <div class="max-w-md mx-auto mt-4 p-4">
+        <div id="profileHeader" class="bg-white p-6 rounded-lg shadow text-center mb-4">
+            <div id="userInit" class="w-20 h-20 bg-blue-500 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-2">?</div>
+            <h2 id="profileName" class="text-xl font-bold">Loading...</h2>
+        </div>
+        <div id="userPosts" class="grid grid-cols-3 gap-1"></div>
+    </div>
 
-<h2 id="name">User</h2>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<button id="btn"></button>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92",
+            storageBucket: "seen-a1d92.firebasestorage.app",
+            messagingSenderId: "868584044532",
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
+        };
 
-<div id="posts"></div>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-<script type="module">
-import { db, auth } from "./config.js";
-import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
 
-let uid;
-let viewUID = localStorage.getItem("viewUser");
+        if (userId) {
+            const q = query(collection(db, "posts"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
+            const postsContainer = document.getElementById('userPosts');
+            
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
+                document.getElementById('profileName').innerText = post.userName;
+                document.getElementById('userInit').innerText = post.userName[0];
 
-onAuthStateChanged(auth,(user)=>{
-uid=user.uid;
-load();
-});
-
-function load(){
-
-// name
-onValue(ref(db,"users/"+viewUID),snap=>{
-name.innerText = snap.val()?.username || "User";
-});
-
-// posts
-onValue(ref(db,"posts"),snap=>{
-let data=snap.val();
-let html="";
-for(let id in data){
-let p=data[id];
-if(p.owner===viewUID){
-html+=`<p>${p.text}</p>`;
-}
-}
-posts.innerHTML=html;
-});
-
-// friend status
-get(ref(db,"friends/"+uid+"/"+viewUID)).then(snap=>{
-if(snap.exists()){
-btn.innerText="Friends";
-}else{
-btn.innerText="Add Friend";
-btn.onclick=sendRequest;
-}
-});
-
-}
-
-// send request
-window.sendRequest = async function(){
-await set(ref(db,"requests/"+viewUID+"/"+uid),true);
-alert("Request Sent");
-}
-</script>
-
+                const img = document.createElement('div');
+                img.className = "aspect-square bg-gray-200 overflow-hidden";
+                img.innerHTML = post.fileUrl ? (post.fileType === 'video' ? `<video src="${post.fileUrl}" class="w-full h-full object-cover"></video>` : `<img src="${post.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[10px]">${post.text}</div>`;
+                postsContainer.appendChild(img);
+            });
+        }
+    </script>
 </body>
 </html>
