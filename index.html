@@ -1,149 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
-
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.container {
-  width:90%;
-  max-width:400px;
-}
-
-.card {
-  background: rgba(255,255,255,0.1);
-  padding:20px;
-  border-radius:15px;
-  backdrop-filter: blur(10px);
-}
-
-input {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-}
-
-button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-  background:#ff4b5c;
-  color:white;
-  font-size:16px;
-}
-
-.small {
-  font-size:14px;
-  margin-top:10px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">লগইন করুন</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="ইমেইল" class="w-full p-2 mb-4 border rounded" required>
+            <input type="password" id="password" placeholder="পাসওয়ার্ড" class="w-full p-2 mb-4 border rounded" required>
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded">লগইন</button>
+        </form>
+        <p class="mt-4 text-center text-sm">অ্যাকাউন্ট নেই? <a href="register.html" class="text-blue-500">রেজিস্টার করুন</a></p>
+        <p id="msg" class="mt-4 text-center text-sm"></p>
+    </div>
 
-<body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-<div class="container">
-<div class="card">
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92",
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
+        };
 
-<h2>Login / Create Account</h2>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('msg');
 
-<button onclick="register()">Create Account</button>
-<button onclick="login()">Login</button>
-
-<div class="small">
-New user? <a href="register.html">Go Back</a>
-</div>
-
-</div>
-</div>
-
-<script type="module">
-import { auth, db } from "./config.js";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { ref, set } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-// REGISTER
-window.register = async function(){
-
-let email = document.getElementById("email").value;
-let pass = document.getElementById("pass").value;
-
-if(!email || !pass){
-  alert("Email & Password দাও");
-  return;
-}
-
-try{
-let userCred = await createUserWithEmailAndPassword(auth,email,pass);
-let uid = userCred.user.uid;
-
-// get previous data
-let name = localStorage.getItem("name");
-let username = localStorage.getItem("username");
-let dob = localStorage.getItem("dob");
-let relation = localStorage.getItem("relation");
-let photo = localStorage.getItem("photo");
-
-// save in database
-await set(ref(db,"users/"+uid),{
-  name,
-  username,
-  dob,
-  relation,
-  photo,
-  verified:false,
-  verifyRequest:"none"
-});
-
-alert("Account Created ✅");
-
-// clear temp data
-localStorage.clear();
-
-window.location.href="home.html";
-
-}catch(e){
-alert(e.message);
-}
-}
-
-// LOGIN
-window.login = async function(){
-
-let email = document.getElementById("email").value;
-let pass = document.getElementById("pass").value;
-
-try{
-await signInWithEmailAndPassword(auth,email,pass);
-
-alert("Login Success ✅");
-window.location.href="home.html";
-
-}catch(e){
-alert("Wrong email/password ❌");
-}
-}
-
-</script>
-
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = "home.html"; // লগইন সফল হলে হোমে যাবে
+            } catch (error) {
+                msg.innerText = "ভুল ইমেইল বা পাসওয়ার্ড!";
+                msg.style.color = "red";
+            }
+        });
+    </script>
 </body>
 </html>
