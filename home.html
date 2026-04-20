@@ -3,89 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Book - Home</title>
+    <title>Home - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen pb-10">
-    <nav class="bg-blue-600 p-4 text-white sticky top-0 z-50 shadow-md">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">My Book</h1>
-            <div class="flex items-center gap-3">
-                <a href="profile.html" class="text-sm">Profile</a>
-                <a href="post.html" class="bg-white text-blue-600 px-4 py-1 rounded-full font-bold">+ Post</a>
-            </div>
+<body class="bg-gray-50 pb-20">
+    <nav class="bg-white border-b sticky top-0 z-50 p-4 flex justify-between items-center max-w-md mx-auto">
+        <h1 class="text-2xl font-black text-blue-600 italic">My Book</h1>
+        <div class="flex gap-4 items-center">
+            <a href="profile.html" class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">P</a>
+            <a href="post.html" class="bg-blue-600 text-white px-4 py-1 rounded-full font-bold text-sm">+ Post</a>
         </div>
     </nav>
-
-    <div id="feed" class="max-w-md mx-auto mt-4 p-2"></div>
+    <div id="feed" class="max-w-md mx-auto p-2"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
-            authDomain: "seen-a1d92.firebaseapp.com",
-            projectId: "seen-a1d92",
-            storageBucket: "seen-a1d92.firebasestorage.app",
-            messagingSenderId: "868584044532",
-            appId: "1:868584044532:web:51f07436a883f88332eba1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
         let currentUser = null;
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) currentUser = user;
-            else window.location.href = "index.html";
-        });
+        onAuthStateChanged(auth, user => { if(user) currentUser = user; });
 
-        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const feed = document.getElementById('feed');
-            feed.innerHTML = "";
-            snapshot.forEach((postDoc) => {
-                const post = postDoc.data();
-                const postId = postDoc.id;
-                const postDiv = document.createElement('div');
-                postDiv.className = "bg-white p-4 rounded-lg shadow mb-4";
-                
-                const isLiked = post.likedBy && post.likedBy.includes(currentUser?.uid);
-
-                postDiv.innerHTML = `
-                    <div class="flex items-center mb-3">
-                        <a href="user.html?id=${post.userId}" class="flex items-center">
-                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">${post.userName[0]}</div>
-                            <div class="ml-3">
-                                <p class="font-bold text-sm hover:underline">${post.userName}</p>
-                            </div>
-                        </a>
+        onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
+            const feed = document.getElementById('feed'); feed.innerHTML = "";
+            snap.forEach(postDoc => {
+                const p = postDoc.data(); const id = postDoc.id;
+                const isLiked = p.likedBy?.includes(currentUser?.uid);
+                const card = document.createElement('div');
+                card.className = "bg-white mb-4 rounded-2xl shadow-sm border border-gray-100 overflow-hidden";
+                card.innerHTML = `
+                    <div class="p-4 flex items-center gap-3">
+                        <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">${p.userName[0].toUpperCase()}</a>
+                        <div>
+                            <a href="user.html?id=${p.userId}" class="font-bold text-sm block hover:text-blue-600">${p.userName}</a>
+                            <p class="text-[10px] text-gray-400">Just Now</p>
+                        </div>
                     </div>
-                    <p class="text-sm mb-3">${post.text}</p>
-                    ${post.fileUrl ? (post.fileType === 'video' ? `<video src="${post.fileUrl}" controls class="w-full rounded"></video>` : `<img src="${post.fileUrl}" class="w-full rounded">`) : ""}
-                    <div class="mt-4 pt-3 border-t flex justify-around text-gray-500 text-sm">
-                        <button onclick="window.likePost('${postId}')" class="${isLiked ? 'text-red-500' : ''}">❤️ ${post.likes || 0} Like</button>
+                    <p class="px-4 pb-3 text-sm text-gray-700">${p.text}</p>
+                    ${p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" controls class="w-full"></video>`:`<img src="${p.fileUrl}" class="w-full">`) : ""}
+                    <div class="p-3 border-t flex justify-around text-sm font-semibold text-gray-500">
+                        <button onclick="window.like('${id}')" class="${isLiked?'text-red-500':''}">❤️ ${p.likes||0} Like</button>
                         <button>💬 Comment</button>
-                        <button>🔗 Share</button>
                     </div>
                 `;
-                feed.appendChild(postDiv);
+                feed.appendChild(card);
             });
         });
 
-        window.likePost = async (id) => {
-            const postRef = doc(db, "posts", id);
-            const postSnap = await getDoc(postRef);
-            const postData = postSnap.data();
-
-            if (postData.likedBy && postData.likedBy.includes(currentUser.uid)) {
-                await updateDoc(postRef, { likes: increment(-1), likedBy: arrayRemove(currentUser.uid) });
-            } else {
-                await updateDoc(postRef, { likes: increment(1), likedBy: arrayUnion(currentUser.uid) });
-            }
+        window.like = async id => {
+            const ref = doc(db, "posts", id);
+            const isLiked = (await (await fetch(`https://firestore.googleapis.com/v1/projects/seen-a1d92/databases/(default)/documents/posts/${id}`)).json()).fields.likedBy?.arrayValue?.values?.some(v => v.stringValue === currentUser.uid);
+            await updateDoc(ref, { likes: increment(isLiked ? -1 : 1), likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
     </script>
 </body>
