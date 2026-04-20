@@ -1,30 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home</title>
-
-<style>
-body{margin:0;font-family:Arial;background:#f0f2f5;}
-.header{background:#1877f2;color:white;padding:15px;text-align:center;}
-.upload{display:flex;padding:10px;background:white;}
-.upload input{flex:1;padding:10px;}
-.feed{padding:10px;}
-.post{background:white;margin-bottom:10px;padding:10px;border-radius:10px;}
-.nav{position:fixed;bottom:0;width:100%;background:white;display:flex;justify-content:space-around;padding:10px;}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="header">Home</div>
+<div class="header">My Social</div>
 
 <div class="upload">
 <input id="text" placeholder="Write something...">
-<button onclick="postText()">Post</button>
+<input type="file" id="file">
+<button onclick="createPost()">Post</button>
 </div>
 
-<div id="feed" class="feed"></div>
+<div id="feed"></div>
 
 <div class="nav">
 <a href="home.html">🏠</a>
@@ -37,25 +28,49 @@ import { db, auth } from "./config.js";
 import { ref, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-let currentUser;
+let uid;
 
-onAuthStateChanged(auth,(user)=>{
-if(user){currentUser=user.uid;}
-else location.href="index.html";
+onAuthStateChanged(auth,(u)=>{
+if(!u) location.href="index.html";
+uid=u.uid;
 });
 
+// Cloudinary upload
+async function uploadFile(file){
+let formData = new FormData();
+formData.append("file", file);
+formData.append("upload_preset", "video_upload");
+
+let res = await fetch("https://api.cloudinary.com/v1_1/dlpwdx288/upload",{
+method:"POST",
+body:formData
+});
+
+let data = await res.json();
+return data.secure_url;
+}
+
 // post
-window.postText = async function(){
+window.createPost = async function(){
+
 let text = document.getElementById("text").value;
-if(!text) return;
+let file = document.getElementById("file").files[0];
 
-let snap = await get(ref(db,"users/"+currentUser));
-let u = snap.val();
+let url="";
 
-await push(ref(db,"posts"),{
+if(file){
+url = await uploadFile(file);
+}
+
+let snap = await get(ref(db,"users/"+uid));
+let user = snap.val();
+
+push(ref(db,"posts"),{
 text:text,
-user:u.username,
-owner:currentUser,
+media:url,
+type:file ? file.type : "text",
+user:user.username,
+owner:uid,
 likes:0,
 likedBy:{}
 });
@@ -76,9 +91,26 @@ html+=`
 <b>${p.user}</b>
 </div>
 
-<p>${p.text}</p>
+<p>${p.text||""}</p>
+`;
 
-<button onclick="likePost('${id}')">❤️ ${p.likes||0}</button>
+// media
+if(p.media){
+if(p.type.includes("image")){
+html+=`<img src="${p.media}" width="100%">`;
+}else{
+html+=`<video src="${p.media}" controls width="100%"></video>`;
+}
+}
+
+html+=`
+
+<div class="actions">
+<button onclick="like('${id}')">❤️ ${p.likes||0}</button>
+<button onclick="comment('${id}')">💬</button>
+</div>
+
+<div id="c_${id}"></div>
 
 </div>
 `;
@@ -87,28 +119,36 @@ html+=`
 feed.innerHTML=html;
 });
 
-// like fix
-window.likePost = async function(id){
-let snap = await get(ref(db,"posts/"+id));
-let p = snap.val();
+// like
+window.like = async function(id){
+let s=await get(ref(db,"posts/"+id));
+let p=s.val();
 
-let likedBy = p.likedBy || {};
+let l=p.likedBy||{};
 
-if(likedBy[currentUser]){
-delete likedBy[currentUser];
-}else{
-likedBy[currentUser]=true;
-}
+if(l[uid]) delete l[uid];
+else l[uid]=true;
 
 update(ref(db,"posts/"+id),{
-likedBy:likedBy,
-likes:Object.keys(likedBy).length
+likedBy:l,
+likes:Object.keys(l).length
+});
+}
+
+// comment
+window.comment = function(id){
+let t=prompt("Comment");
+if(!t) return;
+
+push(ref(db,"comments/"+id),{
+text:t,
+user:uid
 });
 }
 
 // open profile
-window.openProfile = function(uid){
-localStorage.setItem("viewUser",uid);
+window.openProfile=function(id){
+localStorage.setItem("viewUser",id);
 location.href="user.html";
 }
 </script>
