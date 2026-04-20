@@ -11,140 +11,136 @@
 
     <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex items-center gap-4">
-            <a href="home.html" class="text-blue-600 hover:bg-blue-50 w-8 h-8 flex items-center justify-center rounded-full transition">
-                <i class="fas fa-chevron-left text-xl"></i>
-            </a>
+            <a href="home.html" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full transition"><i class="fas fa-chevron-left text-xl"></i></a>
             <h1 class="font-bold text-gray-800 text-sm uppercase tracking-wider">বন্ধু প্রোফাইল</h1>
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto bg-white shadow-sm overflow-hidden border-b relative">
-        <div class="h-36 bg-gradient-to-r from-blue-400 to-blue-600 relative group overflow-hidden">
+    <div class="max-w-md mx-auto bg-white shadow-sm border-b relative text-center">
+        <div class="h-36 bg-gradient-to-r from-blue-400 to-blue-600 relative overflow-hidden">
             <img id="coverImg" src="" class="w-full h-full object-cover hidden">
-            <div id="coverPlaceholder" class="w-full h-full flex items-center justify-center text-white/50 italic text-sm">No Cover Photo</div>
         </div>
         
-        <div class="px-6 pb-6 text-center">
-            <div class="relative flex justify-center -mt-16">
-                <div id="uAvatar" class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
-                    <img id="profileImg" src="" class="w-full h-full object-cover hidden">
-                    <span id="initialText">?</span>
-                </div>
+        <div class="relative flex justify-center -mt-16">
+            <div id="uAvatar" class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
+                <img id="profileImg" src="" class="w-full h-full object-cover hidden">
+                <span id="initialText">?</span>
             </div>
+        </div>
+        
+        <div class="px-6 pb-6">
+            <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none italic">লোড হচ্ছে...</h2>
+            <p id="uEmail" class="text-gray-400 text-[10px] mt-1 font-bold"></p>
             
-            <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none">লোড হচ্ছে...</h2>
-            <p id="uEmail" class="text-gray-400 text-xs mt-2 font-medium italic"></p>
+            <div class="mt-5 flex justify-center gap-3">
+                <button id="followBtn" class="hidden bg-blue-600 text-white px-10 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-90 transition-all">Follow</button>
+                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-10 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-90 transition-all">Unfollow</button>
+            </div>
 
-            <div class="flex justify-center gap-12 mt-8 border-t pt-5">
-                <div><p id="pCount" class="font-black text-xl text-gray-800">0</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Posts</p></div>
-                <div><p class="font-black text-xl text-gray-800">0</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Followers</p></div>
-                <div><p class="font-black text-xl text-gray-800">0</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Following</p></div>
+            <div class="flex justify-around mt-8 border-t pt-6">
+                <div class="text-center"><p id="pCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Posts</p></div>
+                <div class="text-center"><p id="followerCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Followers</p></div>
+                <div class="text-center"><p id="followingCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Following</p></div>
             </div>
         </div>
     </div>
 
     <div class="max-w-md mx-auto mt-2 bg-white">
-        <div class="flex border-b text-gray-400">
-            <button id="tabAll" class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600"><i class="fas fa-th text-lg"></i></button>
-            <button id="tabVideos" class="flex-1 py-3 hover:text-gray-600 transition"><i class="fas fa-video text-lg"></i></button>
+        <div class="flex border-b">
+            <button id="tabAll" class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600"><i class="fas fa-th"></i></button>
+            <button id="tabVideos" class="flex-1 py-3 text-gray-300"><i class="fas fa-video"></i></button>
         </div>
-        
         <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        const viewedUserId = urlParams.get('id');
-        let allPosts = [];
+        const targetId = urlParams.get('id');
+        let currentUser = null;
+        let posts = [];
 
-        if(viewedUserId) {
-            loadUser(viewedUserId);
-            fetchPosts(viewedUserId);
-        }
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                currentUser = user;
+                if(currentUser.uid === targetId) window.location.href = "profile.html";
+                init();
+            } else { window.location.href = "index.html"; }
+        });
 
-        async function loadUser(uid) {
-            const userDoc = await getDoc(doc(db, "users", uid));
-            if (userDoc.exists()) {
+        async function init() {
+            // Load User Data with Fallback Logic
+            const userDoc = await getDoc(doc(db, "users", targetId));
+            let name = "User";
+            if(userDoc.exists()) {
                 const data = userDoc.data();
-                document.getElementById('uName').innerText = data.name || "User";
-                document.getElementById('uEmail').innerText = data.email || "";
-                document.getElementById('initialText').innerText = (data.name || "U")[0].toUpperCase();
-                
-                if (data.profilePic) {
+                name = data.name || data.email.split('@')[0]; // নাম না থাকলে ইমেইল থেকে নেবে
+                document.getElementById('uEmail').innerText = data.email;
+                if(data.profilePic) {
                     document.getElementById('profileImg').src = data.profilePic;
                     document.getElementById('profileImg').classList.remove('hidden');
                     document.getElementById('initialText').classList.add('hidden');
                 }
-                if (data.coverPic) {
+                if(data.coverPic) {
                     document.getElementById('coverImg').src = data.coverPic;
                     document.getElementById('coverImg').classList.remove('hidden');
-                    document.getElementById('coverPlaceholder').classList.add('hidden');
                 }
             }
-        }
+            document.getElementById('uName').innerText = name;
+            document.getElementById('initialText').innerText = name[0].toUpperCase();
 
-        function fetchPosts(uid) {
-            const q = query(collection(db, "posts"), where("userId", "==", uid));
-            onSnapshot(q, (snap) => {
-                allPosts = [];
-                snap.forEach(d => allPosts.push(d.data()));
-                renderPosts('all');
-                document.getElementById('pCount').innerText = snap.size;
-            });
-        }
-
-        function renderPosts(filter) {
-            const container = document.getElementById('uPosts');
-            container.innerHTML = "";
-            
-            const filtered = filter === 'video' ? allPosts.filter(p => p.fileType === 'video') : allPosts;
-
-            if(filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-3 text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest">এখনো কিছু নেই</div>`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                const div = document.createElement('div');
-                div.className = "aspect-square bg-gray-100 overflow-hidden relative group cursor-pointer";
-                
-                let content = "";
-                if(p.fileUrl) {
-                    if(p.fileType === 'video') {
-                        content = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/10"><i class="fas fa-play text-white text-xs"></i></div>`;
-                    } else {
-                        content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
-                    }
+            // Check Follow Status
+            onSnapshot(doc(db, "users", currentUser.uid, "following", targetId), s => {
+                if(s.exists()) {
+                    document.getElementById('unfollowBtn').classList.remove('hidden');
+                    document.getElementById('followBtn').classList.add('hidden');
                 } else {
-                    content = `<div class="p-3 text-[9px] text-gray-500 h-full flex items-center justify-center text-center bg-blue-50">${p.text?.substring(0, 40)}...</div>`;
+                    document.getElementById('followBtn').classList.remove('hidden');
+                    document.getElementById('unfollowBtn').classList.add('hidden');
                 }
-                
-                div.innerHTML = content;
-                container.appendChild(div);
+            });
+
+            // Stats Real-time
+            onSnapshot(collection(db, "users", targetId, "followers"), s => document.getElementById('followerCount').innerText = s.size);
+            onSnapshot(collection(db, "users", targetId, "following"), s => document.getElementById('followingCount').innerText = s.size);
+
+            // Load Posts
+            onSnapshot(query(collection(db, "posts"), where("userId", "==", targetId)), s => {
+                posts = []; s.forEach(d => posts.push(d.data()));
+                render('all');
+                document.getElementById('pCount').innerText = s.size;
             });
         }
 
-        // Tab Switching Logic
-        document.getElementById('tabAll').onclick = (e) => {
-            switchTab(e.currentTarget, 'all');
+        // Follow/Unfollow Actions
+        document.getElementById('followBtn').onclick = async () => {
+            await setDoc(doc(db, "users", currentUser.uid, "following", targetId), { time: new Date() });
+            await setDoc(doc(db, "users", targetId, "followers", currentUser.uid), { time: new Date() });
         };
-        document.getElementById('tabVideos').onclick = (e) => {
-            switchTab(e.currentTarget, 'video');
+        document.getElementById('unfollowBtn').onclick = async () => {
+            await deleteDoc(doc(db, "users", currentUser.uid, "following", targetId));
+            await deleteDoc(doc(db, "users", targetId, "followers", currentUser.uid));
         };
 
-        function switchTab(el, type) {
-            document.getElementById('tabAll').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-            document.getElementById('tabVideos').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-            el.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-            renderPosts(type);
+        function render(type) {
+            const container = document.getElementById('uPosts'); container.innerHTML = "";
+            const filtered = type === 'video' ? posts.filter(p => p.fileType === 'video') : posts;
+            filtered.forEach(p => {
+                const d = document.createElement('div');
+                d.className = "aspect-square bg-gray-100 relative overflow-hidden";
+                d.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><i class="fas fa-play absolute inset-0 m-auto w-fit h-fit text-white text-[10px]"></i>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px] text-gray-400">${p.text?.slice(0,30)}</div>`;
+                container.appendChild(d);
+            });
         }
+
+        document.getElementById('tabAll').onclick = () => render('all');
+        document.getElementById('tabVideos').onclick = () => render('video');
     </script>
 </body>
 </html>
