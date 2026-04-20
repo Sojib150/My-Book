@@ -1,69 +1,50 @@
-/* FEED DESIGN */
-.feed{
-  padding:10px;
+body{
+margin:0;
+font-family:Arial;
+background:#f0f2f5;
+}
+
+.header{
+background:#1877f2;
+color:white;
+padding:15px;
+text-align:center;
+}
+
+.nav{
+position:fixed;
+bottom:0;
+width:100%;
+background:white;
+display:flex;
+justify-content:space-around;
+padding:10px;
+border-top:1px solid #ddd;
+}
+
+.upload{
+display:flex;
+gap:10px;
+padding:10px;
+background:white;
+}
+
+.upload input{
+flex:1;
+padding:10px;
+border-radius:20px;
+border:1px solid #ccc;
 }
 
 .post{
-  background:white;
-  margin-bottom:12px;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+background:white;
+margin:10px;
+padding:10px;
+border-radius:10px;
 }
 
-.post-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.avatar{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:#1877f2;
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.username{
-  font-weight:600;
-}
-
-.post-text{
-  margin:10px 0;
-}
-
-/* actions */
 .actions{
-  display:flex;
-  justify-content:space-around;
-  border-top:1px solid #eee;
-  padding-top:8px;
-}
-
-.actions button{
-  background:none;
-  border:none;
-  font-size:14px;
-  color:#555;
-}
-
-/* comment */
-.comment-box{
-  margin-top:10px;
-}
-
-.comment{
-  background:#f0f2f5;
-  padding:8px;
-  border-radius:8px;
-  margin-top:5px;
-  font-size:14px;
-}
-
-.reply{
-  margin-left:20px;
+display:flex;
+justify-content:space-around;
+margin-top:10px;
 }
