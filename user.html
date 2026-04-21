@@ -32,9 +32,13 @@
             <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none italic">লোড হচ্ছে...</h2>
             <p id="uEmail" class="text-gray-400 text-[10px] mt-1 font-bold"></p>
             
-            <div class="mt-5 flex justify-center gap-3">
-                <button id="followBtn" class="hidden bg-blue-600 text-white px-10 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-90 transition-all">Follow</button>
-                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-10 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-90 transition-all">Unfollow</button>
+            <div class="mt-5 flex justify-center gap-2">
+                <button id="followBtn" class="hidden bg-blue-600 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-90 transition-all">Follow</button>
+                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-90 transition-all">Unfollow</button>
+                
+                <button id="msgBtn" class="bg-white text-blue-600 border border-blue-600 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-sm active:scale-90 transition-all">
+                    <i class="fas fa-comment-dots mr-1"></i> Message
+                </button>
             </div>
 
             <div class="flex justify-around mt-8 border-t pt-6">
@@ -74,13 +78,17 @@
             } else { window.location.href = "index.html"; }
         });
 
+        // মেসেজ বাটনের লজিক
+        document.getElementById('msgBtn').onclick = () => {
+            window.location.href = `chat.html?id=${targetId}`;
+        };
+
         async function init() {
-            // Load User Data with Fallback Logic
             const userDoc = await getDoc(doc(db, "users", targetId));
             let name = "User";
             if(userDoc.exists()) {
                 const data = userDoc.data();
-                name = data.name || data.email.split('@')[0]; // নাম না থাকলে ইমেইল থেকে নেবে
+                name = data.name || data.email.split('@')[0];
                 document.getElementById('uEmail').innerText = data.email;
                 if(data.profilePic) {
                     document.getElementById('profileImg').src = data.profilePic;
@@ -95,7 +103,6 @@
             document.getElementById('uName').innerText = name;
             document.getElementById('initialText').innerText = name[0].toUpperCase();
 
-            // Check Follow Status
             onSnapshot(doc(db, "users", currentUser.uid, "following", targetId), s => {
                 if(s.exists()) {
                     document.getElementById('unfollowBtn').classList.remove('hidden');
@@ -106,11 +113,9 @@
                 }
             });
 
-            // Stats Real-time
             onSnapshot(collection(db, "users", targetId, "followers"), s => document.getElementById('followerCount').innerText = s.size);
             onSnapshot(collection(db, "users", targetId, "following"), s => document.getElementById('followingCount').innerText = s.size);
 
-            // Load Posts
             onSnapshot(query(collection(db, "posts"), where("userId", "==", targetId)), s => {
                 posts = []; s.forEach(d => posts.push(d.data()));
                 render('all');
@@ -118,7 +123,6 @@
             });
         }
 
-        // Follow/Unfollow Actions
         document.getElementById('followBtn').onclick = async () => {
             await setDoc(doc(db, "users", currentUser.uid, "following", targetId), { time: new Date() });
             await setDoc(doc(db, "users", targetId, "followers", currentUser.uid), { time: new Date() });
