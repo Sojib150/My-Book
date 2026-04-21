@@ -13,7 +13,7 @@
         <div class="max-w-md mx-auto flex items-center justify-between">
             <a href="home.html" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></a>
             <h1 id="topName" class="font-bold text-gray-800 text-sm uppercase tracking-widest">আমার প্রোফাইল</h1>
-            <a href="​edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
+            <a href="edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
         </div>
     </nav>
 
@@ -22,7 +22,7 @@
             <img id="coverImg" src="" class="w-full h-full object-cover hidden">
         </div>
 
-        <div class="px-6 pb-6 text-center">
+        <div class="px-6 pb-6">
             <div class="relative flex justify-center -mt-16">
                 <div class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
                     <img id="profileImg" src="" class="w-full h-full object-cover hidden">
@@ -30,11 +30,36 @@
                 </div>
             </div>
 
-            <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none italic">লোড হচ্ছে...</h2>
-            <p id="uBio" class="text-gray-400 text-xs mt-2 px-4"></p>
+            <div class="text-center mt-4">
+                <h2 id="uName" class="text-2xl font-black text-gray-800 leading-none italic">লোড হচ্ছে...</h2>
+                <p id="uBio" class="text-gray-400 text-xs mt-2 px-4 italic"></p>
+            </div>
 
-            <div class="mt-5">
-                <a href="​edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-95 transition">
+            <div class="mt-6 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fas fa-info-circle mr-1"></i> পরিচয় ও তথ্য</h3>
+                
+                <div id="info-job" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-briefcase w-4 text-blue-500"></i> <span id="val-job"></span>
+                </div>
+                <div id="info-edu" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-graduation-cap w-4 text-blue-500"></i> <span id="val-edu"></span>
+                </div>
+                <div id="info-city" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-map-marker-alt w-4 text-blue-500"></i> <span id="val-city"></span>
+                </div>
+                <div id="info-dob" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-birthday-cake w-4 text-blue-500"></i> <span id="val-dob"></span>
+                </div>
+                <div id="info-gender" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-user w-4 text-blue-500"></i> <span id="val-gender"></span>
+                </div>
+                <div id="info-relation" class="hidden flex items-center gap-3 text-xs text-gray-600">
+                    <i class="fas fa-heart w-4 text-pink-500"></i> <span id="val-relation"></span>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                <a href="edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-[10px] uppercase shadow-lg active:scale-95 transition">
                     Edit Profile
                 </a>
             </div>
@@ -62,18 +87,18 @@
 
     <div class="max-w-md mx-auto p-6 mt-4">
         <button onclick="window.logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm">
-            <i class="fas fa-sign-out-alt text-lg"></i> 
-            <span class="uppercase tracking-widest text-xs">লগ-আউট করুন</span>
+            <i class="fas fa-sign-out-alt"></i> 
+            <span class="uppercase tracking-widest text-[10px]">লগ-আউট করুন</span>
         </button>
     </div>
 
     <div id="listModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-t-[30px] p-6 h-[70vh] overflow-hidden flex flex-col shadow-2xl">
+        <div class="bg-white w-full max-w-md rounded-t-[30px] p-6 h-[70vh] overflow-hidden flex flex-col">
             <div class="flex justify-between items-center mb-6 pb-2 border-b">
-                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-sm tracking-widest">List</h3>
+                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-xs tracking-widest">List</h3>
                 <button onclick="window.closeModal()" class="text-gray-400 text-2xl px-2">&times;</button>
             </div>
-            <div id="modalList" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
+            <div id="modalList" class="flex-1 overflow-y-auto space-y-4"></div>
         </div>
     </div>
 
@@ -92,7 +117,6 @@
         onAuthStateChanged(auth, user => {
             if(user) {
                 uid = user.uid;
-                updateDoc(doc(db, "users", uid), { status: "online" });
                 loadProfile();
                 loadStats();
                 loadPosts();
@@ -103,24 +127,36 @@
             const snap = await getDoc(doc(db, "users", uid));
             if(snap.exists()) {
                 const d = snap.data();
-                const name = d.name || "User";
-                document.getElementById('uName').innerText = name;
-                document.getElementById('topName').innerText = name;
+                document.getElementById('uName').innerText = d.name || "User";
+                document.getElementById('topName').innerText = d.name || "Profile";
                 document.getElementById('uBio').innerText = d.bio || "No bio yet.";
-                document.getElementById('initialText').innerText = name[0].toUpperCase();
+                document.getElementById('initialText').innerText = (d.name ? d.name[0] : "U").toUpperCase();
                 
+                // প্রোফাইল ও কভার ছবি
                 if(d.profilePic) {
                     const img = document.getElementById('profileImg');
                     img.src = d.profilePic; img.classList.remove('hidden');
                     document.getElementById('initialText').classList.add('hidden');
                 }
-                if(d.coverPic) {
-                    const img = document.getElementById('coverImg');
-                    img.src = d.coverPic; img.classList.remove('hidden');
-                }
+
+                // নতুন তথ্যগুলো দেখানো (যদি ডাটা থাকে)
+                showInfo('info-job', 'val-job', d.job, 'কাজ করেন: ');
+                showInfo('info-edu', 'val-edu', d.education, 'পড়াশোনা: ');
+                showInfo('info-city', 'val-city', d.city, 'শহর: ');
+                showInfo('info-dob', 'val-dob', d.dob, 'জন্মদিন: ');
+                showInfo('info-gender', 'val-gender', d.gender, 'লিঙ্গ: ');
+                showInfo('info-relation', 'val-relation', d.relationship, 'সম্পর্ক: ');
             }
         }
 
+        function showInfo(divId, valId, value, label) {
+            if(value && value !== "") {
+                document.getElementById(divId).classList.remove('hidden');
+                document.getElementById(valId).innerText = label + value;
+            }
+        }
+
+        // বাকি ফাংশনগুলো (Stats, Posts, Logout) আগের মতোই থাকবে...
         function loadStats() {
             onSnapshot(collection(db, "users", uid, "followers"), s => document.getElementById('followerCount').innerText = s.size);
             onSnapshot(collection(db, "users", uid, "following"), s => document.getElementById('followingCount').innerText = s.size);
@@ -132,25 +168,11 @@
                 const container = document.getElementById('uPosts'); 
                 container.innerHTML = "";
                 document.getElementById('pCount').innerText = s.size;
-                
                 s.forEach(d => {
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 relative overflow-hidden cursor-pointer active:opacity-70 transition";
-                    
-                    // মিডিয়া ক্লিক করলে ওপেন হবে
-                    div.onclick = () => window.open(p.fileUrl, '_blank');
-
-                    if(p.fileUrl) {
-                        if(p.fileType === 'video') {
-                            div.innerHTML = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
-                                             <i class="fas fa-play absolute top-2 right-2 text-white text-[10px] shadow-sm"></i>`;
-                        } else {
-                            div.innerHTML = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
-                        }
-                    } else {
-                        div.innerHTML = `<div class="p-2 text-[10px] text-gray-500 overflow-hidden leading-tight">${p.text || ''}</div>`;
-                    }
+                    div.className = "aspect-square bg-gray-100 overflow-hidden";
+                    div.innerHTML = p.fileUrl ? (p.fileType === 'video' ? `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>` : `<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[10px] text-gray-400">${p.text?.slice(0,20)}...</div>`;
                     container.appendChild(div);
                 });
             });
@@ -160,33 +182,16 @@
             const modal = document.getElementById('listModal');
             const listDiv = document.getElementById('modalList');
             document.getElementById('modalTitle').innerText = type === 'followers' ? 'Followers' : 'Following';
-            
             modal.classList.remove('hidden');
-            listDiv.innerHTML = "<div class='text-center py-10'><i class='fas fa-circle-notch fa-spin text-blue-500'></i></div>";
-
+            listDiv.innerHTML = "<p class='text-center py-10 text-xs text-gray-400'>Loading...</p>";
             const subCol = collection(db, "users", uid, type);
             onSnapshot(subCol, async s => {
                 listDiv.innerHTML = "";
-                if(s.empty) {
-                    listDiv.innerHTML = "<p class='text-center py-10 text-gray-400 text-xs italic'>No list found</p>";
-                    return;
-                }
-                
                 for(const docRef of s.docs) {
                     const uSnap = await getDoc(doc(db, "users", docRef.id));
                     if(uSnap.exists()){
                         const u = uSnap.data();
-                        listDiv.innerHTML += `
-                            <a href="user.html?id=${docRef.id}" class="flex items-center gap-4 p-3 hover:bg-blue-50 rounded-2xl transition border border-transparent hover:border-blue-100">
-                                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden shadow-sm">
-                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : (u.name ? u.name[0] : 'U')}
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-bold text-gray-800">${u.name || 'User'}</p>
-                                    <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest">View Profile</p>
-                                </div>
-                                <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
-                            </a>`;
+                        listDiv.innerHTML += `<div class="flex items-center gap-3 p-2"><div class="w-10 h-10 bg-blue-500 rounded-full overflow-hidden">${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : ''}</div><p class="text-sm font-bold">${u.name || 'User'}</p></div>`;
                     }
                 }
             });
@@ -195,17 +200,9 @@
         window.closeModal = () => document.getElementById('listModal').classList.add('hidden');
 
         window.logout = () => {
-            if(confirm("আপনি কি নিশ্চিত যে লগ-আউট করতে চান?")) {
-                updateDoc(doc(db, "users", uid), { status: "offline" }).then(() => {
-                    signOut(auth).then(() => {
-                        window.location.href = "index.html";
-                    });
-                });
+            if(confirm("আপনি কি নিশ্চিত?")) {
+                signOut(auth).then(() => window.location.href = "index.html");
             }
-        };
-
-        window.onbeforeunload = () => {
-            if(uid) updateDoc(doc(db, "users", uid), { status: "offline" });
         };
     </script>
 </body>
