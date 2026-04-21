@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reels - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body, html { height: 100%; overflow: hidden; background: black; }
+        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; }
+        .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div class="reel-container" id="reelContainer">
+        </div>
+
+    <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-2xl shadow-lg">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // সব ভিডিও পোস্ট লোড করা
+        const q = query(collection(db, "posts"), where("fileType", "==", "video"));
+        onSnapshot(q, snap => {
+            const container = document.getElementById('reelContainer');
+            container.innerHTML = "";
+            snap.forEach(doc => {
+                const p = doc.data();
+                const div = document.createElement('div');
+                div.className = "reel-video";
+                div.innerHTML = `
+                    <video src="${p.fileUrl}" loop autoplay muted class="w-full h-full object-contain"></video>
+                    
+                    <div class="absolute right-4 bottom-24 flex flex-col gap-6 text-white text-center">
+                        <div class="flex flex-col items-center">
+                            <button class="text-2xl"><i class="fas fa-heart"></i></button>
+                            <span class="text-[10px] font-bold">${p.likes || 0}</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <button class="text-2xl"><i class="fas fa-comment"></i></button>
+                            <span class="text-[10px] font-bold">Reply</span>
+                        </div>
+                        <button class="text-2xl"><i class="fas fa-share"></i></button>
+                    </div>
+
+                    <div class="absolute left-4 bottom-10 text-white">
+                        <h4 class="font-bold text-sm">@${p.userName || 'user'}</h4>
+                        <p class="text-xs opacity-80">${p.text || ''}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+                
+                // ভিডিওতে ক্লিক করলে প্লে/পজ
+                div.onclick = (e) => {
+                    const v = div.querySelector('video');
+                    v.paused ? v.play() : v.pause();
+                };
+            });
+        });
+    </script>
+</body>
+</html>
