@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen pb-20">
+
+    <nav class="bg-white border-b sticky top-0 z-50 p-4 shadow-sm">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <h1 class="font-bold text-gray-800 text-lg italic">Messages</h1>
+            <a href="home.html" class="text-gray-400 text-xl"><i class="fas fa-times"></i></a>
+        </div>
+    </nav>
+
+    <div class="max-w-md mx-auto p-2" id="chatList">
+        <div id="loader" class="text-center py-10 text-blue-500"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+        </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                loadChatList(user.uid);
+            } else { window.location.href = "index.html"; }
+        });
+
+        function loadChatList(myId) {
+            // চ্যাট কালেকশন থেকে সব চ্যাট রুম ট্র্যাক করা
+            onSnapshot(collection(db, "chats"), async (snapshot) => {
+                const listDiv = document.getElementById('chatList');
+                const loader = document.getElementById('loader');
+                listDiv.innerHTML = "";
+                
+                let chatsFound = 0;
+
+                for (const d of snapshot.docs) {
+                    if (d.id.includes(myId)) {
+                        chatsFound++;
+                        const otherUserId = d.id.replace(myId, "").replace("_", "");
+                        const uSnap = await getDoc(doc(db, "users", otherUserId));
+                        
+                        if (uSnap.exists()) {
+                            const u = uSnap.data();
+                            const name = u.name || "User";
+                            listDiv.innerHTML += `
+                                <a href="chat.html?id=${otherUserId}" class="flex items-center gap-4 p-4 bg-white mb-2 rounded-2xl shadow-sm border border-gray-50 active:scale-95 transition">
+                                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden shadow-inner">
+                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : name[0].toUpperCase()}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="font-bold text-gray-800 text-sm">${name}</h3>
+                                            <span class="text-[9px] text-green-500 font-bold uppercase">Active</span>
+                                        </div>
+                                        <p class="text-[11px] text-gray-400 mt-0.5 truncate">মেসেজ দেখতে এখানে ক্লিক করুন...</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+                                </a>
+                            `;
+                        }
+                    }
+                }
+                if(chatsFound === 0) {
+                    listDiv.innerHTML = `<div class="text-center py-20 text-gray-300">
+                        <i class="fas fa-comment-slash text-4xl mb-3 opacity-20"></i>
+                        <p class="text-xs font-bold uppercase tracking-widest">কোনো মেসেজ নেই</p>
+                    </div>`;
+                }
+                loader?.remove();
+            });
+        }
+    </script>
+</body>
+</html>
