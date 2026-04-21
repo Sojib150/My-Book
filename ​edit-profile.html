@@ -6,48 +6,94 @@
     <title>Edit Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        input, select, textarea { border: 1px solid #e5e7eb !important; }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen pb-10">
 
-    <nav class="bg-white border-b sticky top-0 z-50 p-4">
+    <nav class="bg-white border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <a href="profile.html" class="text-gray-600"><i class="fas fa-times text-xl"></i></a>
+                <a href="profile.html" class="text-gray-600"><i class="fas fa-arrow-left text-xl"></i></a>
                 <h1 class="font-bold text-gray-800">প্রোফাইল এডিট</h1>
             </div>
-            <button id="saveBtn" class="text-blue-600 font-bold text-sm">Save</button>
+            <button id="saveBtn" class="bg-blue-600 text-white px-5 py-1.5 rounded-full font-bold text-xs uppercase shadow-md active:scale-90 transition-all">Save</button>
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto p-6">
-        <div class="flex flex-col items-center mb-8">
+    <div class="max-w-md mx-auto p-6 space-y-5">
+        <div class="flex flex-col items-center mb-4">
             <div class="relative group">
-                <div id="uAvatar" class="w-24 h-24 bg-blue-500 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center text-3xl font-bold text-white">
+                <div id="uAvatar" class="w-28 h-28 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
                     <img id="previewImg" src="" class="w-full h-full object-cover hidden">
                     <span id="initial">?</span>
                 </div>
-                <label for="fileInput" class="absolute bottom-0 right-0 bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-md">
-                    <i class="fas fa-camera text-xs"></i>
+                <label for="fileInput" class="absolute bottom-1 right-1 bg-blue-600 text-white w-9 h-9 rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-lg">
+                    <i class="fas fa-camera"></i>
                 </label>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
-            <p class="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-widest">Change Photo</p>
+            <p class="text-[10px] text-gray-400 mt-3 font-black uppercase tracking-widest">Change Profile Photo</p>
         </div>
 
-        <div class="space-y-6">
+        <div class="grid grid-cols-1 gap-4">
             <div>
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Full Name</label>
-                <input type="text" id="nameInput" placeholder="আপনার নাম লিখুন" class="w-full bg-white border-none rounded-xl py-3 px-4 mt-1 shadow-sm focus:ring-2 focus:ring-blue-400 outline-none text-sm">
+                <input type="text" id="nameInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm focus:ring-2 focus:ring-blue-400 transition">
             </div>
 
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Bio (Optional)</label>
-                <textarea id="bioInput" rows="3" placeholder="নিজের সম্পর্কে কিছু লিখুন..." class="w-full bg-white border-none rounded-xl py-3 px-4 mt-1 shadow-sm focus:ring-2 focus:ring-blue-400 outline-none text-sm"></textarea>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Bio</label>
+                <textarea id="bioInput" rows="2" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm focus:ring-2 focus:ring-blue-400 transition"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Birthday</label>
+                    <input type="date" id="dobInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Gender</label>
+                    <select id="genderInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                        <option value="">Select</option>
+                        <option value="Male">ছেলে (Male)</option>
+                        <option value="Female">মেয়ে (Female)</option>
+                        <option value="Other">অন্যান্য</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Current City (বাসস্থান)</label>
+                <input type="text" id="cityInput" placeholder="উদা: ঢাকা, বাংলাদেশ" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">School / College / University</label>
+                <input type="text" id="eduInput" placeholder="শিক্ষা প্রতিষ্ঠানের নাম" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Occupation (কি কাজ করেন)</label>
+                <input type="text" id="jobInput" placeholder="উদা: ছাত্র, চাকুরীজীবী, ফ্রিল্যান্সার" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Relationship Status</label>
+                <select id="relationInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                    <option value="">Select Status</option>
+                    <option value="Single">সিঙ্গেল (Single)</option>
+                    <option value="Married">বিবাহিত (Married)</option>
+                    <option value="In a Relationship">রিলেশনশিপে আছি</option>
+                    <option value="Engaged">এনগেজড</option>
+                </select>
             </div>
         </div>
 
         <div id="loader" class="hidden mt-6 text-center text-blue-600">
-            <i class="fas fa-spinner fa-spin"></i> <span class="text-xs font-bold ml-2">Updating...</span>
+            <i class="fas fa-circle-notch fa-spin text-xl"></i> 
+            <span class="text-xs font-bold ml-2">Updating Profile...</span>
         </div>
     </div>
 
@@ -55,16 +101,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
 
         let currentUser = null;
-        let selectedFile = null;
+        let base64Image = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -74,22 +118,32 @@
                     const data = userDoc.data();
                     document.getElementById('nameInput').value = data.name || "";
                     document.getElementById('bioInput').value = data.bio || "";
+                    document.getElementById('dobInput').value = data.dob || "";
+                    document.getElementById('genderInput').value = data.gender || "";
+                    document.getElementById('cityInput').value = data.city || "";
+                    document.getElementById('eduInput').value = data.education || "";
+                    document.getElementById('jobInput').value = data.job || "";
+                    document.getElementById('relationInput').value = data.relationship || "";
+                    
                     if (data.profilePic) {
                         showPreview(data.profilePic);
                     } else {
-                        document.getElementById('initial').innerText = (data.name || user.email)[0].toUpperCase();
+                        document.getElementById('initial').innerText = (data.name || "U")[0].toUpperCase();
                     }
                 }
             } else { window.location.href = "index.html"; }
         });
 
-        // ইমেজ প্রিভিউ লজিক
+        // ইমেজ প্রিভিউ এবং কনভার্ট
         document.getElementById('fileInput').onchange = (e) => {
-            selectedFile = e.target.files[0];
-            if (selectedFile) {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => showPreview(event.target.result);
-                reader.readAsDataURL(selectedFile);
+                reader.onload = (event) => {
+                    base64Image = event.target.result;
+                    showPreview(base64Image);
+                };
+                reader.readAsDataURL(file);
             }
         };
 
@@ -100,36 +154,37 @@
             document.getElementById('initial').classList.add('hidden');
         }
 
-        // সেভ লজিক
+        // ডাটা সেভ লজিক
         document.getElementById('saveBtn').onclick = async () => {
-            const name = document.getElementById('nameInput').value.trim();
-            const bio = document.getElementById('bioInput').value.trim();
             const loader = document.getElementById('loader');
-
-            if (!name) return alert("নাম দিতে হবে!");
+            const name = document.getElementById('nameInput').value.trim();
+            
+            if (!name) return alert("দয়া করে নাম লিখুন!");
 
             loader.classList.remove('hidden');
-            let profilePicUrl = null;
 
             try {
-                // ছবি আপলোড (যদি নতুন ছবি সিলেক্ট করা হয়)
-                if (selectedFile) {
-                    const sRef = ref(storage, `profiles/${currentUser.uid}`);
-                    await uploadBytes(sRef, selectedFile);
-                    profilePicUrl = await getDownloadURL(sRef);
-                }
+                const updateData = {
+                    name: name,
+                    bio: document.getElementById('bioInput').value,
+                    dob: document.getElementById('dobInput').value,
+                    gender: document.getElementById('genderInput').value,
+                    city: document.getElementById('cityInput').value,
+                    education: document.getElementById('eduInput').value,
+                    job: document.getElementById('jobInput').value,
+                    relationship: document.getElementById('relationInput').value,
+                    updatedAt: new Date()
+                };
 
-                // ডাটাবেজ আপডেট
-                const updateData = { name, bio };
-                if (profilePicUrl) updateData.profilePic = profilePicUrl;
+                if (base64Image) updateData.profilePic = base64Image;
 
                 await updateDoc(doc(db, "users", currentUser.uid), updateData);
                 
-                alert("প্রোফাইল আপডেট হয়েছে!");
+                alert("প্রোফাইল সফলভাবে আপডেট হয়েছে! 😊");
                 window.location.href = "profile.html";
             } catch (err) {
                 console.error(err);
-                alert("সমস্যা হয়েছে!");
+                alert("দুঃখিত, আপডেট করা সম্ভব হয়নি।");
             } finally {
                 loader.classList.add('hidden');
             }
