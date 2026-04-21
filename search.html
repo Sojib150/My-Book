@@ -27,10 +27,9 @@
     </div>
 
     <div class="max-w-md mx-auto mt-4 px-2">
-        <div id="resultsGrid" class="grid grid-cols-3 gap-1">
-            </div>
-        <div id="userResults" class="space-y-3 hidden">
-            </div>
+        <div id="resultsGrid" class="grid grid-cols-3 gap-1"></div>
+        <div id="userResults" class="space-y-3 hidden"></div>
+        
         <div id="emptyState" class="text-center py-20 text-gray-400">
             <i class="fas fa-search text-4xl mb-4 opacity-20"></i>
             <p class="text-xs font-bold uppercase tracking-widest">কিছু লিখে সার্চ করুন</p>
@@ -40,6 +39,7 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around items-center z-50 max-w-md mx-auto shadow-2xl">
         <a href="home.html" class="text-gray-400"><i class="fas fa-home text-xl"></i></a>
         <a href="search.html" class="text-blue-600"><i class="fas fa-search text-xl"></i></a>
+        <a href="messages.html" class="text-gray-400"><i class="fab fa-facebook-messenger text-xl"></i></a>
         <a href="profile.html" class="text-gray-400"><i class="fas fa-user text-xl"></i></a>
     </nav>
 
@@ -61,7 +61,6 @@
         let allUsers = [];
         let allPosts = [];
 
-        // ১. শুরুতে সব ডাটা একবার লোড করে রাখা (Fast Searching এর জন্য)
         async function loadInitialData() {
             const uSnap = await getDocs(collection(db, "users"));
             uSnap.forEach(doc => allUsers.push({id: doc.id, ...doc.data()}));
@@ -71,13 +70,9 @@
         }
         loadInitialData();
 
-        // ২. সার্চ ইনপুট লজিক
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            if(!term) {
-                showEmpty(true);
-                return;
-            }
+            if(!term) { showEmpty(true); return; }
             showEmpty(false);
             performSearch(term);
         });
@@ -95,23 +90,28 @@
                     (u.email && u.email.toLowerCase().includes(term))
                 );
                 filteredUsers.forEach(u => {
+                    // ইউজার কার্ডের সাথে সরাসরি চ্যাট বাটন যোগ করা হয়েছে
                     list.innerHTML += `
-                        <a href="user.html?id=${u.id}" class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
-                            <div class="w-12 h-12 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center text-white font-bold">
-                                ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-800 text-sm">${u.name || 'User'}</h4>
-                                <p class="text-[10px] text-gray-400">View Profile</p>
-                            </div>
-                        </a>`;
+                        <div class="flex items-center justify-between p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
+                            <a href="user.html?id=${u.id}" class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center text-white font-bold">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 text-sm">${u.name || 'User'}</h4>
+                                    <p class="text-[10px] text-gray-400">View Profile</p>
+                                </div>
+                            </a>
+                            <a href="chat.html?id=${u.id}" class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-90 transition">
+                                <i class="fab fa-facebook-messenger text-lg"></i>
+                            </a>
+                        </div>`;
                 });
             }
 
             if(currentFilter !== 'users') {
-                list.classList.add('hidden');
+                // পোস্ট রেজাল্ট আগের মতোই থাকবে
                 let filteredPosts = allPosts.filter(p => p.text && p.text.toLowerCase().includes(term));
-                
                 if(currentFilter === 'images') filteredPosts = allPosts.filter(p => p.fileType === 'image');
                 if(currentFilter === 'videos') filteredPosts = allPosts.filter(p => p.fileType === 'video');
 
@@ -131,7 +131,9 @@
         window.setFilter = (f) => {
             currentFilter = f;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active-tab'));
-            event.target.classList.add('active-tab');
+            // ইভেন্ট টার্গেট হ্যান্ডলিং ঠিক করা হয়েছে
+            const btns = document.querySelectorAll('.filter-btn');
+            btns.forEach(b => { if(b.innerText.toLowerCase().includes(f) || (f==='all' && b.innerText==='সব')) b.classList.add('active-tab'); });
             performSearch(document.getElementById('searchInput').value);
         };
 
