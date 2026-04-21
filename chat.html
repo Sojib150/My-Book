@@ -6,106 +6,177 @@
     <title>Chat - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { overflow: hidden; }
+        #chatBox { height: calc(100vh - 135px); overflow-y: auto; scroll-behavior: smooth; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col">
+<body class="bg-gray-100">
 
-    <nav class="bg-white p-4 border-b flex items-center gap-4 sticky top-0 z-50">
-        <a href="home.html" class="text-blue-600"><i class="fas fa-arrow-left"></i></a>
-        <div class="flex items-center gap-3">
-            <div id="targetAvatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden text-sm">?</div>
-            <div>
-                <h2 id="targetName" class="font-bold text-gray-800 text-sm italic">Loading...</h2>
-                <p class="text-[10px] text-green-500 font-bold uppercase">Online</p>
+    <nav class="bg-blue-600 sticky top-0 z-50 p-3 shadow-lg text-white">
+        <div class="max-w-md mx-auto flex items-center gap-3">
+            <a href="messages.html" class="text-white px-2"><i class="fas fa-arrow-left"></i></a>
+            <div id="receiverProfile" class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-blue-400">
+                <span id="recInit">?</span>
+                <img id="recPic" src="" class="hidden w-full h-full object-cover">
+            </div>
+            <div class="flex-1">
+                <h1 id="receiverName" class="font-bold text-sm">Loading...</h1>
+                <p class="text-[8px] text-blue-100 uppercase font-black tracking-tighter">Active Now</p>
             </div>
         </div>
     </nav>
 
-    <div id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
-        </div>
+    <div id="chatBox" class="max-w-md mx-auto p-4 space-y-4 no-scrollbar">
+        <div class="text-center py-10 text-gray-400 text-xs italic">বার্তা লোড হচ্ছে...</div>
+    </div>
 
-    <div class="p-4 bg-white border-t sticky bottom-0">
+    <div id="uploadStatus" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 bg-black/80 text-white px-5 py-2 rounded-full text-[10px] font-bold z-50 shadow-2xl">
+        <i class="fas fa-cloud-upload-alt fa-bounce mr-2"></i> মিডিয়া পাঠানো হচ্ছে...
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div class="max-w-md mx-auto flex items-center gap-2">
-            <input type="text" id="msgInput" placeholder="কিছু লিখুন..." class="flex-1 bg-gray-100 border-none rounded-full py-2.5 px-5 text-sm focus:ring-1 focus:ring-blue-400 outline-none">
-            <button id="sendBtn" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md active:scale-90 transition">
-                <i class="fas fa-paper-plane text-sm"></i>
+            <label class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-600 cursor-pointer transition active:scale-90">
+                <i class="fas fa-image text-xl"></i>
+                <input type="file" id="fileInput" accept="image/*,video/*" class="hidden" onchange="window.uploadToCloudinary(this)">
+            </label>
+
+            <input type="text" id="msgInput" placeholder="মেসেজ লিখুন..." class="flex-1 bg-gray-100 border-none rounded-full py-2.5 px-5 text-sm outline-none focus:ring-2 focus:ring-blue-400 transition-all">
+            
+            <button onclick="window.sendMsg()" class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 hover:bg-blue-700 transition">
+                <i class="fas fa-paper-plane"></i>
             </button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Cloudinary Config - set with your details
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/sojib150/upload";
+        const CLOUDINARY_PRESET = "ml_default";
+
+        let currentUser = null;
         const urlParams = new URLSearchParams(window.location.search);
         const receiverId = urlParams.get('id');
-        let senderId = null;
 
         onAuthStateChanged(auth, user => {
-            if(user) {
-                senderId = user.uid;
+            if(user && receiverId) {
+                currentUser = user;
                 loadReceiverInfo();
                 loadMessages();
-            } else { window.location.href = "index.html"; }
+            } else if(!user) {
+                window.location.href = "index.html";
+            }
         });
 
-        // ১. যার সাথে কথা বলছেন তার তথ্য আনা
         async function loadReceiverInfo() {
-            const snap = await getDoc(doc(db, "users", receiverId));
-            if(snap.exists()){
-                const d = snap.data();
-                const name = d.name || "User";
-                document.getElementById('targetName').innerText = name;
-                if(d.profilePic) document.getElementById('targetAvatar').innerHTML = `<img src="${d.profilePic}" class="w-full h-full object-cover">`;
-                else document.getElementById('targetAvatar').innerText = name[0].toUpperCase();
+            const d = await getDoc(doc(db, "users", receiverId));
+            if(d.exists()) {
+                const u = d.data();
+                document.getElementById('receiverName').innerText = u.name || "User";
+                if(u.profilePic) {
+                    document.getElementById('recPic').src = u.profilePic;
+                    document.getElementById('recPic').classList.remove('hidden');
+                    document.getElementById('recInit').classList.add('hidden');
+                } else {
+                    document.getElementById('recInit').innerText = (u.name || "U")[0].toUpperCase();
+                }
             }
         }
 
-        // ২. মেসেজ পাঠানো
-        document.getElementById('sendBtn').onclick = async () => {
-            const text = document.getElementById('msgInput').value.trim();
-            if(!text) return;
+        function getChatId() {
+            return currentUser.uid < receiverId ? currentUser.uid + "_" + receiverId : receiverId + "_" + currentUser.uid;
+        }
 
-            document.getElementById('msgInput').value = "";
-            const chatID = [senderId, receiverId].sort().join("_"); // ইউনিক চ্যাট আইডি
+        window.uploadToCloudinary = async (input) => {
+            const file = input.files[0];
+            if(!file) return;
 
-            await addDoc(collection(db, "chats", chatID, "messages"), {
-                senderId,
-                text,
-                timestamp: serverTimestamp()
-            });
-            
-            // অটো স্ক্রল নিচে
-            const chatBox = document.getElementById('chatBox');
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const status = document.getElementById('uploadStatus');
+            status.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_PRESET);
+
+            try {
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                await addDoc(collection(db, "chats", getChatId(), "messages"), {
+                    senderId: currentUser.uid,
+                    fileUrl: data.secure_url,
+                    fileType: file.type.startsWith('video') ? 'video' : 'image',
+                    timestamp: serverTimestamp()
+                });
+                status.classList.add('hidden');
+            } catch (err) {
+                console.error(err);
+                alert("ফাইল পাঠাতে ব্যর্থ হয়েছে!");
+                status.classList.add('hidden');
+            }
+            input.value = "";
         };
 
-        // ৩. মেসেজ লোড করা (রিয়েল-টাইম)
-        function loadMessages() {
-            const chatID = [senderId, receiverId].sort().join("_");
-            const q = query(collection(db, "chats", chatID, "messages"), orderBy("timestamp", "asc"));
+        window.sendMsg = async () => {
+            const input = document.getElementById('msgInput');
+            const val = input.value.trim();
+            if(!val) return;
 
-            onSnapshot(q, s => {
-                const chatBox = document.getElementById('chatBox');
-                chatBox.innerHTML = "";
-                s.forEach(d => {
-                    const m = d.data();
-                    const isMe = m.senderId === senderId;
+            await addDoc(collection(db, "chats", getChatId(), "messages"), {
+                senderId: currentUser.uid,
+                text: val,
+                timestamp: serverTimestamp()
+            });
+            input.value = "";
+        };
+
+        function loadMessages() {
+            const q = query(collection(db, "chats", getChatId(), "messages"), orderBy("timestamp", "asc"));
+            onSnapshot(q, snap => {
+                const box = document.getElementById('chatBox');
+                box.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const isMe = m.senderId === currentUser.uid;
                     const div = document.createElement('div');
                     div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+                    
+                    let content = "";
+                    if(m.fileUrl) {
+                        content = m.fileType === 'video' ? 
+                            `<video src="${m.fileUrl}" controls class="rounded-xl max-w-[240px] border border-gray-200"></video>` : 
+                            `<img src="${m.fileUrl}" class="rounded-xl max-w-[240px] shadow-md border border-white cursor-pointer" onclick="window.open('${m.fileUrl}')">`;
+                    } else {
+                        content = `<p class="text-sm font-medium">${m.text}</p>`;
+                    }
+
                     div.innerHTML = `
-                        <div class="${isMe ? 'bg-blue-600 text-white rounded-t-2xl rounded-bl-2xl' : 'bg-white text-gray-800 rounded-t-2xl rounded-br-2xl'} px-4 py-2 max-w-[80%] shadow-sm text-sm font-medium">
-                            ${m.text}
+                        <div class="${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none'} p-3 px-4 rounded-2xl shadow-sm border border-gray-100 max-w-[80%]">
+                            ${content}
                         </div>
                     `;
-                    chatBox.appendChild(div);
+                    box.appendChild(div);
                 });
-                chatBox.scrollTop = chatBox.scrollHeight;
+                box.scrollTop = box.scrollHeight;
             });
         }
     </script>
