@@ -13,7 +13,7 @@
         <div class="max-w-md mx-auto flex items-center justify-between">
             <a href="home.html" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></a>
             <h1 id="topName" class="font-bold text-gray-800 text-sm uppercase tracking-widest">আমার প্রোফাইল</h1>
-            <a href="​edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
+            <a href="edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
         </div>
     </nav>
 
@@ -34,21 +34,21 @@
             <p id="uBio" class="text-gray-400 text-xs mt-2 px-4"></p>
 
             <div class="mt-5">
-                <a href="​edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-95 transition">
+                <a href="edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-95 transition">
                     Edit Profile
                 </a>
             </div>
 
             <div class="flex justify-around mt-8 border-t pt-6">
-                <div class="cursor-pointer">
+                <div class="text-center">
                     <p id="pCount" class="font-black text-lg text-gray-800">0</p>
                     <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Posts</p>
                 </div>
-                <div class="cursor-pointer" onclick="openModal('followers')">
+                <div class="text-center cursor-pointer" onclick="window.openModal('followers')">
                     <p id="followerCount" class="font-black text-lg text-gray-800">0</p>
                     <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Followers</p>
                 </div>
-                <div class="cursor-pointer" onclick="openModal('following')">
+                <div class="text-center cursor-pointer" onclick="window.openModal('following')">
                     <p id="followingCount" class="font-black text-lg text-gray-800">0</p>
                     <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Following</p>
                 </div>
@@ -56,45 +56,54 @@
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-2 bg-white min-h-screen">
+    <div class="max-w-md mx-auto mt-2 bg-white min-h-[300px]">
         <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
     </div>
 
-    <div id="listModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 h-[70vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-sm">List</h3>
-                <button onclick="closeModal()" class="text-gray-400 text-xl">&times;</button>
+    <div class="max-w-md mx-auto p-6 mt-4">
+        <button onclick="window.logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm">
+            <i class="fas fa-sign-out-alt text-lg"></i> 
+            <span class="uppercase tracking-widest text-xs">লগ-আউট করুন</span>
+        </button>
+    </div>
+
+    <div id="listModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-t-[30px] p-6 h-[70vh] overflow-hidden flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-6 pb-2 border-b">
+                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-sm tracking-widest">List</h3>
+                <button onclick="window.closeModal()" class="text-gray-400 text-2xl px-2">&times;</button>
             </div>
-            <div id="modalList" class="space-y-4"></div>
+            <div id="modalList" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
         let uid = null;
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 uid = user.uid;
+                updateDoc(doc(db, "users", uid), { status: "online" });
                 loadProfile();
                 loadStats();
                 loadPosts();
             } else { window.location.href = "index.html"; }
         });
 
-        // প্রোফাইল ডাটা লোড
         async function loadProfile() {
             const snap = await getDoc(doc(db, "users", uid));
             if(snap.exists()) {
                 const d = snap.data();
-                const name = d.name || auth.currentUser.email.split('@')[0];
+                const name = d.name || "User";
                 document.getElementById('uName').innerText = name;
                 document.getElementById('topName').innerText = name;
                 document.getElementById('uBio').innerText = d.bio || "No bio yet.";
@@ -112,56 +121,71 @@
             }
         }
 
-        // ফলোয়ার ও ফলোয়িং সংখ্যা
         function loadStats() {
             onSnapshot(collection(db, "users", uid, "followers"), s => document.getElementById('followerCount').innerText = s.size);
             onSnapshot(collection(db, "users", uid, "following"), s => document.getElementById('followingCount').innerText = s.size);
         }
 
-        // নিজের পোস্ট গ্রিড
         function loadPosts() {
             const q = query(collection(db, "posts"), where("userId", "==", uid));
             onSnapshot(q, s => {
-                const container = document.getElementById('uPosts'); container.innerHTML = "";
+                const container = document.getElementById('uPosts'); 
+                container.innerHTML = "";
                 document.getElementById('pCount').innerText = s.size;
+                
                 s.forEach(d => {
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 relative overflow-hidden";
-                    div.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px]">${p.text?.slice(0,30)}</div>`;
+                    div.className = "aspect-square bg-gray-100 relative overflow-hidden cursor-pointer active:opacity-70 transition";
+                    
+                    // মিডিয়া ক্লিক করলে ওপেন হবে
+                    div.onclick = () => window.open(p.fileUrl, '_blank');
+
+                    if(p.fileUrl) {
+                        if(p.fileType === 'video') {
+                            div.innerHTML = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
+                                             <i class="fas fa-play absolute top-2 right-2 text-white text-[10px] shadow-sm"></i>`;
+                        } else {
+                            div.innerHTML = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
+                        }
+                    } else {
+                        div.innerHTML = `<div class="p-2 text-[10px] text-gray-500 overflow-hidden leading-tight">${p.text || ''}</div>`;
+                    }
                     container.appendChild(div);
                 });
             });
         }
 
-        // লিস্ট দেখার পপআপ লজিক
         window.openModal = async (type) => {
             const modal = document.getElementById('listModal');
             const listDiv = document.getElementById('modalList');
             document.getElementById('modalTitle').innerText = type === 'followers' ? 'Followers' : 'Following';
             
             modal.classList.remove('hidden');
-            listDiv.innerHTML = "<p class='text-center text-xs text-gray-400'>Loading...</p>";
+            listDiv.innerHTML = "<div class='text-center py-10'><i class='fas fa-circle-notch fa-spin text-blue-500'></i></div>";
 
-            const snap = await getDoc(doc(db, "users", uid));
             const subCol = collection(db, "users", uid, type);
             onSnapshot(subCol, async s => {
                 listDiv.innerHTML = "";
-                if(s.empty) listDiv.innerHTML = "<p class='text-center text-xs text-gray-400'>No list found</p>";
+                if(s.empty) {
+                    listDiv.innerHTML = "<p class='text-center py-10 text-gray-400 text-xs italic'>No list found</p>";
+                    return;
+                }
                 
                 for(const docRef of s.docs) {
                     const uSnap = await getDoc(doc(db, "users", docRef.id));
                     if(uSnap.exists()){
                         const u = uSnap.data();
                         listDiv.innerHTML += `
-                            <a href="user.html?id=${docRef.id}" class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition">
-                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden">
-                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
+                            <a href="user.html?id=${docRef.id}" class="flex items-center gap-4 p-3 hover:bg-blue-50 rounded-2xl transition border border-transparent hover:border-blue-100">
+                                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden shadow-sm">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : (u.name ? u.name[0] : 'U')}
                                 </div>
-                                <div>
+                                <div class="flex-1">
                                     <p class="text-sm font-bold text-gray-800">${u.name || 'User'}</p>
-                                    <p class="text-[10px] text-gray-400">View Profile</p>
+                                    <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest">View Profile</p>
                                 </div>
+                                <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
                             </a>`;
                     }
                 }
@@ -169,26 +193,20 @@
         };
 
         window.closeModal = () => document.getElementById('listModal').classList.add('hidden');
-    </script> <div class="max-w-md mx-auto p-4 mt-10">
-    <button onclick="window.logout()" class="w-full bg-red-50 text-red-600 font-bold py-3 rounded-2xl border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition-all">
-        <i class="fas fa-sign-out-alt"></i> লগ-আউট করুন
-    </button>
-</div>
 
-<script type="module">
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    
-    const auth = getAuth();
+        window.logout = () => {
+            if(confirm("আপনি কি নিশ্চিত যে লগ-আউট করতে চান?")) {
+                updateDoc(doc(db, "users", uid), { status: "offline" }).then(() => {
+                    signOut(auth).then(() => {
+                        window.location.href = "index.html";
+                    });
+                });
+            }
+        };
 
-    window.logout = () => {
-        if(confirm("আপনি কি নিশ্চিত যে লগ-আউট করতে চান?")) {
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            }).catch((error) => {
-                alert("লগ-আউট করতে সমস্যা হয়েছে!");
-            });
-        }
-    }
-</script>
+        window.onbeforeunload = () => {
+            if(uid) updateDoc(doc(db, "users", uid), { status: "offline" });
+        };
+    </script>
 </body>
 </html>
