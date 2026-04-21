@@ -69,9 +69,9 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Cloudinary Config - set with your details
-        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/sojib150/upload";
-        const CLOUDINARY_PRESET = "ml_default";
+        // Updated Cloudinary Config with your NEW Cloud Name
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dlpwdx288/upload";
+        const CLOUDINARY_PRESET = "ml_default"; 
 
         let currentUser = null;
         const urlParams = new URLSearchParams(window.location.search);
@@ -121,12 +121,14 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                 const data = await res.json();
                 
-                await addDoc(collection(db, "chats", getChatId(), "messages"), {
-                    senderId: currentUser.uid,
-                    fileUrl: data.secure_url,
-                    fileType: file.type.startsWith('video') ? 'video' : 'image',
-                    timestamp: serverTimestamp()
-                });
+                if (data.secure_url) {
+                    await addDoc(collection(db, "chats", getChatId(), "messages"), {
+                        senderId: currentUser.uid,
+                        fileUrl: data.secure_url,
+                        fileType: file.type.startsWith('video') ? 'video' : 'image',
+                        timestamp: serverTimestamp()
+                    });
+                }
                 status.classList.add('hidden');
             } catch (err) {
                 console.error(err);
