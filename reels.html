@@ -7,66 +7,130 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { height: 100%; overflow: hidden; background: black; }
-        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; }
-        .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+        body, html { height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; }
+        .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .heart-animation { position: absolute; font-size: 80px; color: white; opacity: 0; transform: scale(0); pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .animate-heart { opacity: 0.9; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
+        @keyframes fadeOut { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(2); } }
+        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.7)); position: absolute; bottom: 0; width: 100%; height: 30%; }
     </style>
 </head>
 <body>
 
-    <div class="reel-container" id="reelContainer">
+    <div class="reel-container no-scrollbar" id="reelContainer">
         </div>
 
-    <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-2xl shadow-lg">
+    <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-xl drop-shadow-lg opacity-80 hover:opacity-100 transition">
         <i class="fas fa-arrow-left"></i>
     </a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUser = null;
 
-        // সব ভিডিও পোস্ট লোড করা
+        onAuthStateChanged(auth, user => { currentUser = user; });
+
+        // ভিডিও লোড করা
         const q = query(collection(db, "posts"), where("fileType", "==", "video"));
         onSnapshot(q, snap => {
             const container = document.getElementById('reelContainer');
             container.innerHTML = "";
-            snap.forEach(doc => {
-                const p = doc.data();
+            snap.forEach(postDoc => {
+                const p = postDoc.data();
+                const id = postDoc.id;
+                const isLiked = p.likedBy?.includes(currentUser?.uid);
+                
                 const div = document.createElement('div');
                 div.className = "reel-video";
                 div.innerHTML = `
-                    <video src="${p.fileUrl}" loop autoplay muted class="w-full h-full object-contain"></video>
+                    <video src="${p.fileUrl}" loop autoplay playsinline class="reel-vid-tag"></video>
                     
-                    <div class="absolute right-4 bottom-24 flex flex-col gap-6 text-white text-center">
+                    <div class="heart-animation"><i class="fas fa-heart"></i></div>
+                    <div class="overlay-gradient"></div>
+
+                    <div class="absolute right-4 bottom-24 flex flex-col gap-6 text-white text-center z-20">
                         <div class="flex flex-col items-center">
-                            <button class="text-2xl"><i class="fas fa-heart"></i></button>
-                            <span class="text-[10px] font-bold">${p.likes || 0}</span>
+                            <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl transition active:scale-125">
+                                <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
+                            </button>
+                            <span class="text-[11px] font-bold mt-1 shadow-sm" id="count-${id}">${p.likes || 0}</span>
                         </div>
-                        <div class="flex flex-col items-center">
-                            <button class="text-2xl"><i class="fas fa-comment"></i></button>
-                            <span class="text-[10px] font-bold">Reply</span>
+                        <div class="flex flex-col items-center" onclick="window.location.href='home.html'">
+                            <button class="text-3xl"><i class="far fa-comment"></i></button>
+                            <span class="text-[11px] font-bold mt-1">Reply</span>
                         </div>
-                        <button class="text-2xl"><i class="fas fa-share"></i></button>
+                        <button onclick="window.shareReel('${p.fileUrl}')" class="text-3xl"><i class="fas fa-share"></i></button>
                     </div>
 
-                    <div class="absolute left-4 bottom-10 text-white">
-                        <h4 class="font-bold text-sm">@${p.userName || 'user'}</h4>
-                        <p class="text-xs opacity-80">${p.text || ''}</p>
+                    <div class="absolute left-4 bottom-10 text-white z-20 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-lg">
+                            <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm shadow-sm">@${p.userName || 'user'}</h4>
+                            <p class="text-[11px] opacity-90 line-clamp-1">${p.text || ''}</p>
+                        </div>
                     </div>
                 `;
-                container.appendChild(div);
                 
-                // ভিডিওতে ক্লিক করলে প্লে/পজ
-                div.onclick = (e) => {
+                // ডাবল ট্যাপে লাইক লজিক
+                let lastTap = 0;
+                div.addEventListener('click', (e) => {
+                    const now = Date.now();
                     const v = div.querySelector('video');
-                    v.paused ? v.play() : v.pause();
-                };
+                    if (now - lastTap < 300) {
+                        window.likeReel(id, e, true); // Double tap like
+                    } else {
+                        v.paused ? v.play() : v.pause();
+                    }
+                    lastTap = now;
+                    v.muted = false; // ক্লিক করার সাথে সাথে সাউন্ড চালু হবে
+                });
+
+                container.appendChild(div);
             });
         });
+
+        // লাইক ফাংশন
+        window.likeReel = async (id, e, isDoubleTap = false) => {
+            if(!currentUser) return alert("দয়া করে লগইন করুন");
+            e.stopPropagation();
+            
+            const ref = doc(db, "posts", id);
+            const heartIcon = document.getElementById(`btn-${id}`).querySelector('i');
+            const animationHeart = e.currentTarget.closest('.reel-video')?.querySelector('.heart-animation');
+
+            if (isDoubleTap && animationHeart) {
+                animationHeart.classList.add('animate-heart');
+                setTimeout(() => animationHeart.classList.remove('animate-heart'), 800);
+            }
+
+            const p = (await updateDoc(ref, {
+                likes: increment(heartIcon.classList.contains('far') ? 1 : -1),
+                likedBy: heartIcon.classList.contains('far') ? arrayUnion(currentUser.uid) : arrayRemove(currentUser.uid)
+            }));
+        };
+
+        // শেয়ার ফাংশন
+        window.shareReel = (url) => {
+            if (navigator.share) {
+                navigator.share({ title: 'My Book Reel', url: url });
+            } else {
+                navigator.clipboard.writeText(url);
+                alert("লিঙ্ক কপি করা হয়েছে!");
+            }
+        };
+
     </script>
 </body>
 </html>
