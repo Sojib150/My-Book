@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         input, select, textarea { border: 1px solid #e5e7eb !important; }
+        .custom-alert { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-10">
@@ -18,13 +20,13 @@
                 <a href="profile.html" class="text-gray-600"><i class="fas fa-arrow-left text-xl"></i></a>
                 <h1 class="font-bold text-gray-800">প্রোফাইল এডিট</h1>
             </div>
-            <button id="saveBtn" class="bg-blue-600 text-white px-5 py-1.5 rounded-full font-bold text-xs uppercase shadow-md active:scale-90 transition-all">Save</button>
+            <button id="saveBtn" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-90 transition-all">Save</button>
         </div>
     </nav>
 
     <div class="max-w-md mx-auto p-6 space-y-5">
-        <div class="flex flex-col items-center mb-4">
-            <div class="relative group">
+        <div class="flex flex-col items-center">
+            <div class="relative">
                 <div id="uAvatar" class="w-28 h-28 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
                     <img id="previewImg" src="" class="w-full h-full object-cover hidden">
                     <span id="initial">?</span>
@@ -34,10 +36,10 @@
                 </label>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
-            <p class="text-[10px] text-gray-400 mt-3 font-black uppercase tracking-widest">Change Profile Photo</p>
+            <p class="text-[10px] text-gray-400 mt-3 font-black uppercase tracking-widest">Update Photo</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
+        <div class="grid grid-cols-1 gap-4 mt-6">
             <div>
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Full Name</label>
                 <input type="text" id="nameInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm focus:ring-2 focus:ring-blue-400 transition">
@@ -65,18 +67,18 @@
             </div>
 
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Current City (বাসস্থান)</label>
-                <input type="text" id="cityInput" placeholder="উদা: ঢাকা, বাংলাদেশ" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Current City</label>
+                <input type="text" id="cityInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
             </div>
 
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">School / College / University</label>
-                <input type="text" id="eduInput" placeholder="শিক্ষা প্রতিষ্ঠানের নাম" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Education</label>
+                <input type="text" id="eduInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
             </div>
 
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Occupation (কি কাজ করেন)</label>
-                <input type="text" id="jobInput" placeholder="উদা: ছাত্র, চাকুরীজীবী, ফ্রিল্যান্সার" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Occupation</label>
+                <input type="text" id="jobInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
             </div>
 
             <div>
@@ -86,14 +88,25 @@
                     <option value="Single">সিঙ্গেল (Single)</option>
                     <option value="Married">বিবাহিত (Married)</option>
                     <option value="In a Relationship">রিলেশনশিপে আছি</option>
-                    <option value="Engaged">এনগেজড</option>
                 </select>
             </div>
         </div>
+    </div>
 
-        <div id="loader" class="hidden mt-6 text-center text-blue-600">
-            <i class="fas fa-circle-notch fa-spin text-xl"></i> 
-            <span class="text-xs font-bold ml-2">Updating Profile...</span>
+    <div id="statusPopup" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center shadow-2xl custom-alert">
+            <div id="popLoader" class="mb-4">
+                <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600"></i>
+            </div>
+            <div id="popSuccess" class="hidden mb-4 text-green-500">
+                <i class="fas fa-check-circle text-5xl"></i>
+            </div>
+            <div id="popError" class="hidden mb-4 text-red-500">
+                <i class="fas fa-exclamation-circle text-5xl"></i>
+            </div>
+            <h3 id="popTitle" class="text-lg font-bold text-gray-800">Processing...</h3>
+            <p id="popMsg" class="text-xs text-gray-500 mt-2">দয়া করে একটু অপেক্ষা করুন</p>
+            <button id="closePop" class="hidden mt-6 w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-800 text-xs uppercase tracking-widest">Close</button>
         </div>
     </div>
 
@@ -102,46 +115,58 @@
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let currentUser = null;
+        let uid = null;
         let base64Image = null;
 
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, async user => {
             if (user) {
-                currentUser = user;
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    document.getElementById('nameInput').value = data.name || "";
-                    document.getElementById('bioInput').value = data.bio || "";
-                    document.getElementById('dobInput').value = data.dob || "";
-                    document.getElementById('genderInput').value = data.gender || "";
-                    document.getElementById('cityInput').value = data.city || "";
-                    document.getElementById('eduInput').value = data.education || "";
-                    document.getElementById('jobInput').value = data.job || "";
-                    document.getElementById('relationInput').value = data.relationship || "";
-                    
-                    if (data.profilePic) {
-                        showPreview(data.profilePic);
-                    } else {
-                        document.getElementById('initial').innerText = (data.name || "U")[0].toUpperCase();
-                    }
+                uid = user.uid;
+                const snap = await getDoc(doc(db, "users", uid));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    document.getElementById('nameInput').value = d.name || "";
+                    document.getElementById('bioInput').value = d.bio || "";
+                    document.getElementById('dobInput').value = d.dob || "";
+                    document.getElementById('genderInput').value = d.gender || "";
+                    document.getElementById('cityInput').value = d.city || "";
+                    document.getElementById('eduInput').value = d.education || "";
+                    document.getElementById('jobInput').value = d.job || "";
+                    document.getElementById('relationInput').value = d.relationship || "";
+                    if (d.profilePic) showPreview(d.profilePic);
+                    else document.getElementById('initial').innerText = (d.name || "U")[0].toUpperCase();
                 }
-            } else { window.location.href = "index.html"; }
+            } else window.location.href = "index.html";
         });
 
-        // ইমেজ প্রিভিউ এবং কনভার্ট
-        document.getElementById('fileInput').onchange = (e) => {
+        // Image Selection & Compression
+        document.getElementById('fileInput').onchange = e => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    base64Image = event.target.result;
-                    showPreview(base64Image);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const size = 300; // Resize to 300px for stability
+                        canvas.width = size; canvas.height = size;
+                        ctx.drawImage(img, 0, 0, size, size);
+                        base64Image = canvas.toDataURL('image/jpeg', 0.7); // Compress quality to 70%
+                        showPreview(base64Image);
+                    };
                 };
                 reader.readAsDataURL(file);
             }
@@ -154,18 +179,35 @@
             document.getElementById('initial').classList.add('hidden');
         }
 
-        // ডাটা সেভ লজিক
-        document.getElementById('saveBtn').onclick = async () => {
-            const loader = document.getElementById('loader');
-            const name = document.getElementById('nameInput').value.trim();
-            
-            if (!name) return alert("দয়া করে নাম লিখুন!");
+        function showStatus(type, title, msg) {
+            const pop = document.getElementById('statusPopup');
+            const ldr = document.getElementById('popLoader');
+            const ok = document.getElementById('popSuccess');
+            const err = document.getElementById('popError');
+            const btn = document.getElementById('closePop');
 
-            loader.classList.remove('hidden');
+            pop.classList.remove('hidden');
+            ldr.classList.add('hidden'); ok.classList.add('hidden'); err.classList.add('hidden'); btn.classList.add('hidden');
+
+            if (type === 'load') ldr.classList.remove('hidden');
+            else if (type === 'success') { ok.classList.remove('hidden'); setTimeout(() => window.location.href = "profile.html", 1500); }
+            else if (type === 'error') { err.classList.remove('hidden'); btn.classList.remove('hidden'); }
+
+            document.getElementById('popTitle').innerText = title;
+            document.getElementById('popMsg').innerText = msg;
+        }
+
+        document.getElementById('closePop').onclick = () => document.getElementById('statusPopup').classList.add('hidden');
+
+        document.getElementById('saveBtn').onclick = async () => {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) return alert("দয়া করে আপনার নাম লিখুন");
+
+            showStatus('load', 'Updating...', 'আপনার প্রোফাইল সেভ করা হচ্ছে');
 
             try {
-                const updateData = {
-                    name: name,
+                const data = {
+                    name,
                     bio: document.getElementById('bioInput').value,
                     dob: document.getElementById('dobInput').value,
                     gender: document.getElementById('genderInput').value,
@@ -173,20 +215,15 @@
                     education: document.getElementById('eduInput').value,
                     job: document.getElementById('jobInput').value,
                     relationship: document.getElementById('relationInput').value,
-                    updatedAt: new Date()
+                    lastUpdate: new Date()
                 };
+                if (base64Image) data.profilePic = base64Image;
 
-                if (base64Image) updateData.profilePic = base64Image;
-
-                await updateDoc(doc(db, "users", currentUser.uid), updateData);
-                
-                alert("প্রোফাইল সফলভাবে আপডেট হয়েছে! 😊");
-                window.location.href = "profile.html";
-            } catch (err) {
-                console.error(err);
-                alert("দুঃখিত, আপডেট করা সম্ভব হয়নি।");
-            } finally {
-                loader.classList.add('hidden');
+                await updateDoc(doc(db, "users", uid), data);
+                showStatus('success', 'Success!', 'প্রোফাইল সুন্দরভাবে আপডেট হয়েছে');
+            } catch (e) {
+                console.error(e);
+                showStatus('error', 'Error!', 'দুঃখিত, তথ্য সেভ করা সম্ভব হয়নি। আবার চেষ্টা করুন।');
             }
         };
     </script>
