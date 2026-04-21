@@ -37,14 +37,14 @@
     <div class="bg-white border-b sticky top-[52px] z-40">
         <div class="max-w-md mx-auto flex">
             <button id="showAll" class="flex-1 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 uppercase tracking-widest">Feed</button>
-            <button id="showVideos" class="flex-1 py-3 text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
+            <button onclick="window.location.href='reels.html'" class="flex-1 py-3 text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
                 <i class="fas fa-play-circle"></i> Reels
             </button>
         </div>
     </div>
 
     <div id="feed" class="max-w-md mx-auto p-2 mt-2">
-        <div class="text-center py-10 text-gray-400 text-sm">পোস্ট লোড হচ্ছে...</div>
+        <div class="text-center py-10 text-gray-400 text-sm italic">পোস্ট লোড হচ্ছে...</div>
     </div>
 
     <a href="post.html" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-all active:scale-90 z-50">
@@ -53,7 +53,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -62,7 +62,6 @@
         const auth = getAuth(app);
         let currentUser = null;
         let myFollowing = [];
-        let filterMode = 'all';
 
         onAuthStateChanged(auth, async (user) => {
             if(user) {
@@ -74,7 +73,7 @@
             } else { window.location.href = "index.html"; }
         });
 
-        // ১. ন্যাভ ডাটা ও মেসেজ কাউন্ট
+        // ১. প্রোফাইল ও মেসেজ নোটিফিকেশন লজিক
         async function loadNavData() {
             const userDoc = await getDoc(doc(db, "users", currentUser.uid));
             if(userDoc.exists() && userDoc.data().profilePic) {
@@ -93,20 +92,19 @@
             });
         }
 
-        // ২. ফলোয়িং লিস্ট চেক (স্মার্ট ফলো বাটনের জন্য)
         function loadFollowingList() {
             onSnapshot(collection(db, "users", currentUser.uid, "following"), snap => {
                 myFollowing = snap.docs.map(d => d.id);
             });
         }
 
-        // ৩. হ্যাশট্যাগ ফরম্যাটিং
+        // ২. হ্যাশট্যাগ ও টেক্সট ফরম্যাট
         function formatText(text) {
             if(!text) return "";
             return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="window.location.href=\'search.html?q=$1\'">#$1</span>');
         }
 
-        // ৪. মেইন ফিড রেন্ডার
+        // ৩. ফিড রেন্ডার লজিক
         function renderFeed() {
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 const feed = document.getElementById('feed');
@@ -115,10 +113,11 @@
                 snap.forEach(postDoc => {
                     const p = postDoc.data();
                     const id = postDoc.id;
-                    if(filterMode === 'video' && p.fileType !== 'video') return;
-
                     const isFollowing = myFollowing.includes(p.userId) || p.userId === currentUser.uid;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
+                    
+                    // সময় ঠিক করার লজিক (Date Fix)
+                    const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short'}) : "এইমাত্র";
                     
                     const card = document.createElement('div');
                     card.className = "bg-white mb-4 rounded-xl shadow-sm border border-gray-200 overflow-hidden";
@@ -130,18 +129,18 @@
                                 </a>
                                 <div>
                                     <a href="user.html?id=${p.userId}" class="font-bold text-sm text-gray-800">${p.userName || 'User'}</a>
-                                    <p class="text-[8px] text-gray-400 uppercase font-black">Just Now</p>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${date}</p>
                                 </div>
                             </div>
-                            ${!isFollowing ? `<button onclick="window.quickFollow('${p.userId}')" class="text-blue-600 text-[10px] font-black uppercase border border-blue-600 px-3 py-1 rounded-full">Follow</button>` : ''}
+                            ${!isFollowing ? `<button onclick="window.quickFollow('${p.userId}')" class="text-blue-600 text-[10px] font-black border border-blue-600 px-3 py-1 rounded-full uppercase">Follow</button>` : ''}
                         </div>
                         
                         <p class="px-4 pb-3 text-sm text-gray-700">${formatText(p.text)}</p>
                         
                         ${p.fileUrl ? (p.fileType === 'video' ? 
-                            `<div class="bg-black relative group" onclick="window.location.href='messages.html'">
+                            `<div class="bg-black relative group cursor-pointer" onclick="window.location.href='reels.html?id=${id}'">
                                 <video src="${p.fileUrl}" class="w-full max-h-[450px]"></video>
-                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition">
                                     <i class="fas fa-play text-white text-4xl"></i>
                                 </div>
                             </div>` : 
@@ -154,15 +153,12 @@
                             <button onclick="document.getElementById('commentArea-${id}').classList.toggle('hidden')" class="flex-1 py-2 flex items-center justify-center gap-2">
                                 <i class="far fa-comment text-lg"></i> Comment
                             </button>
-                            <button onclick="window.sharePost('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2">
-                                <i class="fas fa-share text-lg"></i> Share
-                            </button>
                         </div>
 
                         <div id="commentArea-${id}" class="hidden border-t bg-gray-50 p-3">
                             <div id="list-${id}" class="space-y-4 mb-4"></div>
                             <div class="flex gap-2 bg-white p-1 rounded-full px-3 shadow-inner">
-                                <input type="text" id="input-${id}" placeholder="Write a comment..." class="flex-1 bg-transparent border-none py-2 text-[11px] outline-none">
+                                <input type="text" id="input-${id}" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-transparent border-none py-2 text-[11px] outline-none">
                                 <button onclick="window.addComment('${id}')" class="text-blue-600 px-2"><i class="fas fa-paper-plane"></i></button>
                             </div>
                         </div>
@@ -173,7 +169,7 @@
             });
         }
 
-        // ৫. কমেন্ট সিস্টেম (লাইক, রিপ্লাই ও প্রোফাইল লিঙ্কসহ)
+        // ৪. অ্যাডভান্সড কমেন্ট লোডার
         function loadComments(postId) {
             const container = document.getElementById(`list-${postId}`);
             onSnapshot(query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc")), snap => {
@@ -188,12 +184,12 @@
                             ${c.userPic ? `<img src="${c.userPic}" class="w-full h-full object-cover">` : c.userName[0]}
                         </a>
                         <div class="flex-1">
-                            <div class="bg-white p-2 px-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100">
+                            <div class="bg-white p-2 px-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm">
                                 <a href="user.html?id=${c.userId}" class="text-[10px] font-black text-gray-800 hover:underline">${c.userName}</a>
                                 <p class="text-[11px] text-gray-600 mt-0.5">${c.text}</p>
                             </div>
                             <div class="flex gap-4 mt-1 ml-2 text-[9px] font-black uppercase text-gray-400">
-                                <button onclick="window.likeComment('${postId}','${cid}')" class="hover:text-blue-600">Like</button>
+                                <button class="hover:text-blue-600">Like</button>
                                 <button onclick="document.getElementById('input-${postId}').value='@${c.userName} '" class="hover:text-blue-600">Reply</button>
                             </div>
                         </div>
@@ -203,7 +199,7 @@
             });
         }
 
-        // উইন্ডো ফাংশনসমূহ
+        // ৫. গ্লোবাল ফাংশনসমূহ
         window.quickFollow = async (tid) => {
             await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: new Date() });
             await setDoc(doc(db, "users", tid, "followers", currentUser.uid), { time: new Date() });
@@ -229,20 +225,6 @@
             input.value = "";
         };
 
-        // ট্যাব সুইচিং
-        document.getElementById('showAll').onclick = (e) => {
-            filterMode = 'all';
-            e.target.classList.add('border-blue-600', 'text-blue-600');
-            document.getElementById('showVideos').classList.remove('border-blue-600', 'text-blue-600');
-            renderFeed();
-        };
-
-        document.getElementById('showVideos').onclick = (e) => {
-            filterMode = 'video';
-            e.target.classList.add('border-blue-600', 'text-blue-600');
-            document.getElementById('showAll').classList.remove('border-blue-600', 'text-blue-600');
-            renderFeed();
-        };
     </script>
 </body>
 </html>
