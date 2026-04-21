@@ -37,7 +37,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -55,6 +55,8 @@
 
         onAuthStateChanged(auth, user => {
             if(user) {
+                // অনলাইন স্ট্যাটাস আপডেট
+                updateDoc(doc(db, "users", user.uid), { status: "online" });
                 loadAllUsers(user.uid);
             } else {
                 window.location.href = "index.html";
@@ -66,7 +68,7 @@
             const searchInput = document.getElementById('userSearch');
 
             onSnapshot(collection(db, "users"), (snapshot) => {
-                const users = [];
+                let users = [];
                 snapshot.forEach(doc => {
                     if (doc.id !== myId) users.push({ id: doc.id, ...doc.data() });
                 });
@@ -79,8 +81,10 @@
                     }
 
                     filteredUsers.forEach(u => {
-                        // অনলাইন স্ট্যাটাস (রিয়েলটাইম লজিক পরে অ্যাড করা যাবে, আপাতত ডামি)
-                        const isOnline = Math.random() > 0.4; 
+                        // আসল অনলাইন লজিক
+                        const isOnline = u.status === "online"; 
+                        // লাস্ট মেসেজ লজিক (যদি থাকে)
+                        const lastMsg = u.lastMsg || "মেসেজ শুরু করতে ক্লিক করুন...";
                         
                         listDiv.innerHTML += `
                             <a href="chat.html?id=${u.id}" class="flex items-center gap-4 p-3 bg-white rounded-2xl hover:bg-blue-50 transition active:scale-[0.98] border border-gray-50 shadow-sm">
@@ -88,14 +92,14 @@
                                     <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden shadow-inner text-lg">
                                         ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : (u.name ? u.name[0].toUpperCase() : 'U')}
                                     </div>
-                                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 ${isOnline ? 'bg-green-500' : 'bg-gray-300'} border-2 border-white rounded-full"></span>
+                                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 ${isOnline ? 'bg-green-500' : 'bg-gray-300'} border-2 border-white rounded-full shadow-sm"></span>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex justify-between items-center">
                                         <h3 class="font-bold text-gray-800 text-sm">${u.name || 'User'}</h3>
-                                        <span class="text-[8px] text-gray-400 font-bold uppercase">${isOnline ? 'Active' : 'Offline'}</span>
+                                        <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">${isOnline ? 'Active Now' : 'Offline'}</span>
                                     </div>
-                                    <p class="text-[10px] text-gray-400 mt-0.5 truncate italic">মেসেজ শুরু করতে ক্লিক করুন...</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5 truncate italic font-medium">${lastMsg}</p>
                                 </div>
                                 <div class="w-8 h-8 flex items-center justify-center text-blue-100">
                                     <i class="fab fa-facebook-messenger text-lg"></i>
@@ -115,6 +119,11 @@
                 };
             });
         }
+
+        // ট্যাব বন্ধ করলে অফলাইন স্ট্যাটাস
+        window.onbeforeunload = () => {
+            if(auth.currentUser) updateDoc(doc(db, "users", auth.currentUser.uid), { status: "offline" });
+        };
     </script>
 </body>
 </html>
