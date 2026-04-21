@@ -7,23 +7,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        body, html { height: 100%; overflow: hidden; background: #000; }
         .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; }
         .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .heart-animation { position: absolute; font-size: 80px; color: white; opacity: 0; transform: scale(0); pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .animate-heart { opacity: 0.9; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
-        @keyframes fadeOut { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(2); } }
-        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.7)); position: absolute; bottom: 0; width: 100%; height: 30%; }
+        .heart-animation { position: absolute; font-size: 80px; color: white; opacity: 0; transform: scale(0); pointer-events: none; z-index: 30; }
+        .animate-heart { animation: heartFade 0.8s ease-out; }
+        @keyframes heartFade { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 0.9; transform: scale(1.2); } 100% { opacity: 0; transform: scale(2); } }
+        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.8)); position: absolute; bottom: 0; width: 100%; height: 40%; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div class="reel-container no-scrollbar" id="reelContainer">
-        </div>
+    <div class="reel-container no-scrollbar" id="reelContainer"></div>
 
-    <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-xl drop-shadow-lg opacity-80 hover:opacity-100 transition">
+    <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-xl drop-shadow-lg">
         <i class="fas fa-arrow-left"></i>
     </a>
 
@@ -40,7 +39,6 @@
 
         onAuthStateChanged(auth, user => { currentUser = user; });
 
-        // ভিডিও লোড করা
         const q = query(collection(db, "posts"), where("fileType", "==", "video"));
         onSnapshot(q, snap => {
             const container = document.getElementById('reelContainer');
@@ -53,84 +51,85 @@
                 const div = document.createElement('div');
                 div.className = "reel-video";
                 div.innerHTML = `
-                    <video src="${p.fileUrl}" loop autoplay playsinline class="reel-vid-tag"></video>
-                    
-                    <div class="heart-animation"><i class="fas fa-heart"></i></div>
+                    <video src="${p.fileUrl}" loop autoplay playsinline class="w-full h-full"></video>
+                    <div class="heart-animation"><i class="fas fa-heart text-red-500"></i></div>
                     <div class="overlay-gradient"></div>
 
-                    <div class="absolute right-4 bottom-24 flex flex-col gap-6 text-white text-center z-20">
+                    <div class="absolute right-4 bottom-32 flex flex-col gap-6 text-white text-center z-40">
                         <div class="flex flex-col items-center">
-                            <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl transition active:scale-125">
+                            <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl active:scale-125 transition">
                                 <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
                             </button>
-                            <span class="text-[11px] font-bold mt-1 shadow-sm" id="count-${id}">${p.likes || 0}</span>
+                            <span class="text-[11px] font-bold mt-1 shadow-md" id="count-${id}">${p.likes || 0}</span>
                         </div>
-                        <div class="flex flex-col items-center" onclick="window.location.href='home.html'">
-                            <button class="text-3xl"><i class="far fa-comment"></i></button>
+                        <div class="flex flex-col items-center">
+                            <button onclick="event.stopPropagation(); alert('Comments coming soon!')" class="text-3xl">
+                                <i class="far fa-comment"></i>
+                            </button>
                             <span class="text-[11px] font-bold mt-1">Reply</span>
                         </div>
-                        <button onclick="window.shareReel('${p.fileUrl}')" class="text-3xl"><i class="fas fa-share"></i></button>
+                        <button onclick="window.shareReel('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
                     </div>
 
-                    <div class="absolute left-4 bottom-20 text-white z-20 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-lg">
+                    <div class="absolute left-4 bottom-20 text-white z-40 flex items-center gap-3">
+                        <a href="profile.html?id=${p.userId || ''}" onclick="event.stopPropagation()" class="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg">
                             <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-sm shadow-sm">@${p.userName || 'user'}</h4>
-                            <p class="text-[11px] opacity-90 line-clamp-1">${p.text || ''}</p>
+                        </a>
+                        <div onclick="event.stopPropagation(); window.location.href='profile.html?id=${p.userId || ''}'" class="cursor-pointer">
+                            <h4 class="font-bold text-sm shadow-md">@${p.userName || 'user'}</h4>
+                            <p class="text-[11px] opacity-90 line-clamp-1 shadow-md">${p.text || ''}</p>
                         </div>
                     </div>
                 `;
                 
-                // ডাবল ট্যাপে লাইক লজিক
                 let lastTap = 0;
                 div.addEventListener('click', (e) => {
                     const now = Date.now();
                     const v = div.querySelector('video');
+                    v.muted = false; // Unmute on first click
                     if (now - lastTap < 300) {
-                        window.likeReel(id, e, true); // Double tap like
+                        window.likeReel(id, e, true);
                     } else {
                         v.paused ? v.play() : v.pause();
                     }
                     lastTap = now;
-                    v.muted = false; // ক্লিক করার সাথে সাথে সাউন্ড চালু হবে
                 });
 
                 container.appendChild(div);
             });
         });
 
-        // লাইক ফাংশন
         window.likeReel = async (id, e, isDoubleTap = false) => {
-            if(!currentUser) return alert("দয়া করে লগইন করুন");
+            if(!currentUser) return;
             e.stopPropagation();
-            
             const ref = doc(db, "posts", id);
-            const heartIcon = document.getElementById(`btn-${id}`).querySelector('i');
-            const animationHeart = e.currentTarget.closest('.reel-video')?.querySelector('.heart-animation');
-
-            if (isDoubleTap && animationHeart) {
-                animationHeart.classList.add('animate-heart');
-                setTimeout(() => animationHeart.classList.remove('animate-heart'), 800);
+            const heartBtn = document.getElementById(`btn-${id}`);
+            const heartIcon = heartBtn.querySelector('i');
+            
+            if (isDoubleTap) {
+                const anim = e.currentTarget.closest('.reel-video').querySelector('.heart-animation');
+                anim.classList.add('animate-heart');
+                setTimeout(() => anim.classList.remove('animate-heart'), 800);
             }
 
-            const p = (await updateDoc(ref, {
-                likes: increment(heartIcon.classList.contains('far') ? 1 : -1),
-                likedBy: heartIcon.classList.contains('far') ? arrayUnion(currentUser.uid) : arrayRemove(currentUser.uid)
-            }));
+            const currentlyLiked = heartIcon.classList.contains('fas');
+            if (isDoubleTap && currentlyLiked) return; // Already liked
+
+            await updateDoc(ref, {
+                likes: increment(currentlyLiked ? -1 : 1),
+                likedBy: currentlyLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+            });
         };
 
-        // শেয়ার ফাংশন
-        window.shareReel = (url) => {
+        window.shareReel = (url, e) => {
+            e.stopPropagation();
             if (navigator.share) {
                 navigator.share({ title: 'My Book Reel', url: url });
             } else {
                 navigator.clipboard.writeText(url);
-                alert("লিঙ্ক কপি করা হয়েছে!");
+                alert("Link copied!");
             }
         };
-
     </script>
 </body>
 </html>
