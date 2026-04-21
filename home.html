@@ -6,6 +6,11 @@
     <title>My Book - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hashtag { color: #2563eb; font-weight: 600; cursor: pointer; }
+        .hashtag:hover { text-decoration: underline; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
 <body class="bg-gray-100 pb-24">
 
@@ -14,178 +19,230 @@
             <h1 class="text-xl font-bold italic tracking-tighter">My Book</h1>
             
             <div class="flex items-center gap-4">
-                <a href="search.html" class="text-white hover:text-blue-200 transition">
-                    <i class="fas fa-search text-lg"></i>
-                </a>
+                <a href="search.html" class="text-white hover:text-blue-200"><i class="fas fa-search text-lg"></i></a>
                 
+                <a href="messages.html" class="relative text-white">
+                    <i class="fab fa-facebook-messenger text-xl"></i>
+                    <span id="msgCount" class="hidden absolute -top-2 -right-2 bg-red-500 text-[10px] text-white w-4 h-4 rounded-full flex items-center justify-center border border-white font-bold">0</span>
+                </a>
+
                 <a href="profile.html" id="navProfile" class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-xs font-bold border border-blue-400 overflow-hidden">
                     <span id="navInit">P</span>
                     <img id="navPic" src="" class="w-full h-full object-cover hidden">
                 </a>
-
-                <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-[10px] px-2 py-1 rounded font-bold transition">
-                    LOGOUT
-                </button>
             </div>
         </div>
     </nav>
+
+    <div class="bg-white border-b sticky top-[52px] z-40">
+        <div class="max-w-md mx-auto flex">
+            <button id="showAll" class="flex-1 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 uppercase tracking-widest">Feed</button>
+            <button id="showVideos" class="flex-1 py-3 text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
+                <i class="fas fa-play-circle"></i> Reels
+            </button>
+        </div>
+    </div>
 
     <div id="feed" class="max-w-md mx-auto p-2 mt-2">
         <div class="text-center py-10 text-gray-400 text-sm">পোস্ট লোড হচ্ছে...</div>
     </div>
 
-    <a href="post.html" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:bg-blue-700 transition-all active:scale-90 z-50">
+    <a href="post.html" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-all active:scale-90 z-50">
         <i class="fas fa-plus"></i>
     </a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            authDomain: "seen-a1d92.firebaseapp.com", 
-            projectId: "seen-a1d92",
-            storageBucket: "seen-a1d92.firebasestorage.app",
-            messagingSenderId: "868584044532",
-            appId: "1:868584044532:web:51f07436a883f88332eba1"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         let currentUser = null;
+        let myFollowing = [];
+        let filterMode = 'all';
 
-        // অথেনটিকেশন চেক
         onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUser = user;
-                // ন্যাভ বারে প্রোফাইল ছবি দেখানো
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if(userDoc.exists() && userDoc.data().profilePic) {
-                    document.getElementById('navPic').src = userDoc.data().profilePic;
-                    document.getElementById('navPic').classList.remove('hidden');
-                    document.getElementById('navInit').classList.add('hidden');
-                } else {
-                    document.getElementById('navInit').innerText = (user.displayName || user.email)[0].toUpperCase();
-                }
-            } else {
-                window.location.href = "index.html";
-            }
+                loadNavData();
+                loadMessagesCount();
+                loadFollowingList();
+                renderFeed();
+            } else { window.location.href = "index.html"; }
         });
 
-        // লগআউট ফাংশন
-        document.getElementById('logoutBtn').onclick = () => {
-            if(confirm("আপনি কি লগআউট করতে চান?")) {
-                signOut(auth).then(() => window.location.href = "index.html");
+        // ১. ন্যাভ ডাটা ও মেসেজ কাউন্ট
+        async function loadNavData() {
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if(userDoc.exists() && userDoc.data().profilePic) {
+                document.getElementById('navPic').src = userDoc.data().profilePic;
+                document.getElementById('navPic').classList.remove('hidden');
+                document.getElementById('navInit').classList.add('hidden');
             }
-        };
+        }
 
-        // পোস্ট লোড করা
-        onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
-            const feed = document.getElementById('feed');
-            feed.innerHTML = "";
-            
-            snap.forEach(postDoc => {
-                const p = postDoc.data();
-                const id = postDoc.id;
-                const isLiked = p.likedBy?.includes(currentUser?.uid);
-                const date = p.createdAt ? new Date(p.createdAt.toDate()).toLocaleString('bn-BD', {hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short'}) : "এইমাত্র";
+        function loadMessagesCount() {
+            onSnapshot(collection(db, "chats"), snap => {
+                let count = 0;
+                snap.forEach(d => { if(d.id.includes(currentUser.uid)) count++; });
+                const badge = document.getElementById('msgCount');
+                if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); }
+            });
+        }
 
-                const card = document.createElement('div');
-                card.className = "bg-white mb-4 rounded-xl shadow-sm border border-gray-200 overflow-hidden";
-                card.innerHTML = `
-                    <div class="p-3 flex items-center gap-3">
-                        <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-gray-100">
-                            ${p.userName ? p.userName[0].toUpperCase() : 'U'}
-                        </a>
-                        <div>
-                            <a href="user.html?id=${p.userId}" class="font-bold text-sm text-gray-800 hover:text-blue-600 transition">${p.userName || 'User'}</a>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">${date}</p>
+        // ২. ফলোয়িং লিস্ট চেক (স্মার্ট ফলো বাটনের জন্য)
+        function loadFollowingList() {
+            onSnapshot(collection(db, "users", currentUser.uid, "following"), snap => {
+                myFollowing = snap.docs.map(d => d.id);
+            });
+        }
+
+        // ৩. হ্যাশট্যাগ ফরম্যাটিং
+        function formatText(text) {
+            if(!text) return "";
+            return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="window.location.href=\'search.html?q=$1\'">#$1</span>');
+        }
+
+        // ৪. মেইন ফিড রেন্ডার
+        function renderFeed() {
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
+                const feed = document.getElementById('feed');
+                feed.innerHTML = "";
+                
+                snap.forEach(postDoc => {
+                    const p = postDoc.data();
+                    const id = postDoc.id;
+                    if(filterMode === 'video' && p.fileType !== 'video') return;
+
+                    const isFollowing = myFollowing.includes(p.userId) || p.userId === currentUser.uid;
+                    const isLiked = p.likedBy?.includes(currentUser?.uid);
+                    
+                    const card = document.createElement('div');
+                    card.className = "bg-white mb-4 rounded-xl shadow-sm border border-gray-200 overflow-hidden";
+                    card.innerHTML = `
+                        <div class="p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <a href="user.html?id=${p.userId}" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden">
+                                    ${p.userPic ? `<img src="${p.userPic}" class="w-full h-full object-cover">` : p.userName?.[0] || 'U'}
+                                </a>
+                                <div>
+                                    <a href="user.html?id=${p.userId}" class="font-bold text-sm text-gray-800">${p.userName || 'User'}</a>
+                                    <p class="text-[8px] text-gray-400 uppercase font-black">Just Now</p>
+                                </div>
+                            </div>
+                            ${!isFollowing ? `<button onclick="window.quickFollow('${p.userId}')" class="text-blue-600 text-[10px] font-black uppercase border border-blue-600 px-3 py-1 rounded-full">Follow</button>` : ''}
                         </div>
-                    </div>
-                    
-                    <p class="px-4 pb-3 text-sm text-gray-700 whitespace-pre-wrap">${p.text || ''}</p>
-                    
-                    ${p.fileUrl ? (p.fileType === 'video' ? 
-                        `<div class="bg-black flex items-center justify-center"><video src="${p.fileUrl}" controls class="w-full max-h-[450px]"></video></div>` : 
-                        `<img src="${p.fileUrl}" class="w-full object-cover max-h-[500px]">`) : ""}
-                    
-                    <div class="p-2 border-t flex justify-around text-xs font-bold text-gray-500 bg-gray-50/50">
-                        <button onclick="window.like('${id}')" class="flex items-center gap-2 py-1 px-4 rounded-lg hover:bg-gray-100 transition ${isLiked ? 'text-red-500' : ''}">
-                            <i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> 
-                            <span>${p.likes || 0}</span>
-                        </button>
-                        <button onclick="document.getElementById('commentArea-${id}').classList.toggle('hidden')" class="flex items-center gap-2 py-1 px-4 rounded-lg hover:bg-gray-100 transition">
-                            <i class="far fa-comment text-lg"></i>
-                            <span>Comment</span>
-                        </button>
-                    </div>
-
-                    <div id="commentArea-${id}" class="hidden border-t bg-white p-3">
-                        <div id="list-${id}" class="space-y-3 mb-4 max-h-40 overflow-y-auto"></div>
-                        <div class="flex gap-2 items-center bg-gray-100 p-1 rounded-full px-3">
-                            <input type="text" id="input-${id}" placeholder="আপনার মন্তব্য..." class="flex-1 bg-transparent border-none py-2 text-xs outline-none">
-                            <button onclick="window.addComment('${id}')" class="text-blue-600 hover:text-blue-800 transition px-2">
-                                <i class="fas fa-paper-plane"></i>
+                        
+                        <p class="px-4 pb-3 text-sm text-gray-700">${formatText(p.text)}</p>
+                        
+                        ${p.fileUrl ? (p.fileType === 'video' ? 
+                            `<div class="bg-black relative group" onclick="window.location.href='messages.html'">
+                                <video src="${p.fileUrl}" class="w-full max-h-[450px]"></video>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/20">
+                                    <i class="fas fa-play text-white text-4xl"></i>
+                                </div>
+                            </div>` : 
+                            `<img src="${p.fileUrl}" class="w-full object-cover max-h-[500px]">`) : ""}
+                        
+                        <div class="p-2 border-t flex justify-around text-xs font-bold text-gray-500">
+                            <button onclick="window.like('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2 ${isLiked ? 'text-red-500' : ''}">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> ${p.likes || 0}
+                            </button>
+                            <button onclick="document.getElementById('commentArea-${id}').classList.toggle('hidden')" class="flex-1 py-2 flex items-center justify-center gap-2">
+                                <i class="far fa-comment text-lg"></i> Comment
+                            </button>
+                            <button onclick="window.sharePost('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2">
+                                <i class="fas fa-share text-lg"></i> Share
                             </button>
                         </div>
-                    </div>
-                `;
-                feed.appendChild(card);
-                renderComments(id);
+
+                        <div id="commentArea-${id}" class="hidden border-t bg-gray-50 p-3">
+                            <div id="list-${id}" class="space-y-4 mb-4"></div>
+                            <div class="flex gap-2 bg-white p-1 rounded-full px-3 shadow-inner">
+                                <input type="text" id="input-${id}" placeholder="Write a comment..." class="flex-1 bg-transparent border-none py-2 text-[11px] outline-none">
+                                <button onclick="window.addComment('${id}')" class="text-blue-600 px-2"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    feed.appendChild(card);
+                    loadComments(id);
+                });
             });
-        });
+        }
 
-        // লাইক লজিক
-        window.like = async (id) => {
-            const ref = doc(db, "posts", id);
-            const snap = await getDoc(ref);
-            const p = snap.data();
-            const isLiked = p.likedBy?.includes(currentUser.uid);
-            
-            await updateDoc(ref, {
-                likes: increment(isLiked ? -1 : 1),
-                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-            });
-        };
-
-        // কমেন্ট যোগ করা
-        window.addComment = async (postId) => {
-            const input = document.getElementById(`input-${postId}`);
-            const val = input.value.trim();
-            if(!val) return;
-
-            await addDoc(collection(db, "posts", postId, "comments"), {
-                text: val,
-                userName: currentUser.displayName || currentUser.email.split('@')[0],
-                userId: currentUser.uid,
-                createdAt: serverTimestamp()
-            });
-            input.value = "";
-        };
-
-        // কমেন্ট দেখানো
-        function renderComments(postId) {
+        // ৫. কমেন্ট সিস্টেম (লাইক, রিপ্লাই ও প্রোফাইল লিঙ্কসহ)
+        function loadComments(postId) {
             const container = document.getElementById(`list-${postId}`);
             onSnapshot(query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc")), snap => {
                 container.innerHTML = "";
                 snap.forEach(d => {
                     const c = d.data();
+                    const cid = d.id;
                     const div = document.createElement('div');
-                    div.className = "flex gap-2 items-start";
+                    div.className = "flex gap-2";
                     div.innerHTML = `
-                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-[10px] font-bold text-blue-600">${c.userName[0]}</div>
-                        <div class="bg-gray-100 p-2 rounded-2xl rounded-tl-none flex-1">
-                            <p class="text-[10px] font-black text-gray-800">${c.userName}</p>
-                            <p class="text-[11px] text-gray-700">${c.text}</p>
+                        <a href="user.html?id=${c.userId}" class="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold overflow-hidden">
+                            ${c.userPic ? `<img src="${c.userPic}" class="w-full h-full object-cover">` : c.userName[0]}
+                        </a>
+                        <div class="flex-1">
+                            <div class="bg-white p-2 px-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100">
+                                <a href="user.html?id=${c.userId}" class="text-[10px] font-black text-gray-800 hover:underline">${c.userName}</a>
+                                <p class="text-[11px] text-gray-600 mt-0.5">${c.text}</p>
+                            </div>
+                            <div class="flex gap-4 mt-1 ml-2 text-[9px] font-black uppercase text-gray-400">
+                                <button onclick="window.likeComment('${postId}','${cid}')" class="hover:text-blue-600">Like</button>
+                                <button onclick="document.getElementById('input-${postId}').value='@${c.userName} '" class="hover:text-blue-600">Reply</button>
+                            </div>
                         </div>
                     `;
                     container.appendChild(div);
                 });
             });
         }
+
+        // উইন্ডো ফাংশনসমূহ
+        window.quickFollow = async (tid) => {
+            await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: new Date() });
+            await setDoc(doc(db, "users", tid, "followers", currentUser.uid), { time: new Date() });
+        };
+
+        window.like = async (id) => {
+            const ref = doc(db, "posts", id);
+            const p = (await getDoc(ref)).data();
+            const isLiked = p.likedBy?.includes(currentUser.uid);
+            await updateDoc(ref, {
+                likes: increment(isLiked ? -1 : 1),
+                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+            });
+        };
+
+        window.addComment = async (postId) => {
+            const input = document.getElementById(`input-${postId}`);
+            if(!input.value.trim()) return;
+            await addDoc(collection(db, "posts", postId, "comments"), {
+                text: input.value, userId: currentUser.uid, userName: currentUser.displayName || "User",
+                createdAt: serverTimestamp()
+            });
+            input.value = "";
+        };
+
+        // ট্যাব সুইচিং
+        document.getElementById('showAll').onclick = (e) => {
+            filterMode = 'all';
+            e.target.classList.add('border-blue-600', 'text-blue-600');
+            document.getElementById('showVideos').classList.remove('border-blue-600', 'text-blue-600');
+            renderFeed();
+        };
+
+        document.getElementById('showVideos').onclick = (e) => {
+            filterMode = 'video';
+            e.target.classList.add('border-blue-600', 'text-blue-600');
+            document.getElementById('showAll').classList.remove('border-blue-600', 'text-blue-600');
+            renderFeed();
+        };
     </script>
 </body>
 </html>
