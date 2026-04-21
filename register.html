@@ -3,73 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - My Book</title>
+    <title>Join My Book - Create Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-6">
 
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">নতুন অ্যাকাউন্ট খুলুন</h2>
-        <form id="registerForm">
-            <input type="text" id="name" placeholder="আপনার নাম" class="w-full p-2 mb-4 border rounded" required>
-            <input type="email" id="email" placeholder="ইমেইল" class="w-full p-2 mb-4 border rounded" required>
-            <input type="password" id="password" placeholder="পাসওয়ার্ড" class="w-full p-2 mb-4 border rounded" required>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">রেজিস্টার</button>
-        </form>
-        <p id="msg" class="mt-4 text-center text-sm"></p>
+    <div class="w-full max-w-md bg-white rounded-[30px] p-8 shadow-2xl shadow-blue-100 border border-gray-100">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl rotate-12 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+                <i class="fas fa-book-open text-white text-2xl -rotate-12"></i>
+            </div>
+            <h1 class="text-2xl font-black text-gray-800 tracking-tight">নতুন একাউন্ট খুলুন</h1>
+            <p class="text-gray-400 text-xs mt-2 font-medium">আপনার বন্ধুদের সাথে যুক্ত হতে আজই যোগ দিন</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="relative">
+                <i class="far fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="fullName" placeholder="পুরো নাম" 
+                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+            </div>
+
+            <div class="relative">
+                <i class="far fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="email" id="email" placeholder="আপনার জিমেইল" 
+                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+            </div>
+
+            <div class="relative">
+                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="password" id="password" placeholder="পাসওয়ার্ড" 
+                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+            </div>
+
+            <button onclick="handleRegister()" id="regBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all mt-6">
+                একাউন্ট তৈরি করুন
+            </button>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-gray-500 text-sm">আগে থেকেই একাউন্ট আছে? <a href="index.html" class="text-blue-600 font-bold hover:underline">লগইন করুন</a></p>
+        </div>
+    </div>
+
+    <div id="loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+            <p class="text-blue-600 font-bold mt-4 animate-pulse">প্রসেস হচ্ছে...</p>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // আপনার দেওয়া কনফিগ
-        const firebaseConfig = {
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
-            authDomain: "seen-a1d92.firebaseapp.com",
-            databaseURL: "https://seen-a1d92-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "seen-a1d92",
-            storageBucket: "seen-a1d92.firebasestorage.app",
-            messagingSenderId: "868584044532",
-            appId: "1:868584044532:web:51f07436a883f88332eba1",
-            measurementId: "G-K4W1BWQ53V"
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const form = document.getElementById('registerForm');
-        const msg = document.getElementById('msg');
+        window.handleRegister = async () => {
+            const name = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const loader = document.getElementById('loader');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            if(!name || !email || !pass) return alert("সবগুলো ঘর পূরণ করুন!");
+            if(pass.length < 6) return alert("পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে!");
+
+            loader.classList.remove('hidden');
 
             try {
-                // ১. ইউজার তৈরি করা
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // ১. ইউজার ক্রিয়েট করা
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // ২. ডাটাবেসে প্রোফাইল সেভ করা
+                // ২. Firestore-এ ইউজারের নাম ও প্রোফাইল ডাটা সেভ করা
                 await setDoc(doc(db, "users", user.uid), {
-                    displayName: name,
+                    name: name,
                     email: email,
                     uid: user.uid,
-                    createdAt: new Date()
+                    profilePic: "", // পরে প্রোফাইল পেজ থেকে আপলোড করা যাবে
+                    bio: "Hi, I am using My Book!",
+                    followers: [],
+                    following: [],
+                    createdAt: serverTimestamp()
                 });
 
-                msg.innerText = "সফল হয়েছে! লগইন করুন।";
-                msg.style.color = "green";
-                // এখানে আপনি home.html এ পাঠিয়ে দিতে পারেন
+                window.location.href = "home.html";
             } catch (error) {
-                msg.innerText = "ভুল হয়েছে: " + error.message;
-                msg.style.color = "red";
+                alert("এরর: " + error.message);
+            } finally {
+                loader.classList.add('hidden');
             }
-        });
+        };
     </script>
 </body>
 </html>
