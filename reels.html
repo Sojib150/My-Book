@@ -13,17 +13,13 @@
         video { width: 100%; height: 100%; object-fit: contain; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Overlay and Ad Design */
         .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; height: 50%; pointer-events: none; }
         .banner-ad { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 16px; padding: 8px; z-index: 50; text-align: center; border: 1px solid rgba(255,255,255,0.2); max-height: 80px; overflow: hidden; }
         
-        /* Comment Bottom Sheet */
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
         #commentSheet.active { transform: translateY(0); }
         .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; backdrop-filter: blur(4px); }
         .comment-blur.active { display: block; }
-
-        /* Like Animation */
         .heart-pop { animation: pop 0.4s ease-out; }
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
     </style>
@@ -34,18 +30,24 @@
 
     <div class="reel-container no-scrollbar" id="reelContainer"></div>
 
-    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[65vh] p-6 shadow-2xl flex flex-col">
-        <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
-        <h3 class="font-black text-gray-800 text-center uppercase tracking-tighter text-lg mb-4">Comments</h3>
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[70vh] p-6 shadow-2xl flex flex-col">
+        <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeComments()"></div>
         
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 no-scrollbar">
-            </div>
+        <h3 class="font-black text-gray-800 text-center uppercase tracking-tighter text-lg mb-4" id="totalComments">Comments (0)</h3>
+        
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 no-scrollbar"></div>
 
-        <div class="flex items-center gap-3 border-t pt-4 bg-white">
-            <input type="text" id="commentInput" placeholder="Write a nice comment..." class="flex-1 bg-gray-100 border-none rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-indigo-600">
-            <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        <div class="flex flex-col gap-2 border-t pt-4 bg-white">
+            <div id="replyIndicator" class="hidden text-[10px] text-indigo-600 font-bold ml-2 flex justify-between items-center bg-indigo-50 p-1 px-3 rounded-lg">
+                <span id="replyingToText">Replying to...</span>
+                <button onclick="cancelReply()" class="text-red-500 underline">Cancel</button>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="text" id="commentInput" placeholder="Write a nice comment..." class="flex-1 bg-gray-100 border-none rounded-2xl px-5 py-4 text-sm outline-none focus:ring-2 focus:ring-indigo-600">
+                <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -65,6 +67,7 @@
         
         let currentUser = null;
         let activePostId = null;
+        let replyToId = null;
 
         onAuthStateChanged(auth, user => { 
             currentUser = user; 
@@ -72,20 +75,13 @@
         });
 
         async function loadReels() {
-            // ১. অ্যাডমিন থেকে অ্যাড এবং অ্যালগরিদম সেটিংস আনা
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
-            
             let adCode = adSnap.exists() ? adSnap.data().code : "";
-            let algo = algoSnap.exists() ? algoSnap.data() : { priority: 'fresh' };
-
-            // ২. অ্যালগরিদম অনুযায়ী ডাটা সাজানো
             let q = query(collection(db, "posts"), where("fileType", "==", "video"));
             
             onSnapshot(q, snap => {
                 const container = document.getElementById('reelContainer');
                 container.innerHTML = "";
-                
                 snap.forEach(postDoc => {
                     const p = postDoc.data();
                     const id = postDoc.id;
@@ -96,23 +92,22 @@
                     div.innerHTML = `
                         <video src="${p.fileUrl}" loop playsinline class="w-full h-full"></video>
                         <div class="overlay-gradient"></div>
-                        
                         ${adCode ? `<div class="banner-ad text-[10px] text-white font-bold">${adCode}</div>` : ''}
 
                         <div class="absolute right-5 bottom-36 flex flex-col gap-7 text-white text-center z-40">
                             <div class="flex flex-col items-center">
-                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-4xl drop-shadow-lg active:scale-125 transition">
+                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-4xl active:scale-125 transition">
                                     <i class="${isLiked ? 'fas text-red-500 heart-pop' : 'far'} fa-heart"></i>
                                 </button>
-                                <span class="text-xs font-black mt-1 shadow-md">${p.likes || 0}</span>
+                                <span class="text-xs font-black mt-1">${p.likes || 0}</span>
                             </div>
                             <div class="flex flex-col items-center">
-                                <button onclick="window.openComments('${id}', event)" class="text-4xl drop-shadow-lg">
+                                <button onclick="window.openComments('${id}', event)" class="text-4xl">
                                     <i class="far fa-comment-dots"></i>
                                 </button>
                                 <span class="text-xs font-black mt-1">Reply</span>
                             </div>
-                            <button onclick="window.shareReel('${id}', event)" class="text-4xl drop-shadow-lg">
+                            <button onclick="window.shareToProfile('${id}', '${p.fileUrl}', '${p.text || ''}', event)" class="text-4xl">
                                 <i class="fas fa-share-nodes"></i>
                             </button>
                         </div>
@@ -121,43 +116,30 @@
                             <a href="profile.html?id=${p.userId}" class="w-12 h-12 rounded-full border-2 border-white overflow-hidden shadow-2xl">
                                 <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
                             </a>
-                            <div onclick="window.location.href='profile.html?id=${p.userId}'" class="cursor-pointer">
-                                <h4 class="font-black text-sm tracking-tight">@${p.userName || 'user'}</h4>
+                            <div onclick="window.location.href='profile.html?id=${p.userId}'">
+                                <h4 class="font-black text-sm">@${p.userName || 'user'}</h4>
                                 <p class="text-[12px] opacity-80 line-clamp-1 font-medium">${p.text || ''}</p>
                             </div>
                         </div>
                     `;
-                    
-                    div.onclick = () => {
-                        const v = div.querySelector('video');
-                        v.paused ? v.play() : v.pause();
-                    };
-                    
+                    div.onclick = () => { const v = div.querySelector('video'); v.paused ? v.play() : v.pause(); };
                     container.appendChild(div);
                 });
                 setupAutoPlay();
             });
         }
 
-        // সাউন্ড এবং ভিডিও কন্ট্রোল ইঞ্জিন
         function setupAutoPlay() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target.querySelector('video');
-                    if (video) {
-                        if (entry.isIntersecting) {
-                            video.play().catch(() => {});
-                        } else {
-                            video.pause();
-                            video.currentTime = 0; // সাউন্ড মিক্সিং ফিক্স
-                        }
-                    }
+                    if (video && entry.isIntersecting) video.play().catch(() => {}); else if(video) video.pause();
                 });
             }, { threshold: 0.8 });
             document.querySelectorAll('.reel-video').forEach(rv => observer.observe(rv));
         }
 
-        // Comment Functions
+        // --- Comment Logic ---
         window.openComments = (postId, e) => {
             e.stopPropagation();
             activePostId = postId;
@@ -169,29 +151,77 @@
         window.closeComments = () => {
             document.getElementById('commentSheet').classList.remove('active');
             document.getElementById('commentBlur').classList.remove('active');
+            cancelReply();
         };
 
         async function loadComments(postId) {
             const cList = document.getElementById('commentList');
-            cList.innerHTML = `<div class="text-center py-20 text-gray-400 text-sm animate-pulse">Loading...</div>`;
+            const totalLabel = document.getElementById('totalComments');
             
             const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "desc"));
             onSnapshot(q, snap => {
                 cList.innerHTML = "";
+                totalLabel.innerText = `Comments (${snap.size})`;
                 snap.forEach(d => {
                     const c = d.data();
-                    cList.innerHTML += `
+                    const cid = d.id;
+                    const isCLiked = c.likedBy?.includes(currentUser?.uid);
+
+                    const cDiv = document.createElement('div');
+                    cDiv.className = "flex flex-col gap-1";
+                    cDiv.innerHTML = `
                         <div class="flex gap-4 items-start p-2">
                             <img src="${c.userPic}" class="w-10 h-10 rounded-full object-cover shadow-sm">
-                            <div class="flex-1 bg-gray-50 p-3 rounded-2xl rounded-tl-none">
-                                <p class="font-black text-[11px] uppercase text-indigo-600 mb-1">${c.userName}</p>
-                                <p class="text-[13px] text-gray-700 leading-snug font-medium">${c.text}</p>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 p-3 rounded-2xl rounded-tl-none">
+                                    <p class="font-black text-[10px] uppercase text-indigo-600">${c.userName}</p>
+                                    <p class="text-[13px] text-gray-700 font-medium">${c.text}</p>
+                                </div>
+                                <div class="flex gap-4 mt-1 ml-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                    <button onclick="window.likeComment('${postId}', '${cid}', ${isCLiked})" class="${isCLiked ? 'text-red-500' : ''}">Like (${c.likes || 0})</button>
+                                    <button onclick="window.setReplyMode('${c.userName}', '${cid}')">Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="replies-${cid}" class="ml-14 space-y-3 border-l-2 border-gray-100 pl-3"></div>
+                    `;
+                    cList.appendChild(cDiv);
+                    loadReplies(postId, cid);
+                });
+            });
+        }
+
+        async function loadReplies(postId, commentId) {
+            const rList = document.getElementById(`replies-${commentId}`);
+            const q = query(collection(db, "posts", postId, "comments", commentId, "replies"), orderBy("createdAt", "asc"));
+            onSnapshot(q, snap => {
+                rList.innerHTML = "";
+                snap.forEach(rd => {
+                    const r = rd.data();
+                    rList.innerHTML += `
+                        <div class="flex gap-2 items-start py-1">
+                            <img src="${r.userPic}" class="w-7 h-7 rounded-full object-cover">
+                            <div class="bg-gray-50 p-2 px-3 rounded-xl flex-1">
+                                <p class="font-bold text-[9px] text-gray-500">@${r.userName}</p>
+                                <p class="text-[11px] text-gray-700">${r.text}</p>
                             </div>
                         </div>`;
                 });
-                if(snap.empty) cList.innerHTML = `<div class="text-center py-20 text-gray-300 italic">No comments. Say something!</div>`;
             });
         }
+
+        window.setReplyMode = (userName, commentId) => {
+            replyToId = commentId;
+            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyingToText').innerText = `Replying to @${userName}`;
+            document.getElementById('commentInput').focus();
+        };
+
+        window.cancelReply = () => {
+            replyToId = null;
+            document.getElementById('replyIndicator').classList.add('hidden');
+            document.getElementById('commentInput').placeholder = "Write a nice comment...";
+        };
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
@@ -199,27 +229,54 @@
 
             const userSnap = await getDoc(doc(db, "users", currentUser.uid));
             const userData = userSnap.data();
-            
-            await addDoc(collection(db, "posts", activePostId, "comments"), {
+            const payload = {
                 text: input.value,
                 userId: currentUser.uid,
-                userName: userData.name || 'Anonymous',
+                userName: userData.name || 'User',
                 userPic: userData.profilePic || 'https://via.placeholder.com/150',
                 createdAt: serverTimestamp()
-            });
+            };
+
+            if(replyToId) {
+                await addDoc(collection(db, "posts", activePostId, "comments", replyToId, "replies"), payload);
+                cancelReply();
+            } else {
+                await addDoc(collection(db, "posts", activePostId, "comments"), { ...payload, likes: 0, likedBy: [] });
+            }
             input.value = "";
         };
 
-        // Advanced Share
-        window.shareReel = async (postId, e) => {
+        window.likeComment = async (postId, cid, isLiked) => {
+            const ref = doc(db, "posts", postId, "comments", cid);
+            await updateDoc(ref, {
+                likes: increment(isLiked ? -1 : 1),
+                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+            });
+        };
+
+        // --- Share to Profile (Facebook Style) ---
+        window.shareToProfile = async (postId, fileUrl, text, e) => {
             e.stopPropagation();
-            const shareUrl = `${window.location.origin}/reels.html?id=${postId}`;
-            if (navigator.share) {
-                await navigator.share({ title: 'My Book Reel', url: shareUrl });
-            } else {
-                navigator.clipboard.writeText(shareUrl);
-                alert("Link copied to clipboard!");
-            }
+            if(!currentUser) return;
+            
+            const confirmShare = confirm("Share this video to your profile?");
+            if(!confirmShare) return;
+
+            const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+            const u = userSnap.data();
+
+            await addDoc(collection(db, "posts"), {
+                userId: currentUser.uid,
+                userName: u.name,
+                userPic: u.profilePic,
+                fileUrl: fileUrl,
+                fileType: 'video',
+                text: "Shared: " + text,
+                createdAt: serverTimestamp(),
+                likes: 0,
+                likedBy: []
+            });
+            alert("Shared to your profile successfully!");
         };
 
         window.likeReel = async (id, e) => {
