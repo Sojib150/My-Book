@@ -119,13 +119,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, setDoc, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, setDoc, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Security
+        // Security Check
         window.checkAdminPass = () => {
             const pass = document.getElementById('adminPassInput').value;
             if(pass === "150") {
@@ -135,7 +135,12 @@
             } else { alert("WRONG ACCESS CODE!"); }
         };
 
-        // Algorithm Logic Update
+        // 1. Live Post Counter (Pro Feature)
+        onSnapshot(collection(db, "posts"), (s) => {
+            document.getElementById('statPosts').innerText = s.size;
+        });
+
+        // 2. Algorithm Engine Save
         window.updateAlgorithm = async () => {
             const isAuto = document.getElementById('autoMode').checked;
             const boost = document.getElementById('algoBoost').value;
@@ -145,7 +150,7 @@
                 autoPilot: isAuto,
                 trendBoost: parseInt(boost),
                 priority: focus,
-                lastUpdate: new Date()
+                lastUpdate: serverTimestamp()
             });
             alert("Algorithm Power Updated! 🧠");
         };
@@ -160,7 +165,7 @@
             }
         }
 
-        // Load Global Stats & Users
+        // 3. Main User Management & Stats (With Monetization)
         onSnapshot(collection(db, "users"), (snapshot) => {
             const list = document.getElementById('userList');
             let v = 0; let m = 0;
@@ -176,23 +181,27 @@
                 userCard.className = "flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 admin-card";
                 userCard.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-200">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                        <div class="relative">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-200">
+                                <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                            </div>
+                            ${u.isMonetized ? '<div class="absolute -top-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] text-white"><i class="fas fa-dollar-sign"></i></div>' : ''}
                         </div>
                         <div>
                             <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
                                 ${u.name || 'User'} 
                                 ${u.isVerified ? '<i class="fas fa-check-circle text-blue-500 text-[10px]"></i>' : ''}
                             </h4>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">${u.job || 'App User'}</p>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                                Balance: <span class="text-green-600 font-black">৳${(u.balance || 0).toFixed(2)}</span>
+                            </p>
                         </div>
                     </div>
-                    <div class="flex gap-1">
-                        <a href="profile.html?id=${uid}" title="Visit Profile" class="p-2.5 bg-purple-50 text-purple-600 rounded-xl text-[10px]"><i class="fas fa-eye"></i></a>
-                        <button onclick="toggleVerify('${uid}', ${u.isVerified})" class="p-2.5 ${u.isVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'} rounded-xl text-[10px]"><i class="fas fa-certificate"></i></button>
-                        <button onclick="sendWarning('${uid}')" class="p-2.5 bg-orange-100 text-orange-600 rounded-xl text-[10px]"><i class="fas fa-bolt"></i></button>
-                        <button onclick="toggleAds('${uid}', ${u.adEnabled})" class="p-2.5 ${u.adEnabled !== false ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} rounded-xl text-[10px]"><i class="fas fa-dollar-sign"></i></button>
-                        <button onclick="deleteUser('${uid}')" class="p-2.5 bg-red-50 text-red-400 rounded-xl text-[10px]"><i class="fas fa-trash-alt"></i></button>
+                    <div class="flex gap-1 flex-wrap justify-end">
+                        <button onclick="toggleVerify('${uid}', ${u.isVerified})" class="p-2.5 ${u.isVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'} rounded-xl text-[10px]" title="Verify"><i class="fas fa-certificate"></i></button>
+                        <button onclick="toggleMonetize('${uid}', ${u.isMonetized})" class="p-2.5 ${u.isMonetized ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-400'} rounded-xl text-[10px]" title="Monetize"><i class="fas fa-hand-holding-usd"></i></button>
+                        <button onclick="sendWarning('${uid}')" class="p-2.5 bg-orange-100 text-orange-600 rounded-xl text-[10px]" title="Notice"><i class="fas fa-bolt"></i></button>
+                        <button onclick="deleteUser('${uid}')" class="p-2.5 bg-red-50 text-red-400 rounded-xl text-[10px]" title="Delete"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 `;
                 list.appendChild(userCard);
@@ -203,7 +212,41 @@
             document.getElementById('statRequests').innerText = m;
         });
 
-        // Search Function
+        // 4. Monetization Toggle Logic
+        window.toggleMonetize = async (uid, cur) => {
+            const confirmMsg = cur ? "Stop monetization for this user?" : "Approve monetization for this user?";
+            if(confirm(confirmMsg)) {
+                await updateDoc(doc(db, "users", uid), { isMonetized: !cur });
+            }
+        };
+
+        // 5. Verification Toggle
+        window.toggleVerify = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { isVerified: !cur }); };
+
+        // 6. Delete Logic
+        window.deleteUser = async (uid) => { if(confirm("Permanently delete this user?")) await deleteDoc(doc(db, "users", uid)); };
+
+        // 7. Global Ad Code Update
+        window.updateAdCode = async () => {
+            const code = document.getElementById('masterAdCode').value;
+            await setDoc(doc(db, "appSettings", "ads"), { code: code, updatedAt: serverTimestamp() });
+            alert("Ads Updated Everywhere!");
+        };
+
+        // 8. Global Announcement (Push Notice)
+        window.sendGlobalNotice = async () => {
+            const msg = document.getElementById('globalMsg').value;
+            if(msg) {
+                await addDoc(collection(db, "announcements"), { 
+                    text: msg, 
+                    createdAt: serverTimestamp() 
+                });
+                alert("Announcement Pushed!");
+                document.getElementById('globalMsg').value = "";
+            }
+        };
+
+        // Search UI Logic
         window.searchUser = () => {
             const input = document.getElementById('userSearch').value.toLowerCase();
             const cards = document.querySelectorAll('.admin-card');
@@ -211,28 +254,6 @@
                 const name = card.querySelector('h4').innerText.toLowerCase();
                 card.style.display = name.includes(input) ? 'flex' : 'none';
             });
-        };
-
-        // Database Functions
-        window.toggleVerify = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { isVerified: !cur }); };
-        window.toggleAds = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { adEnabled: (cur === false) }); };
-        window.sendWarning = async (uid) => {
-            const msg = prompt("ইউজারকে কি নোটিশ দিতে চান?");
-            if(msg) await updateDoc(doc(db, "users", uid), { systemNotice: msg, noticeDate: new Date() });
-        };
-        window.deleteUser = async (uid) => { if(confirm("Permanently delete?")) await deleteDoc(doc(db, "users", uid)); };
-        window.updateAdCode = async () => {
-            const code = document.getElementById('masterAdCode').value;
-            await setDoc(doc(db, "appSettings", "ads"), { code: code });
-            alert("Ads Updated Everywhere!");
-        };
-        window.sendGlobalNotice = async () => {
-            const msg = document.getElementById('globalMsg').value;
-            if(msg) {
-                await addDoc(collection(db, "announcements"), { text: msg, date: new Date() });
-                alert("Pushed to everyone!");
-                document.getElementById('globalMsg').value = "";
-            }
         };
     </script>
 </body>
