@@ -16,6 +16,8 @@
         .animate-heart { animation: heartFade 0.8s ease-out; }
         @keyframes heartFade { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 0.9; transform: scale(1.2); } 100% { opacity: 0; transform: scale(2); } }
         .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.8)); position: absolute; bottom: 0; width: 100%; height: 40%; pointer-events: none; }
+        /* Ad Styling */
+        .reel-ad-container { height: 100vh; scroll-snap-align: start; background: #111; display: flex; align-items: center; justify-content: center; color: white; position: relative; }
     </style>
 </head>
 <body>
@@ -28,7 +30,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -37,74 +39,126 @@
         const auth = getAuth(app);
         let currentUser = null;
 
-        onAuthStateChanged(auth, user => { currentUser = user; });
+        onAuthStateChanged(auth, user => { currentUser = user; loadReels(); });
 
-        const q = query(collection(db, "posts"), where("fileType", "==", "video"));
-        onSnapshot(q, snap => {
-            const container = document.getElementById('reelContainer');
-            container.innerHTML = "";
-            snap.forEach(postDoc => {
-                const p = postDoc.data();
-                const id = postDoc.id;
-                const isLiked = p.likedBy?.includes(currentUser?.uid);
-                
-                const div = document.createElement('div');
-                div.className = "reel-video";
-                div.innerHTML = `
-                    <video src="${p.fileUrl}" loop autoplay playsinline class="w-full h-full"></video>
-                    <div class="heart-animation"><i class="fas fa-heart text-red-500"></i></div>
-                    <div class="overlay-gradient"></div>
+        async function loadReels() {
+            // ১. অ্যাডমিন অ্যালগরিদম চেক করা
+            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+            
+            let algoData = algoSnap.exists() ? algoSnap.data() : { priority: 'fresh' };
+            let adCode = adSnap.exists() ? adSnap.data().code : "";
 
-                    <div class="absolute right-4 bottom-32 flex flex-col gap-6 text-white text-center z-40">
-                        <div class="flex flex-col items-center">
-                            <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl active:scale-125 transition">
-                                <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
-                            </button>
-                            <span class="text-[11px] font-bold mt-1 shadow-md" id="count-${id}">${p.likes || 0}</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <button onclick="event.stopPropagation(); alert('Comments coming soon!')" class="text-3xl">
-                                <i class="far fa-comment"></i>
-                            </button>
-                            <span class="text-[11px] font-bold mt-1">Reply</span>
-                        </div>
-                        <button onclick="window.shareReel('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
-                    </div>
+            // ২. অ্যালগরিদম অনুযায়ী কুয়েরি সাজানো
+            let q;
+            if (algoData.priority === 'viral') {
+                q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("likes", "desc"));
+            } else {
+                q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"));
+            }
 
-                    <div class="absolute left-4 bottom-20 text-white z-40 flex items-center gap-3">
-                        <a href="profile.html?id=${p.userId || ''}" onclick="event.stopPropagation()" class="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg">
-                            <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-                        </a>
-                        <div onclick="event.stopPropagation(); window.location.href='profile.html?id=${p.userId || ''}'" class="cursor-pointer">
-                            <h4 class="font-bold text-sm shadow-md">@${p.userName || 'user'}</h4>
-                            <p class="text-[11px] opacity-90 line-clamp-1 shadow-md">${p.text || ''}</p>
+            onSnapshot(q, snap => {
+                const container = document.getElementById('reelContainer');
+                container.innerHTML = "";
+                let postCount = 0;
+
+                snap.forEach(postDoc => {
+                    postCount++;
+                    const p = postDoc.data();
+                    const id = postDoc.id;
+                    const isLiked = p.likedBy?.includes(currentUser?.uid);
+                    
+                    const div = document.createElement('div');
+                    div.className = "reel-video";
+                    div.innerHTML = `
+                        <video src="${p.fileUrl}" loop playsinline class="w-full h-full"></video>
+                        <div class="heart-animation"><i class="fas fa-heart text-red-500"></i></div>
+                        <div class="overlay-gradient"></div>
+
+                        <div class="absolute right-4 bottom-32 flex flex-col gap-6 text-white text-center z-40">
+                            <div class="flex flex-col items-center">
+                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl active:scale-125 transition">
+                                    <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
+                                </button>
+                                <span class="text-[11px] font-bold mt-1 shadow-md" id="count-${id}">${p.likes || 0}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <button onclick="event.stopPropagation();" class="text-3xl">
+                                    <i class="far fa-comment"></i>
+                                </button>
+                                <span class="text-[11px] font-bold mt-1">Reply</span>
+                            </div>
+                            <button onclick="window.shareReel('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
                         </div>
-                    </div>
-                `;
-                
-                let lastTap = 0;
-                div.addEventListener('click', (e) => {
-                    const now = Date.now();
-                    const v = div.querySelector('video');
-                    v.muted = false; // Unmute on first click
-                    if (now - lastTap < 300) {
-                        window.likeReel(id, e, true);
-                    } else {
-                        v.paused ? v.play() : v.pause();
+
+                        <div class="absolute left-4 bottom-20 text-white z-40 flex items-center gap-3">
+                            <a href="profile.html?id=${p.userId || ''}" onclick="event.stopPropagation()" class="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                            </a>
+                            <div onclick="event.stopPropagation(); window.location.href='profile.html?id=${p.userId || ''}'" class="cursor-pointer">
+                                <h4 class="font-bold text-sm shadow-md">@${p.userName || 'user'}</h4>
+                                <p class="text-[11px] opacity-90 line-clamp-1 shadow-md">${p.text || ''}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    let lastTap = 0;
+                    div.addEventListener('click', (e) => {
+                        const now = Date.now();
+                        const v = div.querySelector('video');
+                        if (now - lastTap < 300) {
+                            window.likeReel(id, e, true);
+                        } else {
+                            v.paused ? v.play() : v.pause();
+                        }
+                        lastTap = now;
+                    });
+
+                    container.appendChild(div);
+
+                    // ৩. প্রতি ৪টি ভিডিও পর একটি অ্যাড দেখানো (অ্যাডমিন কন্ট্রোলড)
+                    if (postCount % 4 === 0 && adCode) {
+                        const adDiv = document.createElement('div');
+                        adDiv.className = "reel-ad-container";
+                        adDiv.innerHTML = `<div class="p-4 text-center">
+                            <p class="text-[10px] text-gray-500 mb-2 uppercase tracking-widest font-bold">Sponsored Ad</p>
+                            <div class="ad-box">${adCode}</div>
+                        </div>`;
+                        container.appendChild(adDiv);
                     }
-                    lastTap = now;
                 });
-
-                container.appendChild(div);
+                
+                // সাউন্ড ফিক্সিং ইঞ্জিন: স্ক্রল করলে ভিডিও পজ/প্লে হবে
+                setupAutoPlay();
             });
-        });
+        }
+
+        function setupAutoPlay() {
+            const container = document.getElementById('reelContainer');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    if (video) {
+                        if (entry.isIntersecting) {
+                            video.play();
+                        } else {
+                            video.pause();
+                            video.currentTime = 0; // সাউন্ড মিক্সিং ফিক্স করার জন্য ভিডিওর সময় রিসেট
+                        }
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            document.querySelectorAll('.reel-video').forEach(rv => observer.observe(rv));
+        }
 
         window.likeReel = async (id, e, isDoubleTap = false) => {
             if(!currentUser) return;
             e.stopPropagation();
             const ref = doc(db, "posts", id);
             const heartBtn = document.getElementById(`btn-${id}`);
-            const heartIcon = heartBtn.querySelector('i');
+            const heartIcon = heartBtn?.querySelector('i');
+            if(!heartIcon) return;
             
             if (isDoubleTap) {
                 const anim = e.currentTarget.closest('.reel-video').querySelector('.heart-animation');
@@ -113,7 +167,7 @@
             }
 
             const currentlyLiked = heartIcon.classList.contains('fas');
-            if (isDoubleTap && currentlyLiked) return; // Already liked
+            if (isDoubleTap && currentlyLiked) return;
 
             await updateDoc(ref, {
                 likes: increment(currentlyLiked ? -1 : 1),
