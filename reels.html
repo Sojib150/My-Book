@@ -12,16 +12,28 @@
         .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .heart-animation { position: absolute; font-size: 80px; color: white; opacity: 0; transform: scale(0); pointer-events: none; z-index: 30; }
-        .animate-heart { animation: heartFade 0.8s ease-out; }
-        @keyframes heartFade { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 0.9; transform: scale(1.2); } 100% { opacity: 0; transform: scale(2); } }
         .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; height: 50%; pointer-events: none; }
         .banner-ad { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 5px; z-index: 50; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* Comment Bottom Sheet */
+        #commentSheet { transition: transform 0.3s ease-out; z-index: 100; transform: translateY(100%); }
+        #commentSheet.active { transform: translateY(0); }
     </style>
 </head>
 <body>
 
     <div class="reel-container no-scrollbar" id="reelContainer"></div>
+
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-[30px] h-[60vh] p-6 shadow-2xl">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
+        <h3 class="font-black text-gray-800 text-center uppercase tracking-widest text-sm mb-4">Comments</h3>
+        <div id="commentList" class="overflow-y-auto h-[40vh] space-y-4 mb-4 pr-2 no-scrollbar text-sm text-gray-600">
+            </div>
+        <div class="flex items-center gap-2 border-t pt-4">
+            <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-100 border-none rounded-full px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+            <button onclick="postComment()" class="bg-indigo-600 text-white p-3 rounded-full shadow-lg"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <a href="home.html" class="fixed top-6 left-6 z-50 text-white text-xl drop-shadow-lg">
         <i class="fas fa-arrow-left"></i>
@@ -29,7 +41,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -37,6 +49,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         let currentUser = null;
+        let activePostId = null;
 
         onAuthStateChanged(auth, user => { 
             currentUser = user; 
@@ -46,14 +59,11 @@
         async function loadReels() {
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             let adCode = adSnap.exists() ? adSnap.data().code : "";
-
-            // সহজ কুয়েরি ব্যবহার করছি যাতে ভিডিও না আসার রিস্ক না থাকে
             const q = query(collection(db, "posts"), where("fileType", "==", "video"));
 
             onSnapshot(q, snap => {
                 const container = document.getElementById('reelContainer');
                 container.innerHTML = "";
-                
                 snap.forEach(postDoc => {
                     const p = postDoc.data();
                     const id = postDoc.id;
@@ -63,46 +73,29 @@
                     div.className = "reel-video";
                     div.innerHTML = `
                         <video src="${p.fileUrl}" loop playsinline class="w-full h-full"></video>
-                        <div class="heart-animation"><i class="fas fa-heart text-red-500"></i></div>
                         <div class="overlay-gradient"></div>
-
                         ${adCode ? `<div class="banner-ad">${adCode}</div>` : ''}
 
                         <div class="absolute right-4 bottom-32 flex flex-col gap-6 text-white text-center z-40">
                             <div class="flex flex-col items-center">
-                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl active:scale-125 transition">
-                                    <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
-                                </button>
-                                <span class="text-[11px] font-bold mt-1 shadow-md" id="count-${id}">${p.likes || 0}</span>
+                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl"><i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i></button>
+                                <span class="text-[11px] font-bold mt-1">${p.likes || 0}</span>
                             </div>
                             <div class="flex flex-col items-center">
-                                <button onclick="event.stopPropagation();" class="text-3xl">
-                                    <i class="far fa-comment text-gray-200"></i>
-                                </button>
+                                <button onclick="window.openComments('${id}', event)" class="text-3xl"><i class="far fa-comment"></i></button>
                                 <span class="text-[11px] font-bold mt-1">Reply</span>
                             </div>
-                            <button onclick="window.shareReel('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
+                            <button onclick="window.shareReel('${id}', '${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
                         </div>
 
                         <div class="absolute left-4 bottom-28 text-white z-40 flex items-center gap-3">
-                            <a href="profile.html?id=${p.userId || ''}" class="w-11 h-11 rounded-full border-2 border-white overflow-hidden">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-                            </a>
-                            <div>
-                                <h4 class="font-bold text-sm">@${p.userName || 'user'}</h4>
-                                <p class="text-[11px] opacity-90 line-clamp-1">${p.text || ''}</p>
-                            </div>
+                            <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-11 h-11 rounded-full border-2 border-white object-cover">
+                            <div><h4 class="font-bold text-sm">@${p.userName || 'user'}</h4><p class="text-[11px] opacity-90">${p.text || ''}</p></div>
                         </div>
                     `;
-                    
-                    div.addEventListener('click', () => {
-                        const v = div.querySelector('video');
-                        v.paused ? v.play() : v.pause();
-                    });
-
+                    div.onclick = () => { const v = div.querySelector('video'); v.paused ? v.play() : v.pause(); };
                     container.appendChild(div);
                 });
-                
                 setupAutoPlay();
             });
         }
@@ -111,36 +104,89 @@
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const video = entry.target.querySelector('video');
-                    if (video) {
-                        if (entry.isIntersecting) {
-                            video.play().catch(e => console.log("Auto-play blocked"));
-                        } else {
-                            video.pause();
-                        }
-                    }
+                    if (video && entry.isIntersecting) video.play(); else if(video) video.pause();
                 });
             }, { threshold: 0.7 });
-
             document.querySelectorAll('.reel-video').forEach(rv => observer.observe(rv));
         }
 
-        window.likeReel = async (id, e, isDoubleTap = false) => {
+        // Comment Functions
+        window.openComments = (postId, e) => {
+            e.stopPropagation();
+            activePostId = postId;
+            document.getElementById('commentSheet').classList.add('active');
+            loadComments(postId);
+        };
+
+        window.closeComments = () => {
+            document.getElementById('commentSheet').classList.remove('active');
+        };
+
+        async function loadComments(postId) {
+            const cList = document.getElementById('commentList');
+            cList.innerHTML = `<p class="text-center py-10 animate-pulse">Loading comments...</p>`;
+            const q = query(collection(db, "posts", postId, "comments"));
+            onSnapshot(q, snap => {
+                cList.innerHTML = "";
+                snap.forEach(d => {
+                    const c = d.data();
+                    cList.innerHTML += `<div class="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl">
+                        <img src="${c.userPic}" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                        <div><p class="font-black text-[10px] uppercase text-indigo-600">${c.userName}</p>
+                        <p class="text-[11px] text-gray-700 mt-1 font-medium">${c.text}</p></div>
+                    </div>`;
+                });
+                if(snap.empty) cList.innerHTML = `<p class="text-center py-10 italic text-gray-400">No comments yet. Be the first!</p>`;
+            });
+        }
+
+        window.postComment = async () => {
+            const input = document.getElementById('commentInput');
+            if(!input.value || !currentUser) return;
+            // এই ডাটাগুলো ইউজার প্রোফাইল থেকে আনা হচ্ছে
+            const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+            const userData = userSnap.data();
+            
+            await addDoc(collection(db, "posts", activePostId, "comments"), {
+                text: input.value,
+                userId: currentUser.uid,
+                userName: userData.name || 'User',
+                userPic: userData.profilePic || 'https://via.placeholder.com/150',
+                createdAt: serverTimestamp()
+            });
+            input.value = "";
+        };
+
+        // Advanced Share Function
+        window.shareReel = async (postId, videoUrl, e) => {
+            e.stopPropagation();
+            // নির্দিষ্ট ভিডিও পেজের লিঙ্ক তৈরি
+            const shareUrl = `${window.location.origin}/reels.html?id=${postId}`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Check out this Reel on My Book',
+                        text: 'Look at this amazing video!',
+                        url: shareUrl
+                    });
+                } catch (err) { console.log("Share failed"); }
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert("Video link copied to clipboard!");
+            }
+        };
+
+        window.likeReel = async (id, e) => {
             if(!currentUser) return;
             e.stopPropagation();
             const ref = doc(db, "posts", id);
             const heartBtn = document.getElementById(`btn-${id}`);
             const currentlyLiked = heartBtn.querySelector('i').classList.contains('fas');
-
             await updateDoc(ref, {
                 likes: increment(currentlyLiked ? -1 : 1),
                 likedBy: currentlyLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
             });
-        };
-
-        window.shareReel = (url, e) => {
-            e.stopPropagation();
-            navigator.clipboard.writeText(url);
-            alert("Copied!");
         };
     </script>
 </body>
