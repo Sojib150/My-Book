@@ -6,6 +6,10 @@
     <title>My Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .verified-badge { color: #1d9bf0; font-size: 1.1rem; margin-left: 4px; }
+        .dashboard-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-20">
 
@@ -24,44 +28,38 @@
 
         <div class="px-6 pb-6">
             <div class="relative flex justify-center -mt-16">
-                <div class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
+                <div class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white relative">
                     <img id="profileImg" src="" class="w-full h-full object-cover hidden">
                     <span id="initialText">?</span>
                 </div>
             </div>
 
             <div class="text-center mt-4">
-                <h2 id="uName" class="text-2xl font-black text-gray-800 leading-none italic">লোড হচ্ছে...</h2>
-                <p id="uBio" class="text-gray-400 text-xs mt-2 px-4 italic"></p>
+                <div class="flex items-center justify-center gap-1">
+                    <h2 id="uName" class="text-2xl font-black text-gray-800 leading-none italic">লোড হচ্ছে...</h2>
+                    <span id="vBadge" class="hidden"><i class="fas fa-check-circle verified-badge"></i></span>
+                </div>
+                <p id="uBio" class="text-gray-400 text-[10px] mt-2 px-4 italic"></p>
+            </div>
+
+            <div class="mt-6">
+                <a href="dashboard.html" class="dashboard-gradient block w-full p-4 rounded-2xl text-white shadow-lg active:scale-95 transition-all">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase opacity-80">Creator Tools</p>
+                            <h3 class="font-black tracking-tight">Professional Dashboard</h3>
+                        </div>
+                        <i class="fas fa-chart-line text-2xl opacity-50"></i>
+                    </div>
+                </a>
             </div>
 
             <div class="mt-6 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                 <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fas fa-info-circle mr-1"></i> পরিচয় ও তথ্য</h3>
-                
-                <div id="info-job" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-briefcase w-4 text-blue-500"></i> <span id="val-job"></span>
-                </div>
-                <div id="info-edu" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-graduation-cap w-4 text-blue-500"></i> <span id="val-edu"></span>
-                </div>
-                <div id="info-city" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-map-marker-alt w-4 text-blue-500"></i> <span id="val-city"></span>
-                </div>
-                <div id="info-dob" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-birthday-cake w-4 text-blue-500"></i> <span id="val-dob"></span>
-                </div>
-                <div id="info-gender" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-user w-4 text-blue-500"></i> <span id="val-gender"></span>
-                </div>
-                <div id="info-relation" class="hidden flex items-center gap-3 text-xs text-gray-600">
-                    <i class="fas fa-heart w-4 text-pink-500"></i> <span id="val-relation"></span>
-                </div>
-            </div>
-
-            <div class="mt-5 text-center">
-                <a href="​edit-profile.html" class="inline-block bg-blue-600 text-white px-8 py-2 rounded-full font-bold text-[10px] uppercase shadow-lg active:scale-95 transition">
-                    Edit Profile
-                </a>
+                <div id="info-job" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-briefcase w-4 text-blue-500"></i> <span id="val-job"></span></div>
+                <div id="info-edu" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-graduation-cap w-4 text-blue-500"></i> <span id="val-edu"></span></div>
+                <div id="info-city" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-map-marker-alt w-4 text-blue-500"></i> <span id="val-city"></span></div>
+                <div id="info-relation" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-heart w-4 text-pink-500"></i> <span id="val-relation"></span></div>
             </div>
 
             <div class="flex justify-around mt-8 border-t pt-6">
@@ -82,6 +80,10 @@
     </div>
 
     <div class="max-w-md mx-auto mt-2 bg-white min-h-[300px]">
+        <div class="flex border-b">
+            <button class="flex-1 py-3 text-[10px] font-black uppercase text-blue-600 border-b-2 border-blue-600">My Posts</button>
+            <button class="flex-1 py-3 text-[10px] font-black uppercase text-gray-400">Reels</button>
+        </div>
         <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
     </div>
 
@@ -98,13 +100,13 @@
                 <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-xs tracking-widest">List</h3>
                 <button onclick="window.closeModal()" class="text-gray-400 text-2xl px-2">&times;</button>
             </div>
-            <div id="modalList" class="flex-1 overflow-y-auto space-y-4"></div>
+            <div id="modalList" class="flex-1 overflow-y-auto space-y-4 no-scrollbar"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -124,55 +126,89 @@
         });
 
         async function loadProfile() {
-            const snap = await getDoc(doc(db, "users", uid));
-            if(snap.exists()) {
-                const d = snap.data();
-                document.getElementById('uName').innerText = d.name || "User";
-                document.getElementById('topName').innerText = d.name || "Profile";
-                document.getElementById('uBio').innerText = d.bio || "No bio yet.";
-                document.getElementById('initialText').innerText = (d.name ? d.name[0] : "U").toUpperCase();
-                
-                // প্রোফাইল ও কভার ছবি
-                if(d.profilePic) {
-                    const img = document.getElementById('profileImg');
-                    img.src = d.profilePic; img.classList.remove('hidden');
-                    document.getElementById('initialText').classList.add('hidden');
-                }
+            onSnapshot(doc(db, "users", uid), (snap) => {
+                if(snap.exists()) {
+                    const d = snap.data();
+                    document.getElementById('uName').innerText = d.name || "User";
+                    document.getElementById('topName').innerText = d.name || "Profile";
+                    document.getElementById('uBio').innerText = d.bio || "";
+                    document.getElementById('initialText').innerText = (d.name ? d.name[0] : "U").toUpperCase();
+                    
+                    // Verified Badge Logic (যন্ত্রপাতি ১)
+                    if(d.isVerified === true) {
+                        document.getElementById('vBadge').classList.remove('hidden');
+                    } else {
+                        document.getElementById('vBadge').classList.add('hidden');
+                    }
 
-                // নতুন তথ্যগুলো দেখানো (যদি ডাটা থাকে)
-                showInfo('info-job', 'val-job', d.job, 'কাজ করেন: ');
-                showInfo('info-edu', 'val-edu', d.education, 'পড়াশোনা: ');
-                showInfo('info-city', 'val-city', d.city, 'শহর: ');
-                showInfo('info-dob', 'val-dob', d.dob, 'জন্মদিন: ');
-                showInfo('info-gender', 'val-gender', d.gender, 'লিঙ্গ: ');
-                showInfo('info-relation', 'val-relation', d.relationship, 'সম্পর্ক: ');
-            }
+                    if(d.profilePic) {
+                        const img = document.getElementById('profileImg');
+                        img.src = d.profilePic; img.classList.remove('hidden');
+                        document.getElementById('initialText').classList.add('hidden');
+                    }
+                    if(d.coverPic) {
+                        const cImg = document.getElementById('coverImg');
+                        cImg.src = d.coverPic; cImg.classList.remove('hidden');
+                    }
+
+                    showInfo('info-job', 'val-job', d.job, 'কাজ: ');
+                    showInfo('info-edu', 'val-edu', d.education, 'পড়াশোনা: ');
+                    showInfo('info-city', 'val-city', d.city, 'শহর: ');
+                    showInfo('info-relation', 'val-relation', d.relationship, 'সম্পর্ক: ');
+                }
+            });
         }
 
         function showInfo(divId, valId, value, label) {
             if(value && value !== "") {
                 document.getElementById(divId).classList.remove('hidden');
                 document.getElementById(valId).innerText = label + value;
+            } else {
+                document.getElementById(divId).classList.add('hidden');
             }
         }
 
-        // বাকি ফাংশনগুলো (Stats, Posts, Logout) আগের মতোই থাকবে...
         function loadStats() {
             onSnapshot(collection(db, "users", uid, "followers"), s => document.getElementById('followerCount').innerText = s.size);
             onSnapshot(collection(db, "users", uid, "following"), s => document.getElementById('followingCount').innerText = s.size);
         }
 
-        function loadPosts() {
+        async function loadPosts() {
+            // Algorithm Connection (যন্ত্রপাতি ২)
+            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+            let algoMode = algoSnap.exists() ? algoSnap.data().priority : 'fresh';
+
             const q = query(collection(db, "posts"), where("userId", "==", uid));
             onSnapshot(q, s => {
                 const container = document.getElementById('uPosts'); 
                 container.innerHTML = "";
                 document.getElementById('pCount').innerText = s.size;
-                s.forEach(d => {
-                    const p = d.data();
+                
+                let myPosts = [];
+                s.forEach(d => myPosts.push({id: d.id, ...d.data()}));
+
+                // Sorting based on admin settings
+                if(algoMode === 'popular') {
+                    myPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                } else {
+                    myPosts.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+                }
+
+                myPosts.forEach(p => {
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 overflow-hidden";
-                    div.innerHTML = p.fileUrl ? (p.fileType === 'video' ? `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>` : `<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[10px] text-gray-400">${p.text?.slice(0,20)}...</div>`;
+                    div.className = "aspect-square bg-gray-100 border-[0.5px] border-white overflow-hidden relative group";
+                    
+                    let content = "";
+                    if(p.fileType === 'video') {
+                        content = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
+                                   <i class="fas fa-play absolute top-2 right-2 text-white text-[10px] drop-shadow-md"></i>`;
+                    } else if(p.fileUrl) {
+                        content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
+                    } else {
+                        content = `<div class="p-2 text-[8px] text-gray-500 font-bold uppercase">${p.text?.slice(0,30)}...</div>`;
+                    }
+                    
+                    div.innerHTML = content;
                     container.appendChild(div);
                 });
             });
@@ -183,27 +219,36 @@
             const listDiv = document.getElementById('modalList');
             document.getElementById('modalTitle').innerText = type === 'followers' ? 'Followers' : 'Following';
             modal.classList.remove('hidden');
-            listDiv.innerHTML = "<p class='text-center py-10 text-xs text-gray-400'>Loading...</p>";
-            const subCol = collection(db, "users", uid, type);
-            onSnapshot(subCol, async s => {
+            listDiv.innerHTML = "<div class='flex justify-center py-10'><i class='fas fa-circle-notch fa-spin text-blue-600'></i></div>";
+            
+            onSnapshot(collection(db, "users", uid, type), async s => {
                 listDiv.innerHTML = "";
+                if(s.empty) listDiv.innerHTML = "<p class='text-center text-gray-400 text-xs py-10'>No one here yet.</p>";
                 for(const docRef of s.docs) {
                     const uSnap = await getDoc(doc(db, "users", docRef.id));
                     if(uSnap.exists()){
                         const u = uSnap.data();
-                        listDiv.innerHTML += `<div class="flex items-center gap-3 p-2"><div class="w-10 h-10 bg-blue-500 rounded-full overflow-hidden">${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : ''}</div><p class="text-sm font-bold">${u.name || 'User'}</p></div>`;
+                        listDiv.innerHTML += `
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full overflow-hidden">
+                                        <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-black text-gray-800">${u.name || 'User'} ${u.isVerified ? '<i class="fas fa-check-circle text-blue-500 text-[10px]"></i>' : ''}</p>
+                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">View Profile</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                            </div>`;
                     }
                 }
             });
         };
 
         window.closeModal = () => document.getElementById('listModal').classList.add('hidden');
+        window.logout = () => confirm("আপনি কি নিশ্চিত?") && signOut(auth).then(() => window.location.href = "index.html");
 
-        window.logout = () => {
-            if(confirm("আপনি কি নিশ্চিত?")) {
-                signOut(auth).then(() => window.location.href = "index.html");
-            }
-        };
     </script>
 </body>
 </html>
