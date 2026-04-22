@@ -12,6 +12,8 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         #adminOverlay { backdrop-blur: 20px; }
+        .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-10">
@@ -34,20 +36,20 @@
                     <span class="bg-indigo-800 px-4 py-2 rounded-full text-[10px] font-bold border border-indigo-700 animate-pulse">SYSTEM LIVE</span>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
-                        <p class="text-xs text-indigo-200 uppercase font-bold">Total Users</p>
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                        <p class="text-[9px] text-indigo-200 uppercase font-black">Total Users</p>
                         <h3 id="statTotalUsers" class="text-2xl font-black mt-1">0</h3>
                     </div>
-                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
-                        <p class="text-xs text-indigo-200 uppercase font-bold">Verified</p>
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                        <p class="text-[9px] text-indigo-200 uppercase font-black">Verified</p>
                         <h3 id="statVerified" class="text-2xl font-black mt-1 text-blue-400">0</h3>
                     </div>
-                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
-                        <p class="text-xs text-indigo-200 uppercase font-bold">Monetized</p>
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                        <p class="text-[9px] text-indigo-200 uppercase font-black">Monetized</p>
                         <h3 id="statRequests" class="text-2xl font-black mt-1 text-yellow-400">0</h3>
                     </div>
-                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
-                        <p class="text-xs text-indigo-200 uppercase font-bold">Total Posts</p>
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                        <p class="text-[9px] text-indigo-200 uppercase font-black">Total Posts</p>
                         <h3 id="statPosts" class="text-2xl font-black mt-1">0</h3>
                     </div>
                 </div>
@@ -56,34 +58,59 @@
 
         <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-purple-100 ring-4 ring-purple-50">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-black text-gray-800 text-xs uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-brain text-purple-600"></i> Algorithm Engine
+                        </h2>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="autoMode" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none"/>
+                            <label for="autoMode" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <div id="algoSettings" class="space-y-4">
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Trend Boost Speed</label>
+                            <input type="range" id="algoBoost" min="1" max="100" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600 mt-2">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Priority Target</label>
+                            <select id="algoFocus" class="w-full bg-gray-50 border border-gray-100 rounded-xl py-3 px-3 text-xs mt-1 outline-none font-bold text-gray-700">
+                                <option value="mixed">Mixed Content (Normal)</option>
+                                <option value="viral">Viral Posts (High Engagement)</option>
+                                <option value="verified">Verified Creators Only</option>
+                                <option value="fresh">New Content Boost</option>
+                            </select>
+                        </div>
+                        <button onclick="updateAlgorithm()" class="w-full bg-purple-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-200">Save AI Config</button>
+                    </div>
+                </div>
+
                 <div class="bg-white p-6 rounded-3xl shadow-sm border">
                     <h2 class="font-bold text-gray-800 text-sm uppercase mb-4 flex items-center gap-2"><i class="fas fa-bullhorn text-red-500"></i> Global Announcement</h2>
-                    <textarea id="globalMsg" rows="3" placeholder="সবাইকে কী মেসেজ দিতে চান?" class="w-full bg-gray-50 border rounded-2xl p-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                    <button onclick="sendGlobalNotice()" class="mt-3 w-full bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Send to All Users</button>
+                    <textarea id="globalMsg" rows="2" placeholder="সবার কাছে নোটিফিকেশন পাঠান..." class="w-full bg-gray-50 border rounded-2xl p-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <button onclick="sendGlobalNotice()" class="mt-3 w-full bg-indigo-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg">Push Notice</button>
                 </div>
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border">
                     <h2 class="font-bold text-gray-800 text-sm uppercase mb-4 flex items-center gap-2"><i class="fas fa-code text-blue-500"></i> Master Ad Code</h2>
-                    <textarea id="masterAdCode" rows="4" placeholder="Ad Script Here..." class="w-full bg-gray-900 text-green-400 font-mono border-none rounded-2xl p-3 text-[10px] outline-none"></textarea>
-                    <button onclick="updateAdCode()" class="mt-3 w-full bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg">Update Main Ad</button>
-                </div>
-
-                <div class="bg-white p-6 rounded-3xl shadow-sm border">
-                    <h2 class="font-bold text-gray-800 text-sm uppercase mb-4"><i class="fas fa-list-check text-orange-500"></i> Monetization Rules</h2>
-                    <input type="number" id="minFollowers" placeholder="Minimum Followers" class="w-full bg-gray-50 border rounded-xl p-3 text-xs mb-2">
-                    <input type="number" id="minPosts" placeholder="Minimum Posts" class="w-full bg-gray-50 border rounded-xl p-3 text-xs mb-2">
-                    <button onclick="updateRules()" class="w-full bg-gray-800 text-white py-2 rounded-xl text-[10px] font-bold uppercase">Save Rules</button>
+                    <textarea id="masterAdCode" rows="3" placeholder="Paste Adsterra/Google script here..." class="w-full bg-gray-900 text-green-400 font-mono border-none rounded-2xl p-3 text-[10px] outline-none"></textarea>
+                    <button onclick="updateAdCode()" class="mt-3 w-full bg-green-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg">Activate Ads</button>
                 </div>
             </div>
 
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border min-h-[500px]">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-bold text-gray-800 text-sm uppercase tracking-widest">User Management</h2>
-                        <input type="text" id="userSearch" onkeyup="searchUser()" placeholder="Search name..." class="bg-gray-100 border-none rounded-full px-4 py-2 text-xs outline-none">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b">
+                        <h2 class="font-black text-gray-800 text-xs uppercase tracking-widest">User Management</h2>
+                        <div class="relative w-full md:w-64">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                            <input type="text" id="userSearch" onkeyup="searchUser()" placeholder="Search user..." class="w-full bg-gray-100 border-none rounded-full pl-9 pr-4 py-2.5 text-xs outline-none">
+                        </div>
                     </div>
                     <div id="userList" class="space-y-3">
-                        <p class="text-center text-gray-300 py-20 italic">Loading database...</p>
+                        <p class="text-center text-gray-300 py-20 italic">Loading safe database...</p>
                     </div>
                 </div>
             </div>
@@ -92,108 +119,120 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, setDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, setDoc, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Password Security
+        // Security
         window.checkAdminPass = () => {
             const pass = document.getElementById('adminPassInput').value;
-            if(pass === "150") { // আপনার গোপন পাসওয়ার্ড এখানে দিন
+            if(pass === "150") {
                 document.getElementById('adminOverlay').classList.add('hidden');
                 document.getElementById('adminContent').classList.remove('hidden');
-            } else {
-                alert("ভুল পাসওয়ার্ড!");
-            }
+                loadAlgoState();
+            } else { alert("WRONG ACCESS CODE!"); }
         };
+
+        // Algorithm Logic Update
+        window.updateAlgorithm = async () => {
+            const isAuto = document.getElementById('autoMode').checked;
+            const boost = document.getElementById('algoBoost').value;
+            const focus = document.getElementById('algoFocus').value;
+            
+            await setDoc(doc(db, "appSettings", "algorithm"), {
+                autoPilot: isAuto,
+                trendBoost: parseInt(boost),
+                priority: focus,
+                lastUpdate: new Date()
+            });
+            alert("Algorithm Power Updated! 🧠");
+        };
+
+        async function loadAlgoState() {
+            const snap = await getDoc(doc(db, "appSettings", "algorithm"));
+            if(snap.exists()) {
+                const data = snap.data();
+                document.getElementById('autoMode').checked = data.autoPilot || false;
+                document.getElementById('algoBoost').value = data.trendBoost || 50;
+                document.getElementById('algoFocus').value = data.priority || 'mixed';
+            }
+        }
 
         // Load Global Stats & Users
         onSnapshot(collection(db, "users"), (snapshot) => {
             const list = document.getElementById('userList');
-            let verified = 0; let monetized = 0;
+            let v = 0; let m = 0;
             list.innerHTML = "";
 
             snapshot.forEach(docData => {
                 const u = docData.data();
                 const uid = docData.id;
-                if(u.isVerified) verified++;
-                if(u.isMonetized) monetized++;
+                if(u.isVerified) v++;
+                if(u.isMonetized) m++;
 
                 const userCard = document.createElement('div');
                 userCard.className = "flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 admin-card";
                 userCard.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-200">
                             <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1">
-                                ${u.name || 'Anonymous'} 
+                                ${u.name || 'User'} 
                                 ${u.isVerified ? '<i class="fas fa-check-circle text-blue-500 text-[10px]"></i>' : ''}
                             </h4>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase">${u.job || 'User'}</p>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">${u.job || 'App User'}</p>
                         </div>
                     </div>
                     <div class="flex gap-1">
-                        <a href="profile.html?id=${uid}" title="View" class="p-2 bg-purple-50 text-purple-600 rounded-lg text-[10px]"><i class="fas fa-eye"></i></a>
-                        <button onclick="toggleVerify('${uid}', ${u.isVerified})" title="Verify" class="p-2 ${u.isVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'} rounded-lg text-[10px]"><i class="fas fa-certificate"></i></button>
-                        <button onclick="sendWarning('${uid}')" title="Message" class="p-2 bg-orange-100 text-orange-600 rounded-lg text-[10px]"><i class="fas fa-exclamation-triangle"></i></button>
-                        <button onclick="toggleAds('${uid}', ${u.adEnabled})" title="Ads" class="p-2 ${u.adEnabled !== false ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} rounded-lg text-[10px]"><i class="fas fa-ad"></i></button>
-                        <button onclick="deleteUser('${uid}')" title="Delete" class="p-2 bg-red-50 text-red-400 rounded-lg text-[10px]"><i class="fas fa-trash"></i></button>
+                        <a href="profile.html?id=${uid}" title="Visit Profile" class="p-2.5 bg-purple-50 text-purple-600 rounded-xl text-[10px]"><i class="fas fa-eye"></i></a>
+                        <button onclick="toggleVerify('${uid}', ${u.isVerified})" class="p-2.5 ${u.isVerified ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'} rounded-xl text-[10px]"><i class="fas fa-certificate"></i></button>
+                        <button onclick="sendWarning('${uid}')" class="p-2.5 bg-orange-100 text-orange-600 rounded-xl text-[10px]"><i class="fas fa-bolt"></i></button>
+                        <button onclick="toggleAds('${uid}', ${u.adEnabled})" class="p-2.5 ${u.adEnabled !== false ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} rounded-xl text-[10px]"><i class="fas fa-dollar-sign"></i></button>
+                        <button onclick="deleteUser('${uid}')" class="p-2.5 bg-red-50 text-red-400 rounded-xl text-[10px]"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 `;
                 list.appendChild(userCard);
             });
 
             document.getElementById('statTotalUsers').innerText = snapshot.size;
-            document.getElementById('statVerified').innerText = verified;
-            document.getElementById('statRequests').innerText = monetized;
+            document.getElementById('statVerified').innerText = v;
+            document.getElementById('statRequests').innerText = m;
         });
 
-        // Functions
-        window.toggleVerify = async (uid, current) => {
-            await updateDoc(doc(db, "users", uid), { isVerified: !current });
+        // Search Function
+        window.searchUser = () => {
+            const input = document.getElementById('userSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('.admin-card');
+            cards.forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(input) ? 'flex' : 'none';
+            });
         };
 
-        window.toggleAds = async (uid, current) => {
-            await updateDoc(doc(db, "users", uid), { adEnabled: (current === false) });
-        };
-
+        // Database Functions
+        window.toggleVerify = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { isVerified: !cur }); };
+        window.toggleAds = async (uid, cur) => { await updateDoc(doc(db, "users", uid), { adEnabled: (cur === false) }); };
         window.sendWarning = async (uid) => {
-            const msg = prompt("ইউজারকে কী মেসেজ দিতে চান?");
-            if(msg) {
-                await updateDoc(doc(db, "users", uid), { systemNotice: msg, noticeDate: new Date() });
-                alert("মেসেজ পাঠানো হয়েছে!");
-            }
+            const msg = prompt("ইউজারকে কি নোটিশ দিতে চান?");
+            if(msg) await updateDoc(doc(db, "users", uid), { systemNotice: msg, noticeDate: new Date() });
         };
-
-        window.deleteUser = async (uid) => {
-            if(confirm("এই ইউজারকে চিরতরে ডিলিট করতে চান?")) {
-                await deleteDoc(doc(db, "users", uid));
-            }
-        };
-
-        window.updateRules = async () => {
-            const f = document.getElementById('minFollowers').value;
-            const p = document.getElementById('minPosts').value;
-            await setDoc(doc(db, "appSettings", "monetization"), { minFollowers: f, minPosts: p });
-            alert("Rules Updated!");
-        };
-
-        window.sendGlobalNotice = async () => {
-            const msg = document.getElementById('globalMsg').value;
-            if(!msg) return;
-            await addDoc(collection(db, "announcements"), { text: msg, date: new Date() });
-            alert("Sent to all!");
-            document.getElementById('globalMsg').value = "";
-        };
-
+        window.deleteUser = async (uid) => { if(confirm("Permanently delete?")) await deleteDoc(doc(db, "users", uid)); };
         window.updateAdCode = async () => {
             const code = document.getElementById('masterAdCode').value;
             await setDoc(doc(db, "appSettings", "ads"), { code: code });
-            alert("Master Ad Code Updated!");
+            alert("Ads Updated Everywhere!");
+        };
+        window.sendGlobalNotice = async () => {
+            const msg = document.getElementById('globalMsg').value;
+            if(msg) {
+                await addDoc(collection(db, "announcements"), { text: msg, date: new Date() });
+                alert("Pushed to everyone!");
+                document.getElementById('globalMsg').value = "";
+            }
         };
     </script>
 </body>
