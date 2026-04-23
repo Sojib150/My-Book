@@ -8,14 +8,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow-x: hidden; }
         .glass-input { background: #f1f5f9; border: 2px solid transparent; transition: all 0.3s; }
         .glass-input:focus { background: white; border-color: #2563eb; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1); }
         .avatar-upload { width: 100px; height: 100px; border: 3px dashed #cbd5e1; border-radius: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; }
-        .avatar-upload img { width: 100%; height: 100%; object-cover; }
+        .avatar-upload img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ✨ Glassmorphism Toast Style */
+        #customToast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 16px 24px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 320px;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        #customToast.show { top: 30px; }
+        .toast-icon { width: 35px; height: 35px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="customToast">
+        <div id="toastIcon" class="toast-icon"></div>
+        <div>
+            <p id="toastTitle" class="text-[10px] font-black uppercase tracking-[2px] leading-none"></p>
+            <p id="toastMsg" class="text-xs text-gray-600 font-bold mt-1.5"></p>
+        </div>
+    </div>
 
     <div class="w-full max-w-lg bg-white rounded-[40px] p-8 md:p-12 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.08)] border border-gray-100">
         
@@ -40,30 +70,21 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="relative">
-                    <input type="text" id="fullName" placeholder="Full Name" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
-                </div>
-                <div class="relative">
-                    <select id="gender" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold text-gray-500 appearance-none">
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
+                <input type="text" id="fullName" placeholder="Full Name" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
+                <select id="gender" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold text-gray-500 appearance-none">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
 
-            <div class="relative">
-                <input type="email" id="email" placeholder="Email Address" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
-            </div>
+            <input type="email" id="email" placeholder="Email Address" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
+            <input type="password" id="password" placeholder="Strong Password" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
 
-            <div class="relative">
-                <input type="password" id="password" placeholder="Strong Password" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
-            </div>
-
-            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                <p class="text-[10px] text-blue-600 font-black uppercase mb-1">Security Notice</p>
-                <p class="text-[11px] text-blue-400 font-medium leading-relaxed">By joining, your device fingerprint will be registered to prevent duplicate account abuse.</p>
+            <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
+                <p class="text-[10px] text-blue-600 font-black uppercase mb-1">Security Shield Active</p>
+                <p class="text-[11px] text-blue-400 font-medium leading-relaxed">Anti-duplicate system is monitoring your device fingerprint.</p>
             </div>
 
             <button onclick="handleRegister()" id="regBtn" class="w-full bg-blue-600 text-white font-black py-5 rounded-[2rem] shadow-2xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all mt-4 text-sm uppercase tracking-widest">
@@ -101,7 +122,29 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ১. ইমেজ প্রিভিউ
+        // 🍎 Custom Toast Function
+        window.showToast = (title, msg, type = 'error') => {
+            const toast = document.getElementById('customToast');
+            const icon = document.getElementById('toastIcon');
+            const tTitle = document.getElementById('toastTitle');
+            const tMsg = document.getElementById('toastMsg');
+
+            if(type === 'error') {
+                icon.className = "toast-icon bg-red-100 text-red-600";
+                icon.innerHTML = '<i class="fas fa-shield-alt"></i>';
+                tTitle.className = "text-[10px] font-black uppercase tracking-[2px] text-red-600";
+            } else {
+                icon.className = "toast-icon bg-green-100 text-green-600";
+                icon.innerHTML = '<i class="fas fa-check-double"></i>';
+                tTitle.className = "text-[10px] font-black uppercase tracking-[2px] text-green-600";
+            }
+
+            tTitle.innerText = title;
+            tMsg.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        };
+
         window.previewImg = (input) => {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -114,7 +157,6 @@
             }
         };
 
-        // ২. মেইন রেজিস্ট্রেশন ফাংশন
         window.handleRegister = async () => {
             const name = document.getElementById('fullName').value.trim();
             const email = document.getElementById('email').value.trim();
@@ -122,62 +164,58 @@
             const gender = document.getElementById('gender').value;
             const loader = document.getElementById('loader');
 
-            if(!name || !email || !pass || !gender) return alert("অনুগ্রহ করে সব তথ্য দিন!");
-            if(pass.length < 6) return alert("পাসওয়ার্ড অন্তত ৬ অক্ষরের দিন!");
+            if(!name || !email || !pass || !gender) return showToast("Required", "সবগুলো ঘর পূরণ করুন!", "error");
+            if(pass.length < 6) return showToast("Weak Password", "পাসওয়ার্ড অন্তত ৬ অক্ষরের দিন!", "error");
 
             loader.classList.remove('hidden');
 
             try {
-                // --- ১২ নম্বর সিকিউরিটি লজিক: IP & Device Detection ---
-                const ipRes = await fetch('https://ipapi.co/json/');
-                const ipData = await ipRes.json();
+                // ১২ নম্বর সিকিউরিটি শিল্ড লজিক
+                const deviceId = navigator.userAgent.replace(/\s/g, '').substring(0, 60);
+                let ipAddress = "Hidden";
+                let city = "Unknown";
                 
-                const deviceId = navigator.userAgent.substring(0, 50); // ইউনিক ডিভাইস সিগনেচার
-                const ipAddress = ipData.ip;
+                try {
+                    const ipRes = await fetch('https://ipapi.co/json/');
+                    const ipData = await ipRes.json();
+                    ipAddress = ipData.ip;
+                    city = ipData.city;
+                } catch(e) { console.log("Direct IP fetch blocked"); }
 
-                // চেক করবেন কি না এই ডিভাইস বা আইপিতে আগে একাউন্ট আছে কি না
                 const q = query(collection(db, "users"), where("deviceModel", "==", deviceId));
                 const querySnap = await getDocs(q);
 
                 let status = "active";
-                if(!querySnap.empty) {
-                    status = "waiting_approval"; // যদি আগে একাউন্ট থাকে
-                }
+                if(!querySnap.empty) { status = "waiting_approval"; }
 
-                // ৩. একাউন্ট খোলা
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // ৪. ডাটাবেসে সেভ
                 await setDoc(doc(db, "users", user.uid), {
-                    name: name,
-                    email: email,
-                    gender: gender,
-                    uid: user.uid,
+                    name, email, gender, uid: user.uid,
                     profilePic: document.getElementById('preview').src || "",
                     bio: "Hi, I am using My Book!",
-                    followers: [],
-                    following: [],
-                    isVerified: false,
-                    isMonetized: false,
-                    isShadowBanned: false,
-                    balance: 0,
-                    accountStatus: status, // এটাই হলো আপনার সিকিউরিটি শিল্ড
+                    followers: [], following: [],
+                    isVerified: false, isMonetized: false,
+                    isShadowBanned: false, balance: 0, fakeViews: 0,
+                    monetizeStatus: "none",
+                    accountStatus: status,
                     deviceModel: deviceId,
                     ipAddress: ipAddress,
-                    city: ipData.city || "Unknown",
+                    city: city,
                     createdAt: serverTimestamp()
                 });
 
                 if(status === "waiting_approval") {
-                    alert("Security Alert: Multiple accounts detected from this device. Please wait for admin approval!");
-                    window.location.href = "index.html"; // লগইন পেজে ব্যাক পাঠিয়ে দেওয়া
+                    showToast("Security Alert", "Duplicate device detected! Waiting for approval.", "error");
+                    setTimeout(() => { window.location.href = "index.html"; }, 3000);
                 } else {
-                    window.location.href = "home.html";
+                    showToast("Success", "একাউন্ট তৈরি হয়েছে! প্রবেশ করুন...", "success");
+                    setTimeout(() => { window.location.href = "home.html"; }, 2000);
                 }
 
             } catch (error) {
-                alert("এরর: " + error.message);
+                showToast("System Error", error.message, "error");
             } finally {
                 loader.classList.add('hidden');
             }
