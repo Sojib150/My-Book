@@ -19,6 +19,7 @@
         #commentSheet.active { transform: translateY(0); }
         .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: none; backdrop-filter: blur(8px); }
         .comment-blur.active { display: block; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-black">
@@ -27,7 +28,7 @@
 
     <div class="reel-container" id="reelContainer">
         <div class="h-full flex items-center justify-center text-white/20 font-black tracking-widest text-[10px] uppercase">
-            Loading 12-Dafa Reels...
+            Loading Master Reels...
         </div>
     </div>
 
@@ -38,7 +39,7 @@
         <div class="flex flex-col gap-3 border-t pt-5 bg-white">
             <div id="replyIndicator" class="hidden text-[9px] text-blue-600 font-black uppercase tracking-widest ml-2 flex justify-between">
                 <span id="replyingToText">Replying to...</span>
-                <button onclick="cancelReply()" class="text-red-500">Cancel</button>
+                <button onclick="cancelReply()" class="text-red-500 underline">Cancel</button>
             </div>
             <div class="flex items-center gap-3">
                 <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-medium outline-none text-black">
@@ -66,6 +67,7 @@
         let currentUser = null;
         let activePostId = null;
         let adminConfig = {};
+        let replyToId = null;
 
         onAuthStateChanged(auth, async user => { 
             if(user) {
@@ -93,8 +95,8 @@
 
         async function loadMasterReels() {
             const adCode = adminConfig.adStatus ? adminConfig.adCode : "";
-            // কালা স্ক্রিন ঠিক করতে orderBy আপাতত বন্ধ
-            let q = query(collection(db, "posts"), where("fileType", "==", "video"));
+            // ইনডেক্স থাকলে orderBy এখন কাজ করবে
+            let q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"));
             
             onSnapshot(q, async snap => {
                 const container = document.getElementById('reelContainer');
@@ -168,23 +170,63 @@
             });
         };
 
+        // --- Master Comment System ---
         window.openComments = (postId, e) => {
             e.stopPropagation();
             activePostId = postId;
             document.getElementById('commentSheet').classList.add('active');
             document.getElementById('commentBlur').classList.add('active');
-            // কমেন্ট লোড করার লজিক এখানে কল হবে (যদি আপনার ডাটাবেসে থাকে)
+            loadMasterComments(postId);
         };
 
         window.closeComments = () => {
             document.getElementById('commentSheet').classList.remove('active');
             document.getElementById('commentBlur').classList.remove('active');
+            cancelReply();
         };
 
-        window.postComment = () => {
+        async function loadMasterComments(postId) {
+            const list = document.getElementById('commentList');
+            const total = document.getElementById('totalComments');
+            const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "desc"));
+            
+            onSnapshot(q, snap => {
+                list.innerHTML = "";
+                total.innerText = `Comments (${snap.size})`;
+                snap.forEach(d => {
+                    const c = d.data();
+                    list.innerHTML += `
+                        <div class="flex gap-4 items-start">
+                            <img src="${c.userPic}" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="bg-gray-50 p-3 rounded-2xl">
+                                    <p class="font-black text-[10px] text-blue-600 uppercase">@${c.userName}</p>
+                                    <p class="text-[13px] text-gray-700 font-medium">${c.text}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            if(input.value) { alert("Comment posted: " + input.value); input.value = ""; }
+            if(!input.value || !activePostId) return;
+
+            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
+            const uData = uSnap.data();
+
+            await addDoc(collection(db, "posts", activePostId, "comments"), {
+                text: input.value,
+                userId: currentUser.uid,
+                userName: uData.name,
+                userPic: uData.profilePic,
+                createdAt: serverTimestamp()
+            });
+            input.value = "";
         };
+
+        window.cancelReply = () => { replyToId = null; document.getElementById('replyIndicator').classList.add('hidden'); };
 
         function setupAutoPlay() {
             const observer = new IntersectionObserver((entries) => {
