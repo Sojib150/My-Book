@@ -3,102 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - My Book</title>
+    <title>My Profile - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .verified-badge { color: #1d9bf0; font-size: 1.1rem; margin-left: 4px; }
         .dashboard-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* ✨ Glassmorphism Toast Style */
+        #customToast {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px;
+            border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            z-index: 9999; display: flex; align-items: center; gap: 15px;
+            min-width: 300px; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        #customToast.show { top: 30px; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-20">
+<body class="pb-20">
+
+    <div id="customToast">
+        <div id="toastIcon" class="w-[35px] h-[35px] rounded-xl flex items-center justify-center"></div>
+        <div>
+            <p id="toastTitle" class="text-[10px] font-black uppercase tracking-[2px] leading-none"></p>
+            <p id="toastMsg" class="text-xs text-gray-600 font-bold mt-1.5"></p>
+        </div>
+    </div>
 
     <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <a href="home.html" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></a>
-            <h1 id="topName" class="font-bold text-gray-800 text-sm uppercase tracking-widest">আমার প্রোফাইল</h1>
-            <a href="Edit-profile.html" class="text-gray-400 hover:text-blue-600"><i class="fas fa-cog text-xl"></i></a>
+            <a href="home.html" class="text-blue-600 w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"><i class="fas fa-arrow-left"></i></a>
+            <h1 id="topName" class="font-black text-gray-900 text-[10px] uppercase tracking-widest">My Identity</h1>
+            <a href="Edit-profile.html" class="text-gray-400 w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center"><i class="fas fa-cog"></i></a>
         </div>
     </nav>
 
     <div class="max-w-md mx-auto bg-white shadow-sm border-b overflow-hidden">
-        <div class="h-40 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
+        <div class="h-44 bg-gradient-to-r from-blue-600 to-indigo-700 relative overflow-hidden">
             <img id="coverImg" src="" class="w-full h-full object-cover hidden">
+            <div class="absolute inset-0 bg-black/10"></div>
         </div>
 
         <div class="px-6 pb-6">
             <div class="relative flex justify-center -mt-16">
-                <div class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white relative">
+                <div class="w-32 h-32 bg-blue-600 rounded-[40px] border-[6px] border-white shadow-2xl overflow-hidden flex items-center justify-center text-4xl font-black text-white relative rotate-3 hover:rotate-0 transition-all">
                     <img id="profileImg" src="" class="w-full h-full object-cover hidden">
                     <span id="initialText">?</span>
                 </div>
             </div>
 
-            <div class="text-center mt-4">
+            <div class="text-center mt-6">
                 <div class="flex items-center justify-center gap-1">
-                    <h2 id="uName" class="text-2xl font-black text-gray-800 leading-none italic">লোড হচ্ছে...</h2>
+                    <h2 id="uName" class="text-2xl font-black text-gray-900 leading-none tracking-tight">লোড হচ্ছে...</h2>
                     <span id="vBadge" class="hidden"><i class="fas fa-check-circle verified-badge"></i></span>
                 </div>
-                <p id="uBio" class="text-gray-400 text-[10px] mt-2 px-4 italic"></p>
+                <p id="uBio" class="text-gray-400 text-xs font-medium mt-3 px-6 italic"></p>
             </div>
 
-            <div class="mt-6">
-                <a href="dashboard.html" class="dashboard-gradient block w-full p-4 rounded-2xl text-white shadow-lg active:scale-95 transition-all">
+            <div class="mt-8">
+                <a href="dashboard.html" class="dashboard-gradient block w-full p-5 rounded-[25px] text-white shadow-xl shadow-blue-100 active:scale-95 transition-all">
                     <div class="flex justify-between items-center">
                         <div>
-                            <p class="text-[10px] font-bold uppercase opacity-80">Creator Tools</p>
-                            <h3 class="font-black tracking-tight">Professional Dashboard</h3>
+                            <p class="text-[9px] font-black uppercase tracking-[2px] opacity-70">Creator Insight</p>
+                            <h3 class="font-black text-lg tracking-tight">Professional Dashboard</h3>
                         </div>
-                        <i class="fas fa-chart-line text-2xl opacity-50"></i>
+                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl backdrop-blur-md">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
                     </div>
                 </a>
             </div>
 
-            <div class="mt-6 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fas fa-info-circle mr-1"></i> পরিচয় ও তথ্য</h3>
-                <div id="info-job" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-briefcase w-4 text-blue-500"></i> <span id="val-job"></span></div>
-                <div id="info-edu" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-graduation-cap w-4 text-blue-500"></i> <span id="val-edu"></span></div>
-                <div id="info-city" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-map-marker-alt w-4 text-blue-500"></i> <span id="val-city"></span></div>
-                <div id="info-relation" class="hidden flex items-center gap-3 text-xs text-gray-600"><i class="fas fa-heart w-4 text-pink-500"></i> <span id="val-relation"></span></div>
+            <div class="mt-8 space-y-4 bg-gray-50/50 p-6 rounded-[30px] border border-gray-100">
+                <h3 class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span> Personal Intel
+                </h3>
+                <div id="info-job" class="hidden flex items-center gap-4 text-[13px] text-gray-700 font-bold"><i class="fas fa-briefcase w-5 text-blue-500"></i> <span id="val-job"></span></div>
+                <div id="info-edu" class="hidden flex items-center gap-4 text-[13px] text-gray-700 font-bold"><i class="fas fa-graduation-cap w-5 text-blue-500"></i> <span id="val-edu"></span></div>
+                <div id="info-city" class="hidden flex items-center gap-4 text-[13px] text-gray-700 font-bold"><i class="fas fa-map-marker-alt w-5 text-blue-500"></i> <span id="val-city"></span></div>
+                <div id="info-relation" class="hidden flex items-center gap-4 text-[13px] text-gray-700 font-bold"><i class="fas fa-heart w-5 text-pink-500"></i> <span id="val-relation"></span></div>
             </div>
 
-            <div class="flex justify-around mt-8 border-t pt-6">
+            <div class="flex justify-around mt-8 bg-white border border-gray-100 p-6 rounded-[30px] shadow-sm">
                 <div class="text-center">
-                    <p id="pCount" class="font-black text-lg text-gray-800">0</p>
-                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Posts</p>
+                    <p id="pCount" class="font-black text-xl text-gray-900">0</p>
+                    <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-1">Posts</p>
                 </div>
-                <div class="text-center cursor-pointer" onclick="window.openModal('followers')">
-                    <p id="followerCount" class="font-black text-lg text-gray-800">0</p>
-                    <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Followers</p>
+                <div class="w-[1px] h-10 bg-gray-100"></div>
+                <div class="text-center cursor-pointer group" onclick="window.openModal('followers')">
+                    <p id="followerCount" class="font-black text-xl text-blue-600 group-hover:scale-110 transition-all">0</p>
+                    <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-1">Followers</p>
                 </div>
-                <div class="text-center cursor-pointer" onclick="window.openModal('following')">
-                    <p id="followingCount" class="font-black text-lg text-gray-800">0</p>
-                    <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest">Following</p>
+                <div class="w-[1px] h-10 bg-gray-100"></div>
+                <div class="text-center cursor-pointer group" onclick="window.openModal('following')">
+                    <p id="followingCount" class="font-black text-xl text-blue-600 group-hover:scale-110 transition-all">0</p>
+                    <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-1">Following</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-2 bg-white min-h-[300px]">
-        <div class="flex border-b">
-            <button class="flex-1 py-3 text-[10px] font-black uppercase text-blue-600 border-b-2 border-blue-600">My Posts</button>
-            <button class="flex-1 py-3 text-[10px] font-black uppercase text-gray-400">Reels</button>
+    <div class="max-w-md mx-auto mt-3 bg-white min-h-[400px] rounded-t-[40px] shadow-sm border-t border-gray-100 overflow-hidden">
+        <div class="flex p-4 gap-2">
+            <button class="flex-1 py-3 text-[10px] font-black uppercase bg-blue-50 text-blue-600 rounded-2xl">Grid View</button>
+            <button class="flex-1 py-3 text-[10px] font-black uppercase text-gray-400 hover:bg-gray-50 rounded-2xl transition-all">Show Reels</button>
         </div>
-        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
+        <div id="uPosts" class="grid grid-cols-3 gap-1 p-4"></div>
     </div>
 
     <div class="max-w-md mx-auto p-6 mt-4">
-        <button onclick="window.logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-sm">
-            <i class="fas fa-sign-out-alt"></i> 
-            <span class="uppercase tracking-widest text-[10px]">লগ-আউট করুন</span>
+        <button onclick="window.triggerLogout()" class="w-full bg-red-50 text-red-600 font-black py-5 rounded-[25px] border border-red-100 flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-red-50">
+            <i class="fas fa-power-off"></i> 
+            <span class="uppercase tracking-widest text-[10px]">Secure Sign-out</span>
         </button>
     </div>
 
-    <div id="listModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-t-[30px] p-6 h-[70vh] overflow-hidden flex flex-col">
-            <div class="flex justify-between items-center mb-6 pb-2 border-b">
-                <h3 id="modalTitle" class="font-black text-gray-800 uppercase text-xs tracking-widest">List</h3>
-                <button onclick="window.closeModal()" class="text-gray-400 text-2xl px-2">&times;</button>
+    <div id="listModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center backdrop-blur-md transition-all">
+        <div class="bg-white w-full max-w-md rounded-t-[40px] p-8 h-[75vh] flex flex-col shadow-2xl">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8 cursor-pointer" onclick="window.closeModal()"></div>
+            <div class="flex justify-between items-center mb-8">
+                <h3 id="modalTitle" class="font-black text-gray-900 uppercase text-xs tracking-[3px]">Audience</h3>
+                <button onclick="window.closeModal()" class="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-times"></i></button>
             </div>
             <div id="modalList" class="flex-1 overflow-y-auto space-y-4 no-scrollbar"></div>
         </div>
@@ -116,6 +146,20 @@
 
         let uid = null;
 
+        // 🍎 Custom Toast System
+        window.showToast = (title, msg, type = 'error') => {
+            const toast = document.getElementById('customToast');
+            const icon = document.getElementById('toastIcon');
+            const tTitle = document.getElementById('toastTitle');
+            const tMsg = document.getElementById('toastMsg');
+            icon.className = type === 'error' ? "w-[35px] h-[35px] rounded-xl flex items-center justify-center bg-red-100 text-red-600" : "w-[35px] h-[35px] rounded-xl flex items-center justify-center bg-green-100 text-green-600";
+            icon.innerHTML = type === 'error' ? '<i class="fas fa-shield-alt"></i>' : '<i class="fas fa-check-circle"></i>';
+            tTitle.className = `text-[10px] font-black uppercase tracking-[2px] leading-none ${type === 'error' ? 'text-red-600' : 'text-green-600'}`;
+            tTitle.innerText = title; tMsg.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        };
+
         onAuthStateChanged(auth, user => {
             if(user) {
                 uid = user.uid;
@@ -129,17 +173,13 @@
             onSnapshot(doc(db, "users", uid), (snap) => {
                 if(snap.exists()) {
                     const d = snap.data();
-                    document.getElementById('uName').innerText = d.name || "User";
-                    document.getElementById('topName').innerText = d.name || "Profile";
-                    document.getElementById('uBio').innerText = d.bio || "";
+                    document.getElementById('uName').innerText = d.name || "Unknown Identity";
+                    document.getElementById('topName').innerText = (d.name || "Profile").toUpperCase();
+                    document.getElementById('uBio').innerText = d.bio || "No status shared yet...";
                     document.getElementById('initialText').innerText = (d.name ? d.name[0] : "U").toUpperCase();
                     
-                    // Verified Badge Logic (যন্ত্রপাতি ১)
-                    if(d.isVerified === true) {
-                        document.getElementById('vBadge').classList.remove('hidden');
-                    } else {
-                        document.getElementById('vBadge').classList.add('hidden');
-                    }
+                    if(d.isVerified) document.getElementById('vBadge').classList.remove('hidden');
+                    else document.getElementById('vBadge').classList.add('hidden');
 
                     if(d.profilePic) {
                         const img = document.getElementById('profileImg');
@@ -151,10 +191,10 @@
                         cImg.src = d.coverPic; cImg.classList.remove('hidden');
                     }
 
-                    showInfo('info-job', 'val-job', d.job, 'কাজ: ');
-                    showInfo('info-edu', 'val-edu', d.education, 'পড়াশোনা: ');
-                    showInfo('info-city', 'val-city', d.city, 'শহর: ');
-                    showInfo('info-relation', 'val-relation', d.relationship, 'সম্পর্ক: ');
+                    showInfo('info-job', 'val-job', d.job, 'Work: ');
+                    showInfo('info-edu', 'val-edu', d.education, 'Studies: ');
+                    showInfo('info-city', 'val-city', d.city, 'Based in: ');
+                    showInfo('info-relation', 'val-relation', d.relationship, 'Status: ');
                 }
             });
         }
@@ -174,7 +214,6 @@
         }
 
         async function loadPosts() {
-            // Algorithm Connection (যন্ত্রপাতি ২)
             const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
             let algoMode = algoSnap.exists() ? algoSnap.data().priority : 'fresh';
 
@@ -187,25 +226,21 @@
                 let myPosts = [];
                 s.forEach(d => myPosts.push({id: d.id, ...d.data()}));
 
-                // Sorting based on admin settings
-                if(algoMode === 'popular') {
-                    myPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-                } else {
-                    myPosts.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
-                }
+                if(algoMode === 'popular') myPosts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                else myPosts.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
 
                 myPosts.forEach(p => {
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 border-[0.5px] border-white overflow-hidden relative group";
+                    div.className = "aspect-square bg-gray-50 rounded-[20px] overflow-hidden relative shadow-sm border border-gray-100";
                     
                     let content = "";
                     if(p.fileType === 'video') {
                         content = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
-                                   <i class="fas fa-play absolute top-2 right-2 text-white text-[10px] drop-shadow-md"></i>`;
+                                   <div class="absolute inset-0 bg-black/10 flex items-center justify-center"><i class="fas fa-play text-white text-[12px] opacity-70"></i></div>`;
                     } else if(p.fileUrl) {
                         content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
                     } else {
-                        content = `<div class="p-2 text-[8px] text-gray-500 font-bold uppercase">${p.text?.slice(0,30)}...</div>`;
+                        content = `<div class="p-3 text-[9px] text-gray-500 font-black leading-tight uppercase">${p.text?.slice(0,40)}...</div>`;
                     }
                     
                     div.innerHTML = content;
@@ -217,29 +252,27 @@
         window.openModal = async (type) => {
             const modal = document.getElementById('listModal');
             const listDiv = document.getElementById('modalList');
-            document.getElementById('modalTitle').innerText = type === 'followers' ? 'Followers' : 'Following';
+            document.getElementById('modalTitle').innerText = (type === 'followers' ? 'Audience' : 'Connections').toUpperCase();
             modal.classList.remove('hidden');
-            listDiv.innerHTML = "<div class='flex justify-center py-10'><i class='fas fa-circle-notch fa-spin text-blue-600'></i></div>";
+            listDiv.innerHTML = "<div class='flex justify-center py-20 animate-spin text-blue-600'><i class='fas fa-circle-notch fa-2x'></i></div>";
             
             onSnapshot(collection(db, "users", uid, type), async s => {
                 listDiv.innerHTML = "";
-                if(s.empty) listDiv.innerHTML = "<p class='text-center text-gray-400 text-xs py-10'>No one here yet.</p>";
+                if(s.empty) listDiv.innerHTML = "<p class='text-center text-gray-400 text-xs py-20 font-bold uppercase tracking-widest'>Empty Space</p>";
                 for(const docRef of s.docs) {
                     const uSnap = await getDoc(doc(db, "users", docRef.id));
                     if(uSnap.exists()){
                         const u = uSnap.data();
                         listDiv.innerHTML += `
-                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full overflow-hidden">
-                                        <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-                                    </div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-[25px] border border-gray-100">
+                                <div class="flex items-center gap-4">
+                                    <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm">
                                     <div>
-                                        <p class="text-sm font-black text-gray-800">${u.name || 'User'} ${u.isVerified ? '<i class="fas fa-check-circle text-blue-500 text-[10px]"></i>' : ''}</p>
-                                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">View Profile</p>
+                                        <p class="text-sm font-black text-gray-900 tracking-tight">${u.name || 'User'} ${u.isVerified ? '<i class="fas fa-check-circle text-blue-500 text-[10px]"></i>' : ''}</p>
+                                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest">Active Member</p>
                                     </div>
                                 </div>
-                                <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                                <button class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-300 shadow-sm"><i class="fas fa-chevron-right"></i></button>
                             </div>`;
                     }
                 }
@@ -247,7 +280,15 @@
         };
 
         window.closeModal = () => document.getElementById('listModal').classList.add('hidden');
-        window.logout = () => confirm("আপনি কি নিশ্চিত?") && signOut(auth).then(() => window.location.href = "index.html");
+        
+        window.triggerLogout = () => {
+            showToast("Confirming", "Are you sure you want to exit?", "error");
+            setTimeout(() => {
+                if(confirm("লগ-আউট করতে চান?")) {
+                    signOut(auth).then(() => window.location.href = "index.html");
+                }
+            }, 500);
+        };
 
     </script>
 </body>
