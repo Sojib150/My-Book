@@ -3,56 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post - My Book</title>
+    <title>Create Post - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .preview-container img, .preview-container video { width: 100%; border-radius: 20px; max-h: 300px; object-cover: cover; }
+    </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-gray-100">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">নতুন পোস্ট</h2>
-            <a href="home.html" class="text-blue-500 text-sm font-semibold">ফিরে যান</a>
+
+    <div class="bg-white w-full max-w-md p-8 rounded-[35px] shadow-2xl border border-gray-100 relative overflow-hidden">
+        <div class="flex justify-between items-center mb-8">
+            <a href="home.html" class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-blue-600 transition-all">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h2 class="text-[10px] font-black uppercase tracking-[3px] text-gray-800">Create New Post</h2>
+            <div class="w-10"></div>
         </div>
-        <textarea id="postText" placeholder="আপনার মনের কথা লিখুন..." class="w-full p-4 bg-gray-50 border-none rounded-xl h-32 mb-4 focus:ring-2 focus:ring-blue-400 outline-none transition-all"></textarea>
-        <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 mb-4 text-center">
-            <input type="file" id="fileInput" accept="image/*,video/*" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-600 font-semibold">
+
+        <textarea id="postText" placeholder="আপনার মনের কথা এখানে লিখুন..." class="w-full p-5 bg-gray-50 border-none rounded-[25px] h-40 mb-6 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium resize-none"></textarea>
+
+        <div id="previewArea" class="preview-container mb-6 hidden border-2 border-blue-50 p-2 rounded-[25px]">
+            </div>
+
+        <div class="relative group mb-6">
+            <input type="file" id="fileInput" accept="image/*,video/*" class="hidden">
+            <label for="fileInput" class="w-full flex items-center justify-center gap-3 p-5 border-2 border-dashed border-gray-200 rounded-[25px] cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all">
+                <i class="fas fa-cloud-upload-alt text-blue-500 text-xl"></i>
+                <span id="fileLabel" class="text-xs font-black uppercase tracking-widest text-gray-400">Add Photo or Video</span>
+            </label>
         </div>
-        <button id="uploadBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200 active:scale-95 transition-all">শেয়ার করুন</button>
-        <p id="status" class="mt-4 text-center text-xs font-medium text-gray-400"></p>
+
+        <button id="uploadBtn" class="w-full bg-blue-600 text-white font-black py-5 rounded-[25px] shadow-xl shadow-blue-100 active:scale-95 transition-all flex items-center justify-center gap-3">
+            <i class="fas fa-paper-plane"></i>
+            <span class="uppercase tracking-widest text-[10px]">Share to Feed</span>
+        </button>
+
+        <p id="status" class="mt-6 text-center text-[10px] font-black uppercase tracking-widest text-gray-300"></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        
         let currentUser = null;
+        let userData = null;
 
-        onAuthStateChanged(auth, user => { if(user) currentUser = user; else window.location.href="index.html"; });
+        onAuthStateChanged(auth, async user => { 
+            if(user) {
+                currentUser = user;
+                // লোড ইউজার ডাটা ফর পোস্ট অথর ইনফো
+                const uSnap = await getDoc(doc(db, "users", user.uid));
+                if(uSnap.exists()) userData = uSnap.data();
+            } else { 
+                window.location.href="index.html"; 
+            }
+        });
+
+        // ফাইল প্রিভিউ লজিক
+        const fileInput = document.getElementById('fileInput');
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            const previewArea = document.getElementById('previewArea');
+            const fileLabel = document.getElementById('fileLabel');
+
+            if (file) {
+                fileLabel.innerText = file.name.slice(0, 20) + "...";
+                previewArea.classList.remove('hidden');
+                const url = URL.createObjectURL(file);
+                
+                if (file.type.startsWith('video')) {
+                    previewArea.innerHTML = `<video src="${url}" controls class="rounded-xl"></video>`;
+                } else {
+                    previewArea.innerHTML = `<img src="${url}" class="rounded-xl shadow-lg">`;
+                }
+            }
+        };
 
         document.getElementById('uploadBtn').onclick = async () => {
             const text = document.getElementById('postText').value;
-            const file = document.getElementById('fileInput').files[0];
+            const file = fileInput.files[0];
             const status = document.getElementById('status');
-            if(!text && !file) return alert("কিছু লিখুন!");
+            const btn = document.getElementById('uploadBtn');
 
-            status.innerText = "আপলোড হচ্ছে...";
-            let url = ""; let type = "";
-            if(file) {
-                const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", "Video_upload");
-                const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/${file.type.startsWith('video')?'video':'image'}/upload`, {method:"POST", body:formData});
-                const data = await res.json(); url = data.secure_url; type = file.type.startsWith('video')?'video':'image';
+            if(!text.trim() && !file) {
+                status.innerText = "Error: কিছু তো লিখুন!";
+                status.classList.add('text-red-500');
+                return;
             }
-            await addDoc(collection(db, "posts"), { 
-                text, fileUrl: url, fileType: type, 
-                userId: currentUser.uid, 
-                userName: currentUser.displayName || currentUser.email.split('@')[0], 
-                likes: 0, likedBy: [], createdAt: serverTimestamp() 
-            });
-            window.location.href = "home.html";
+
+            // বাটন ডিজেবল করা
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> <span class="uppercase tracking-widest text-[10px]">Uploading...</span>';
+            status.innerText = "Cloudinary সার্ভারে আপলোড হচ্ছে...";
+
+            let url = ""; 
+            let type = "";
+
+            try {
+                if(file) {
+                    const formData = new FormData(); 
+                    formData.append("file", file); 
+                    formData.append("upload_preset", "Video_upload");
+                    
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/${file.type.startsWith('video')?'video':'image'}/upload`, {
+                        method:"POST", 
+                        body:formData
+                    });
+                    
+                    const data = await res.json(); 
+                    url = data.secure_url; 
+                    type = file.type.startsWith('video')?'video':'image';
+                }
+
+                await addDoc(collection(db, "posts"), { 
+                    text: text || "", 
+                    fileUrl: url, 
+                    fileType: type, 
+                    userId: currentUser.uid, 
+                    userName: userData?.name || currentUser.email.split('@')[0], 
+                    userPic: userData?.profilePic || "",
+                    likes: 0, 
+                    likedBy: [], 
+                    views: 0,
+                    earnings: 0,
+                    isShadowBanned: false,
+                    createdAt: serverTimestamp() 
+                });
+
+                status.innerText = "সফলভাবে পোস্ট করা হয়েছে!";
+                window.location.href = "home.html";
+
+            } catch (error) {
+                console.error(error);
+                status.innerText = "আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।";
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span class="uppercase tracking-widest text-[10px]">Share to Feed</span>';
+            }
         };
     </script>
 </body>
