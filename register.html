@@ -3,61 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join My Book - Create Account</title>
+    <title>Join My Book - Elite Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .glass-input { background: #f1f5f9; border: 2px solid transparent; transition: all 0.3s; }
+        .glass-input:focus { background: white; border-color: #2563eb; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1); }
+        .avatar-upload { width: 100px; height: 100px; border: 3px dashed #cbd5e1; border-radius: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; }
+        .avatar-upload img { width: 100%; height: 100%; object-cover; }
+    </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-6">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md bg-white rounded-[30px] p-8 shadow-2xl shadow-blue-100 border border-gray-100">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl rotate-12 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
-                <i class="fas fa-book-open text-white text-2xl -rotate-12"></i>
+    <div class="w-full max-w-lg bg-white rounded-[40px] p-8 md:p-12 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.08)] border border-gray-100">
+        
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-blue-600 rounded-[30px] rotate-12 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-200">
+                <i class="fas fa-book-open text-white text-3xl -rotate-12"></i>
             </div>
-            <h1 class="text-2xl font-black text-gray-800 tracking-tight">নতুন একাউন্ট খুলুন</h1>
-            <p class="text-gray-400 text-xs mt-2 font-medium">আপনার বন্ধুদের সাথে যুক্ত হতে আজই যোগ দিন</p>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Create Identity</h1>
+            <p class="text-gray-400 text-sm mt-2 font-medium uppercase tracking-widest">Join the Elite Community</p>
         </div>
 
-        <div class="space-y-4">
-            <div class="relative">
-                <i class="far fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="fullName" placeholder="পুরো নাম" 
-                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+        <div class="space-y-5">
+            <div class="flex justify-center mb-6">
+                <label for="picInput" class="avatar-upload group">
+                    <div id="uploadPlaceholder" class="text-center">
+                        <i class="fas fa-camera text-gray-400 group-hover:text-blue-500 transition"></i>
+                        <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase">Photo</p>
+                    </div>
+                    <img id="preview" class="hidden">
+                    <input type="file" id="picInput" accept="image/*" class="hidden" onchange="previewImg(this)">
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative">
+                    <input type="text" id="fullName" placeholder="Full Name" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
+                </div>
+                <div class="relative">
+                    <select id="gender" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold text-gray-500 appearance-none">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
             </div>
 
             <div class="relative">
-                <i class="far fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="email" id="email" placeholder="আপনার জিমেইল" 
-                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+                <input type="email" id="email" placeholder="Email Address" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
             </div>
 
             <div class="relative">
-                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="password" id="password" placeholder="পাসওয়ার্ড" 
-                    class="w-full bg-gray-50 border border-transparent rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all">
+                <input type="password" id="password" placeholder="Strong Password" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold">
             </div>
 
-            <button onclick="handleRegister()" id="regBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all mt-6">
-                একাউন্ট তৈরি করুন
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <p class="text-[10px] text-blue-600 font-black uppercase mb-1">Security Notice</p>
+                <p class="text-[11px] text-blue-400 font-medium leading-relaxed">By joining, your device fingerprint will be registered to prevent duplicate account abuse.</p>
+            </div>
+
+            <button onclick="handleRegister()" id="regBtn" class="w-full bg-blue-600 text-white font-black py-5 rounded-[2rem] shadow-2xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all mt-4 text-sm uppercase tracking-widest">
+                Authorize Account
             </button>
         </div>
 
-        <div class="mt-8 text-center">
-            <p class="text-gray-500 text-sm">আগে থেকেই একাউন্ট আছে? <a href="index.html" class="text-blue-600 font-bold hover:underline">লগইন করুন</a></p>
+        <div class="mt-10 text-center">
+            <p class="text-gray-400 text-sm font-medium">Already a member? <a href="index.html" class="text-blue-600 font-black hover:underline ml-1">Login Here</a></p>
         </div>
     </div>
 
-    <div id="loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="flex flex-col items-center">
-            <div class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-            <p class="text-blue-600 font-bold mt-4 animate-pulse">প্রসেস হচ্ছে...</p>
+    <div id="loader" class="hidden fixed inset-0 bg-white/90 backdrop-blur-xl z-[100] flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-blue-600 font-black text-xs uppercase tracking-widest animate-pulse">Encrypting Profile...</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -72,35 +101,81 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // ১. ইমেজ প্রিভিউ
+        window.previewImg = (input) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('preview').classList.remove('hidden');
+                    document.getElementById('uploadPlaceholder').classList.add('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        // ২. মেইন রেজিস্ট্রেশন ফাংশন
         window.handleRegister = async () => {
             const name = document.getElementById('fullName').value.trim();
             const email = document.getElementById('email').value.trim();
             const pass = document.getElementById('password').value.trim();
+            const gender = document.getElementById('gender').value;
             const loader = document.getElementById('loader');
 
-            if(!name || !email || !pass) return alert("সবগুলো ঘর পূরণ করুন!");
-            if(pass.length < 6) return alert("পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে!");
+            if(!name || !email || !pass || !gender) return alert("অনুগ্রহ করে সব তথ্য দিন!");
+            if(pass.length < 6) return alert("পাসওয়ার্ড অন্তত ৬ অক্ষরের দিন!");
 
             loader.classList.remove('hidden');
 
             try {
-                // ১. ইউজার ক্রিয়েট করা
+                // --- ১২ নম্বর সিকিউরিটি লজিক: IP & Device Detection ---
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const ipData = await ipRes.json();
+                
+                const deviceId = navigator.userAgent.substring(0, 50); // ইউনিক ডিভাইস সিগনেচার
+                const ipAddress = ipData.ip;
+
+                // চেক করবেন কি না এই ডিভাইস বা আইপিতে আগে একাউন্ট আছে কি না
+                const q = query(collection(db, "users"), where("deviceModel", "==", deviceId));
+                const querySnap = await getDocs(q);
+
+                let status = "active";
+                if(!querySnap.empty) {
+                    status = "waiting_approval"; // যদি আগে একাউন্ট থাকে
+                }
+
+                // ৩. একাউন্ট খোলা
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // ২. Firestore-এ ইউজারের নাম ও প্রোফাইল ডাটা সেভ করা
+                // ৪. ডাটাবেসে সেভ
                 await setDoc(doc(db, "users", user.uid), {
                     name: name,
                     email: email,
+                    gender: gender,
                     uid: user.uid,
-                    profilePic: "", // পরে প্রোফাইল পেজ থেকে আপলোড করা যাবে
+                    profilePic: document.getElementById('preview').src || "",
                     bio: "Hi, I am using My Book!",
                     followers: [],
                     following: [],
+                    isVerified: false,
+                    isMonetized: false,
+                    isShadowBanned: false,
+                    balance: 0,
+                    accountStatus: status, // এটাই হলো আপনার সিকিউরিটি শিল্ড
+                    deviceModel: deviceId,
+                    ipAddress: ipAddress,
+                    city: ipData.city || "Unknown",
                     createdAt: serverTimestamp()
                 });
 
-                window.location.href = "home.html";
+                if(status === "waiting_approval") {
+                    alert("Security Alert: Multiple accounts detected from this device. Please wait for admin approval!");
+                    window.location.href = "index.html"; // লগইন পেজে ব্যাক পাঠিয়ে দেওয়া
+                } else {
+                    window.location.href = "home.html";
+                }
+
             } catch (error) {
                 alert("এরর: " + error.message);
             } finally {
