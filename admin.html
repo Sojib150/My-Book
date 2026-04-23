@@ -272,5 +272,121 @@
         // Other functions (ShadowBan, HardBan, Maintenance, CPM, FakeUsers) 
         // similar to previous logic but updated for this God-Mode UI.
     </script>
+    <div id="adsTab" class="hidden space-y-6">
+                    <div class="bg-slate-800 p-6 rounded-[30px] border border-slate-700 shadow-xl">
+                        <h2 class="text-xs font-black text-green-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <i class="fas fa-ad text-lg"></i> Ad Manager Pro 💰
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <p class="text-[9px] text-slate-500 font-bold uppercase ml-1">Paste Your Ad Network Code (HTML/JS):</p>
+                            <textarea id="newAdCode" placeholder="Paste your Adsterra, Google AdSense or any JS/HTML code here..." 
+                                class="w-full h-32 bg-slate-900 border border-slate-700 rounded-2xl p-4 text-xs text-indigo-300 font-mono outline-none focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+                            
+                            <button onclick="saveNewAd()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-95 transition text-[10px] uppercase tracking-widest">
+                                <i class="fas fa-rocket mr-2"></i> Deploy Ad Unit 🚀
+                            </button>
+                        </div>
+
+                        <div id="activeAdsList" class="mt-8 space-y-3">
+                            <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-700 pb-2">Active Ad Units on Website</h3>
+                            </div>
+                    </div>
+                </div>
+
+<script type="module">
+        // ... আপনার আগের সব Import ঠিক থাকবে ...
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, onSnapshot, query, where, setDoc, addDoc, deleteDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase Config and DB (আগেরটাই থাকবে)
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- Ad Manager Pro Logic ---
+        window.saveNewAd = async () => {
+            const code = document.getElementById('newAdCode').value;
+            if(!code) return alert("বস, অ্যাড কোড ছাড়া তো অ্যাড চলবে না! 🤣");
+
+            try {
+                await addDoc(collection(db, "appSettings", "ads_container", "all_ads"), {
+                    code: code,
+                    status: true,
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('newAdCode').value = "";
+                alert("অ্যাড এখন পুরো ওয়েবসাইটে লাইভ! কুপাইয়া ইনকাম হবে এখন। ✅🚀");
+            } catch (e) { alert("Error: " + e.message); }
+        };
+
+        // রিয়েলটাইমে অ্যাড লিস্ট আপডেট হওয়া
+        onSnapshot(collection(db, "appSettings", "ads_container", "all_ads"), snap => {
+            const list = document.getElementById('activeAdsList');
+            // শুধু হেডার রেখে বাকি সব ক্লিন করা
+            list.innerHTML = `<h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-700 pb-2">Active Ad Units on Website</h3>`;
+            
+            snap.forEach(d => {
+                const ad = d.data();
+                const id = d.id;
+                const adCard = document.createElement('div');
+                adCard.className = "flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50";
+                adCard.innerHTML = `
+                    <div class="truncate flex-1 mr-4">
+                        <code class="text-[10px] text-indigo-400 font-mono">${ad.code.substring(0, 40)}...</code>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleAdStatus('${id}', ${ad.status})" class="p-2 px-4 rounded-xl text-[8px] font-black tracking-tighter ${ad.status ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'} transition">
+                            ${ad.status ? 'ACTIVE' : 'PAUSED'}
+                        </button>
+                        <button onclick="deleteAd('${id}')" class="w-8 h-8 bg-red-900/20 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition flex items-center justify-center">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(adCard);
+            });
+        });
+
+        window.toggleAdStatus = async (id, current) => {
+            await updateDoc(doc(db, "appSettings", "ads_container", "all_ads", id), { 
+                status: !current 
+            });
+        };
+
+        window.deleteAd = async (id) => {
+            if(confirm("বস, অ্যাডটি কি সত্যিই ডিলিট করে দেবেন?")) {
+                await deleteDoc(doc(db, "appSettings", "ads_container", "all_ads", id));
+            }
+        };
+
+        // --- Maintenance Mode Logic ---
+        window.toggleMaintenance = async () => {
+            const isChecked = document.getElementById('mMode').checked;
+            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: isChecked }, { merge: true });
+            alert(isChecked ? "Maintenance Mode ON! 🛠️" : "Website is now LIVE! 🚀");
+        };
+
+        // --- CPM Logic ---
+        window.saveCPM = async () => {
+            const rate = document.getElementById('cpmInput').value;
+            if(!rate) return alert("রেট তো বসান!");
+            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(rate) }, { merge: true });
+            alert("CPM Rate Updated to: ৳" + rate);
+        };
+
+        // পেজ লোড হওয়ার সময় মেইনটেন্যান্স চেক
+        async function loadSettings() {
+            const mSnap = await getDoc(doc(db, "appSettings", "maintenance"));
+            if(mSnap.exists()) document.getElementById('mMode').checked = mSnap.data().isOn;
+
+            const cpmSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+            if(cpmSnap.exists()) document.getElementById('cpmInput').value = cpmSnap.data().trendBoost;
+        }
+        
+        loadSettings(); // সেটিংস লোড করা
+        
+        // ... বাকি সব ফাংশন (initSystem, checkAdminPass ইত্যাদি) আগের মতোই থাকবে ...
+    </script>
+
 </body>
 </html>
