@@ -57,7 +57,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -71,26 +71,51 @@
 
         onAuthStateChanged(auth, user => { 
             currentUser = user; 
-            loadReels(); 
+            checkMaintenance(); // শুরুতেই মেইনটেন্যান্স চেক
         });
 
+        async function checkMaintenance() {
+            const mSnap = await getDoc(doc(db, "appSettings", "maintenance"));
+            if (mSnap.exists() && mSnap.data().isOn) {
+                document.body.innerHTML = `<div class="h-screen bg-slate-900 flex items-center justify-center text-center p-10"><div class="text-white"><i class="fas fa-tools text-6xl text-yellow-400 mb-6"></i><h1 class="text-2xl font-black uppercase">Under Maintenance</h1><p class="text-gray-400 mt-2">অ্যাডমিন অ্যাপটি আপডেট করছে। কিছুক্ষণ পর আবার চেষ্টা করুন।</p></div></div>`;
+                return;
+            }
+            loadReels();
+        }
+
         async function loadReels() {
-            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            let adCode = adSnap.exists() ? adSnap.data().code : "";
-            let q = query(collection(db, "posts"), where("fileType", "==", "video"));
+            // Ad Manager Pro - একটিভ অ্যাড নিয়ে আসা
+            const adQuery = query(collection(db, "appSettings", "ads_container", "all_ads"), where("status", "==", true));
+            const adSnapDocs = await getDocs(adQuery);
+            let adCode = adSnapDocs.empty ? "" : adSnapDocs.docs[Math.floor(Math.random() * adSnapDocs.size)].data().code;
+
+            let q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"));
             
-            onSnapshot(q, snap => {
+            onSnapshot(q, async snap => {
                 const container = document.getElementById('reelContainer');
                 container.innerHTML = "";
-                snap.forEach(postDoc => {
+
+                for (const postDoc of snap.docs) {
                     const p = postDoc.data();
                     const id = postDoc.id;
+
+                    // শ্যাডো ব্যান এবং অথর ডাটা চেক
+                    const authorSnap = await getDoc(doc(db, "users", p.userId));
+                    const author = authorSnap.exists() ? authorSnap.data() : {};
+                    
+                    if(author.isShadowBanned && p.userId !== currentUser?.uid) continue;
+
+                    // কাস্টম স্ট্যাটাস লজিক
+                    const displayLikes = author.fakeLikes || p.likes || 0;
+                    const displayViews = author.fakeViews || p.views || 0;
+                    const isVerified = author.isVerified || false;
+
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
                     
                     const div = document.createElement('div');
                     div.className = "reel-video";
                     div.innerHTML = `
-                        <video src="${p.fileUrl}" loop playsinline class="w-full h-full"></video>
+                        <video src="${p.fileUrl}" loop playsinline class="w-full h-full" onplay="window.trackView('${id}')"></video>
                         <div class="overlay-gradient"></div>
                         ${adCode ? `<div class="banner-ad text-[10px] text-white font-bold">${adCode}</div>` : ''}
 
@@ -99,7 +124,7 @@
                                 <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-4xl active:scale-125 transition">
                                     <i class="${isLiked ? 'fas text-red-500 heart-pop' : 'far'} fa-heart"></i>
                                 </button>
-                                <span class="text-xs font-black mt-1">${p.likes || 0}</span>
+                                <span class="text-xs font-black mt-1">${displayLikes}</span>
                             </div>
                             <div class="flex flex-col items-center">
                                 <button onclick="window.openComments('${id}', event)" class="text-4xl">
@@ -107,27 +132,52 @@
                                 </button>
                                 <span class="text-xs font-black mt-1">Reply</span>
                             </div>
-                            <button onclick="window.shareToProfile('${id}', '${p.fileUrl}', '${p.text || ''}', event)" class="text-4xl">
-                                <i class="fas fa-share-nodes"></i>
+                            <button onclick="window.reportPost('${p.userId}', '${p.userName}', event)" class="text-3xl opacity-50">
+                                <i class="fas fa-flag"></i>
                             </button>
                         </div>
 
                         <div class="absolute left-5 bottom-28 text-white z-40 flex items-center gap-3">
                             <a href="profile.html?id=${p.userId}" class="w-12 h-12 rounded-full border-2 border-white overflow-hidden shadow-2xl">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
+                                <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
                             </a>
                             <div onclick="window.location.href='profile.html?id=${p.userId}'">
-                                <h4 class="font-black text-sm">@${p.userName || 'user'}</h4>
+                                <h4 class="font-black text-sm flex items-center gap-1">@${author.name || 'user'} ${isVerified ? '<i class="fas fa-check-circle text-blue-400 text-[10px]"></i>' : ''}</h4>
                                 <p class="text-[12px] opacity-80 line-clamp-1 font-medium">${p.text || ''}</p>
+                                <p class="text-[9px] font-bold text-gray-300 mt-1"><i class="fas fa-play mr-1"></i> ${displayViews} Views</p>
                             </div>
                         </div>
                     `;
                     div.onclick = () => { const v = div.querySelector('video'); v.paused ? v.play() : v.pause(); };
                     container.appendChild(div);
-                });
+                }
                 setupAutoPlay();
             });
         }
+
+        // CPM ইনকাম লজিক
+        window.trackView = async (postId) => {
+            if(!currentUser) return;
+            await updateDoc(doc(db, "posts", postId), { views: increment(1) });
+            
+            const cpmSnap = await getDoc(doc(db, "appSettings", "algorithm")); // আপনার অ্যালগো বা সেটিং থেকে রেট
+            const rate = cpmSnap.exists() ? (cpmSnap.data().trendBoost / 1000) : 0.05; // উদাহরণ
+            
+            await updateDoc(doc(db, "users", currentUser.uid), { balance: increment(rate) });
+        };
+
+        // রিপোর্ট সিস্টেম
+        window.reportPost = async (uid, name, e) => {
+            e.stopPropagation();
+            const reason = prompt("কেন রিপোর্ট করছেন? (Spam/Harassment/Nudity)");
+            if(reason) {
+                await addDoc(collection(db, "reports"), {
+                    targetId: uid, targetName: name, reporterName: currentUser.displayName || 'Anonymous',
+                    reason: reason, createdAt: serverTimestamp()
+                });
+                alert("রিপোর্ট অ্যাডমিনের কাছে পাঠানো হয়েছে।");
+            }
+        };
 
         function setupAutoPlay() {
             const observer = new IntersectionObserver((entries) => {
@@ -254,29 +304,19 @@
             });
         };
 
-        // --- Share to Profile (Facebook Style) ---
         window.shareToProfile = async (postId, fileUrl, text, e) => {
             e.stopPropagation();
             if(!currentUser) return;
-            
             const confirmShare = confirm("Share this video to your profile?");
             if(!confirmShare) return;
-
             const userSnap = await getDoc(doc(db, "users", currentUser.uid));
             const u = userSnap.data();
-
             await addDoc(collection(db, "posts"), {
-                userId: currentUser.uid,
-                userName: u.name,
-                userPic: u.profilePic,
-                fileUrl: fileUrl,
-                fileType: 'video',
-                text: "Shared: " + text,
-                createdAt: serverTimestamp(),
-                likes: 0,
-                likedBy: []
+                userId: currentUser.uid, userName: u.name, userPic: u.profilePic,
+                fileUrl: fileUrl, fileType: 'video', text: "Shared: " + text,
+                createdAt: serverTimestamp(), likes: 0, likedBy: []
             });
-            alert("Shared to your profile successfully!");
+            alert("Shared Successfully!");
         };
 
         window.likeReel = async (id, e) => {
