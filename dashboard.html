@@ -13,7 +13,7 @@
         
         #customToast {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px;
             border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             z-index: 9999; display: flex; align-items: center; gap: 15px;
@@ -37,7 +37,7 @@
             <a href="profile.html" class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><i class="fas fa-arrow-left"></i></a>
             <h1 class="text-sm font-black uppercase tracking-widest text-gray-800">Creator Center</h1>
         </div>
-        <button onclick="togglePayoutSettings()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-100">Settings</button>
+        <button onclick="togglePayoutSettings()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg">Settings</button>
     </div>
 
     <div class="max-w-md mx-auto p-5 space-y-6">
@@ -53,44 +53,76 @@
             <div class="mt-8 flex justify-between items-center border-t border-white/10 pt-6">
                 <div>
                     <p class="text-[9px] uppercase font-black opacity-60 tracking-widest">Earnings Status</p>
-                    <p id="mStatusDisplay" class="text-xs font-black mt-1">Loading...</p>
+                    <p id="mStatusDisplay" class="text-xs font-black mt-1">Checking...</p>
                 </div>
                 <button onclick="requestWithdraw()" class="bg-white text-blue-600 px-6 py-3 rounded-[20px] text-[10px] font-black uppercase shadow-xl active:scale-95 transition-all">Withdraw</button>
             </div>
         </div>
 
+        <div class="bg-gradient-to-br from-purple-600 to-pink-500 p-6 rounded-[35px] shadow-xl text-white relative overflow-hidden">
+            <div class="absolute -bottom-5 -right-5 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[9px] font-black uppercase tracking-[2px] opacity-80">Affiliate Program</p>
+                    <h3 class="text-lg font-black mt-1">Referral Bonus 🎁</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                    <i class="fas fa-gift text-xl"></i>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center gap-3 bg-white/10 p-4 rounded-2xl border border-white/10">
+                <div class="flex-1">
+                    <p class="text-[8px] font-black uppercase opacity-60">Your Secret Code</p>
+                    <p id="refCode" class="text-sm font-black tracking-[4px] mt-1 italic">GEN-CODE</p>
+                </div>
+                <button onclick="copyRefLink()" class="bg-white text-purple-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg active:scale-95">Copy Link</button>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center px-2">
+                <div>
+                    <p id="refCount" class="text-xl font-black">0</p>
+                    <p class="text-[8px] font-black uppercase opacity-60">Success Refers</p>
+                </div>
+                <div class="text-right">
+                    <p id="refAmountDisplay" class="text-xl font-black">৳0.00</p>
+                    <p class="text-[8px] font-black uppercase opacity-60">Per Referral</p>
+                </div>
+            </div>
+        </div>
+
         <div id="monetizeSection" class="hidden bg-white p-6 rounded-[35px] border border-gray-100 shadow-sm">
-            <h3 class="text-[10px] font-black text-gray-900 uppercase tracking-[2px] mb-4">Monetization Program</h3>
-            <div id="eligibilityBox" class="space-y-3">
+            <h3 class="text-[10px] font-black text-gray-900 uppercase tracking-[2px] mb-4">Apply for Monetization</h3>
+            <div class="space-y-3">
                 <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
-                    <span class="text-xs font-bold text-gray-600">Followers (Min. 1000)</span>
+                    <span class="text-xs font-bold text-gray-600">Min. 1,000 Followers</span>
                     <span id="followerBadge" class="text-[10px] font-black px-3 py-1 rounded-full bg-red-100 text-red-600">0 / 1000</span>
                 </div>
             </div>
-            <button id="applyBtn" disabled class="w-full mt-4 bg-gray-100 text-gray-400 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Apply Now</button>
-            <p id="applyStatus" class="text-[9px] text-center mt-3 font-bold text-gray-400 uppercase"></p>
+            <button id="applyBtn" disabled class="w-full mt-4 bg-gray-100 text-gray-400 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Submit Application</button>
+            <p id="applyStatus" class="text-[9px] text-center mt-3 font-bold text-gray-400 uppercase italic"></p>
         </div>
 
         <div class="space-y-4">
-            <h3 class="font-black text-gray-900 text-[10px] uppercase tracking-[2px] px-2">Content Performance</h3>
+            <h3 class="font-black text-gray-900 text-[10px] uppercase tracking-[2px] px-2">Performance Details</h3>
             <div id="videoList" class="space-y-3"></div>
         </div>
 
     </div>
 
     <div id="payoutModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-end justify-center backdrop-blur-md">
-        <div class="bg-white w-full max-w-md rounded-t-[40px] p-8 h-[85vh] overflow-y-auto no-scrollbar shadow-2xl">
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8 cursor-pointer" onclick="togglePayoutSettings()"></div>
-            <h3 class="font-black text-gray-900 uppercase text-xs tracking-[2px] mb-8 border-b pb-4">Payout Engine</h3>
+        <div class="bg-white w-full max-w-md rounded-t-[40px] p-8 h-[80vh] overflow-y-auto no-scrollbar shadow-2xl">
+            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-8 cursor-pointer" onclick="togglePayoutSettings()"></div>
+            <h3 class="font-black text-gray-900 uppercase text-xs tracking-[2px] mb-8 border-b pb-4">Payout Settings</h3>
             <div class="space-y-5">
-                <input type="text" id="payName" class="w-full p-5 bg-gray-50 rounded-2xl text-sm font-bold outline-none" placeholder="Full Legal Name">
+                <input type="text" id="payName" class="w-full p-5 bg-gray-50 rounded-2xl text-sm font-bold outline-none" placeholder="Full Name">
                 <select id="payMethod" class="w-full p-5 bg-gray-50 rounded-2xl text-sm font-black outline-none">
                     <option value="Bkash">bKash</option>
                     <option value="Nagad">Nagad</option>
                     <option value="Rocket">Rocket</option>
                 </select>
                 <input type="text" id="payNumber" class="w-full p-5 bg-gray-50 rounded-2xl text-sm font-bold outline-none" placeholder="Account Number">
-                <button onclick="savePayoutInfo()" class="w-full bg-blue-600 text-white py-5 rounded-[25px] font-black uppercase text-[10px] tracking-widest mt-4">Save Configuration</button>
+                <button onclick="savePayoutInfo()" class="w-full bg-blue-600 text-white py-5 rounded-[25px] font-black uppercase text-[10px] tracking-widest mt-4">Update Info</button>
             </div>
         </div>
     </div>
@@ -107,13 +139,13 @@
 
         let uid = null;
         let isMonetized = false;
-        let currentFollowers = 0;
+        let followerCount = 0;
 
         window.showToast = (title, msg, type = 'error') => {
             const toast = document.getElementById('customToast');
             const icon = document.getElementById('toastIcon');
-            icon.className = type === 'error' ? "w-9 h-9 rounded-xl flex items-center justify-center bg-red-100 text-red-600" : "w-9 h-9 rounded-xl flex items-center justify-center bg-green-100 text-green-600";
-            icon.innerHTML = type === 'error' ? '<i class="fas fa-shield-alt"></i>' : '<i class="fas fa-check-circle"></i>';
+            icon.className = type === 'error' ? "w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center" : "w-9 h-9 rounded-xl bg-green-100 text-green-600 flex items-center justify-center";
+            icon.innerHTML = type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
             document.getElementById('toastTitle').innerText = title;
             document.getElementById('toastMsg').innerText = msg;
             toast.classList.add('show');
@@ -123,91 +155,129 @@
         onAuthStateChanged(auth, user => {
             if(user) {
                 uid = user.uid;
-                loadMainDashboard();
-                loadAnalytics();
-                loadPayoutInfo();
-                checkEligibility();
+                initDashboard();
             } else { window.location.href = "index.html"; }
         });
 
-        function loadMainDashboard() {
+        async function initDashboard() {
+            // ১. এডমিন থেকে রেফারেল অফার লোড
+            onSnapshot(doc(db, "appSettings", "rewards"), s => {
+                if(s.exists()) {
+                    const bonus = s.data().referralAmount || 0;
+                    document.getElementById('refAmountDisplay').innerText = `৳${bonus.toFixed(2)}`;
+                }
+            });
+
+            // ২. ইউজার ডাটা এবং রেফারেল কোড
             onSnapshot(doc(db, "users", uid), s => {
                 const d = s.data();
                 isMonetized = d.isMonetized || false;
                 document.getElementById('totalBalance').innerText = (d.balance || 0).toFixed(2);
+                document.getElementById('refCount').innerText = d.referralCount || 0;
                 
+                const myCode = uid.slice(-6).toUpperCase();
+                document.getElementById('refCode').innerText = d.myRefCode || myCode;
+                if(!d.myRefCode) updateDoc(doc(db, "users", uid), { myRefCode: myCode });
+
+                // মনিটাইজেশন স্ট্যাটাস টেক্সট
                 const statusDiv = document.getElementById('mStatusDisplay');
-                if(d.monetizationStatus === 'pending') statusDiv.innerHTML = `<span class="text-yellow-400">Reviewing App...</span>`;
-                else if(isMonetized) statusDiv.innerHTML = `<span class="text-green-400">Active ✅</span>`;
-                else statusDiv.innerHTML = `<span class="text-gray-400">Not Active ❌</span>`;
-            });
-        }
-
-        async function checkEligibility() {
-            const followerSnap = await getDoc(collection(db, "users", uid, "followers")); // এই লজিকটি আপনার ডাটাবেস অনুযায়ী ফলোয়ার কাউন্ট করবে
-            // নোট: আপনার ফলোয়ার যদি সাব-কালেকশন হয় তবে s.size ব্যবহার করুন।
-            onSnapshot(collection(db, "users", uid, "followers"), s => {
-                currentFollowers = s.size;
-                const badge = document.getElementById('followerBadge');
-                badge.innerText = `${currentFollowers} / 1000`;
+                if(d.monetizationStatus === 'pending') statusDiv.innerHTML = `<span class="text-yellow-400">Under Review</span>`;
+                else if(isMonetized) statusDiv.innerHTML = `<span class="text-green-400">Monetized ✅</span>`;
+                else statusDiv.innerHTML = `<span class="text-gray-400">Not Eligible ❌</span>`;
                 
-                const section = document.getElementById('monetizeSection');
-                const btn = document.getElementById('applyBtn');
-
-                if(!isMonetized) {
-                    section.classList.remove('hidden');
-                    if(currentFollowers >= 1000) {
-                        badge.className = "text-[10px] font-black px-3 py-1 rounded-full bg-green-100 text-green-600";
-                        btn.disabled = false;
-                        btn.className = "w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg";
-                    }
+                if(!isMonetized) document.getElementById('monetizeSection').classList.remove('hidden');
+                if(d.monetizationStatus === 'pending') {
+                    document.getElementById('applyBtn').innerText = "Pending Review";
+                    document.getElementById('applyBtn').disabled = true;
                 }
             });
 
-            // চেক যদি অলরেডি এপ্লাই করা থাকে
-            const userDoc = await getDoc(doc(db, "users", uid));
-            if(userDoc.data().monetizationStatus === 'pending') {
-                document.getElementById('applyBtn').innerText = "Already Applied";
-                document.getElementById('applyBtn').disabled = true;
-                document.getElementById('applyStatus').innerText = "অ্যাডমিন আপনার প্রোফাইল চেক করছে।";
-            }
+            // ৩. ফলোয়ার চেক এবং এলিজিবিলিটি
+            onSnapshot(collection(db, "users", uid, "followers"), s => {
+                followerCount = s.size;
+                const badge = document.getElementById('followerBadge');
+                badge.innerText = `${followerCount} / 1000`;
+                
+                if(followerCount >= 1000 && !isMonetized) {
+                    badge.className = "text-[10px] font-black px-3 py-1 rounded-full bg-green-100 text-green-600";
+                    document.getElementById('applyBtn').disabled = false;
+                    document.getElementById('applyBtn').className = "w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg";
+                }
+            });
+
+            loadPerformance();
+            loadPayoutInfo();
         }
 
-        document.getElementById('applyBtn').onclick = async () => {
-            if(currentFollowers < 1000) return showToast("Denied", "মিনিমাম ১০০০ ফলোয়ার প্রয়োজন", "error");
-            
-            await updateDoc(doc(db, "users", uid), {
-                monetizationStatus: 'pending',
-                appliedAt: serverTimestamp()
-            });
-            showToast("Success", "আবেদন পাঠানো হয়েছে!", "success");
-            location.reload();
+        // ৪. রেফারেল লিঙ্ক কপি ফাংশন
+        window.copyRefLink = () => {
+            const code = document.getElementById('refCode').innerText;
+            const link = `https://mybook-seen.web.app/signup.html?ref=${code}`; // আপনার অরিজিনাল লিঙ্ক দিন
+            navigator.clipboard.writeText(link);
+            showToast("Copied!", "আপনার রেফারেল লিঙ্ক কপি হয়েছে।", "success");
         };
 
-        // বাকি লোড এনালিটিক্স এবং সেভ সেটিংস আগের কোডটাই থাকবে (সংক্ষেপিত)
-        function loadAnalytics() {
+        // ৫. মনিটাইজেশন আবেদন
+        document.getElementById('applyBtn').onclick = async () => {
+            await updateDoc(doc(db, "users", uid), {
+                monetizationStatus: 'pending',
+                monetizationAppliedAt: serverTimestamp()
+            });
+            showToast("Submitted!", "আপনার আবেদনটি অ্যাডমিন রিভিউতে আছে।", "success");
+        };
+
+        // ৬. ভিডিও এনালিটিক্স লোড
+        function loadPerformance() {
             onSnapshot(query(collection(db, "posts"), where("userId", "==", uid)), s => {
                 const list = document.getElementById('videoList'); list.innerHTML = "";
+                if(s.empty) list.innerHTML = "<p class='text-center py-10 text-[10px] text-gray-300 font-black uppercase'>No Content Uploaded</p>";
                 s.forEach(doc => {
                     const p = doc.data();
+                    const income = isMonetized ? (p.earnings || 0) : 0;
                     list.innerHTML += `
                         <div class="bg-white p-4 rounded-[30px] flex items-center gap-4 border border-gray-50 shadow-sm">
-                            <div class="w-16 h-16 bg-gray-100 rounded-2xl overflow-hidden">${p.fileType==='video'?'<video src="'+p.fileUrl+'"></video>':'<img src="'+p.fileUrl+'">'}</div>
-                            <div class="flex-1">
-                                <div class="flex gap-4">
-                                    <div><p class="text-sm font-black">${p.views||0}</p><p class="text-[8px] text-gray-400 font-bold uppercase">Views</p></div>
-                                    <div><p class="text-sm font-black text-green-600">৳${(p.earnings||0).toFixed(2)}</p><p class="text-[8px] text-gray-400 font-bold uppercase">Earned</p></div>
-                                </div>
+                            <div class="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden">
+                                ${p.fileType==='video'?'<video src="'+p.fileUrl+'" class="w-full h-full object-cover"></video>':'<img src="'+p.fileUrl+'" class="w-full h-full object-cover">'}
+                            </div>
+                            <div class="flex-1 flex gap-4">
+                                <div><p class="text-xs font-black">${p.views||0}</p><p class="text-[8px] text-gray-400 font-bold uppercase">Views</p></div>
+                                <div><p class="text-xs font-black text-green-600">৳${income.toFixed(2)}</p><p class="text-[8px] text-gray-400 font-bold uppercase">Earned</p></div>
                             </div>
                         </div>`;
                 });
             });
         }
-        
+
+        // ৭. পে-আউট এবং উইথড্রল লজিক
         window.togglePayoutSettings = () => document.getElementById('payoutModal').classList.toggle('hidden');
-        window.savePayoutInfo = async () => { /* আগের লজিক */ };
-        async function loadPayoutInfo() { /* আগের লজিক */ }
-        window.requestWithdraw = () => { /* আগের লজিক */ };
+        
+        window.savePayoutInfo = async () => {
+            const info = {
+                payName: document.getElementById('payName').value,
+                payMethod: document.getElementById('payMethod').value,
+                payNumber: document.getElementById('payNumber').value,
+                updatedAt: serverTimestamp()
+            };
+            await setDoc(doc(db, "users", uid, "private", "payoutSettings"), info);
+            showToast("Saved!", "পেমেন্ট সেটিংস আপডেট হয়েছে।", "success");
+            togglePayoutSettings();
+        };
+
+        async function loadPayoutInfo() {
+            const s = await getDoc(doc(db, "users", uid, "private", "payoutSettings"));
+            if(s.exists()) {
+                const d = s.data();
+                document.getElementById('payName').value = d.payName || "";
+                document.getElementById('payMethod').value = d.payMethod || "Bkash";
+                document.getElementById('payNumber').value = d.payNumber || "";
+            }
+        }
+
+        window.requestWithdraw = () => {
+            const bal = parseFloat(document.getElementById('totalBalance').innerText);
+            if(bal < 500) return showToast("Low Balance", "মিনিমাম ৫০০ টাকা প্রয়োজন।", "error");
+            showToast("Requested!", "অ্যাডমিন আপনার পেমেন্ট প্রসেস করছে।", "success");
+        };
 
     </script>
 </body>
