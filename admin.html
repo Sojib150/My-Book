@@ -3,129 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supreme Command - Master Diary</title>
+    <title>Master Diary - Supreme Command</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0c14; color: #e2e8f0; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .tab-active { border-bottom: 2px solid #6366f1; color: #6366f1; font-weight: 800; }
-        .stat-glow { text-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
-        input, textarea { background: #1e293b !important; color: white !important; border: 1px solid #334155 !important; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #07090f; color: #e2e8f0; overflow-x: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .tab-link { transition: all 0.3s; border-radius: 12px; padding: 10px 15px; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .tab-active { background: #6366f1; color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input, textarea { background: #111827 !important; color: white !important; border: 1px solid #1f2937 !important; border-radius: 12px; padding: 12px; outline: none; }
+        input:focus { border-color: #6366f1 !important; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#0a0c14] flex items-center justify-center p-6">
-        <div class="glass p-8 rounded-[2rem] max-w-sm w-full text-center">
-            <div class="w-20 h-20 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-12">
+    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#07090f] flex items-center justify-center p-6">
+        <div class="glass p-10 rounded-[2.5rem] max-w-sm w-full text-center border-t-4 border-indigo-600">
+            <div class="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/50">
                 <i class="fas fa-crown text-3xl text-white"></i>
             </div>
-            <h2 style="font-family: 'Orbitron';" class="text-xl font-black mb-6 tracking-tighter">MASTER DIARY</h2>
-            <input type="password" id="accessKey" placeholder="Enter Secret Code" class="w-full rounded-2xl py-4 text-center mb-4 focus:ring-2 focus:ring-indigo-500 outline-none transition">
-            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">AUTHORIZE</button>
+            <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">MASTER DIARY</h2>
+            <input type="password" id="accessKey" placeholder="Authorization Code" class="w-full text-center mb-6">
+            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black hover:scale-105 transition shadow-lg">INITIALIZE</button>
         </div>
     </div>
 
     <div id="mainUI" class="hidden">
         <header class="glass sticky top-0 z-50 px-6 py-4 border-b border-white/5">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3">
-                    <span class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fas fa-user-shield"></i></span>
-                    <h1 class="font-black text-sm uppercase tracking-[0.3em]">Supreme Admin</h1>
+                    <span class="text-indigo-500 text-2xl"><i class="fas fa-terminal"></i></span>
+                    <h1 style="font-family: 'Orbitron';" class="font-black text-lg tracking-widest text-indigo-100">COMMANDER</h1>
                 </div>
-                <div class="flex gap-6 text-[10px] font-black uppercase overflow-x-auto no-scrollbar">
+                <div class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
                     <button onclick="showTab('users')" class="tab-link tab-active">Users</button>
                     <button onclick="showTab('ads')" class="tab-link">Ads/CPM</button>
-                    <button onclick="showTab('reports')" class="tab-link flex items-center gap-1">Reports <span id="rDot" class="w-2 h-2 bg-red-500 rounded-full animate-pulse hidden"></span></button>
+                    <button onclick="showTab('monetize')" class="tab-link relative">Monetize <span id="mDot" class="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full hidden"></span></button>
+                    <button onclick="showTab('security')" class="tab-link relative">Security <span id="sDot" class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full hidden"></span></button>
+                    <button onclick="showTab('reports')" class="tab-link relative">Reports <span id="rDot" class="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full hidden"></span></button>
                     <button onclick="showTab('system')" class="tab-link">System</button>
                 </div>
             </div>
         </header>
 
         <main class="max-w-7xl mx-auto p-6 space-y-8">
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glass p-5 rounded-3xl">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Total Citizens</p>
-                    <h3 id="countUsers" class="text-2xl font-black stat-glow">0</h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass p-6 rounded-3xl border-l-4 border-indigo-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Population</p>
+                    <h3 id="countUsers" class="text-2xl font-black">0</h3>
                 </div>
-                <div class="glass p-5 rounded-3xl">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Active Ads</p>
-                    <h3 id="countAds" class="text-2xl font-black text-green-400">0</h3>
+                <div class="glass p-6 rounded-3xl border-l-4 border-green-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Revenue Unit</p>
+                    <h3 id="displayCPM" class="text-2xl font-black text-green-400">৳0</h3>
                 </div>
-                <div class="glass p-5 rounded-3xl border-l-4 border-red-500">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Alerts</p>
+                <div class="glass p-6 rounded-3xl border-l-4 border-yellow-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Ad Status</p>
+                    <h3 id="countAds" class="text-2xl font-black text-yellow-400">0</h3>
+                </div>
+                <div class="glass p-6 rounded-3xl border-l-4 border-red-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">System Alerts</p>
                     <h3 id="countReports" class="text-2xl font-black text-red-500">0</h3>
                 </div>
-                <div class="glass p-5 rounded-3xl">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">CPM Rate</p>
-                    <h3 id="displayCPM" class="text-2xl font-black text-indigo-400">৳0</h3>
-                </div>
             </div>
 
-            <div id="tab-users" class="space-y-6 tab-content">
+            <div id="tab-users" class="tab-content space-y-6">
                 <div class="flex gap-4">
-                    <input type="text" id="uSearch" placeholder="Search by name or UID..." class="flex-1 rounded-2xl px-6 py-4 outline-none">
+                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search citizens..." class="flex-1">
                 </div>
-                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    </div>
+                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
-            <div id="tab-ads" class="hidden space-y-6 tab-content">
+            <div id="tab-ads" class="hidden tab-content space-y-6">
                 <div class="glass p-8 rounded-[2.5rem]">
-                    <h2 class="font-black text-lg mb-6"><i class="fas fa-money-bill-trend-up mr-2 text-indigo-500"></i> Ad Manager Pro</h2>
-                    <textarea id="adCodeInput" placeholder="Paste Adsterra/JS Code Here..." class="w-full h-40 rounded-3xl p-6 mb-4 outline-none font-mono text-xs"></textarea>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button onclick="saveAd()" class="bg-indigo-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Deploy Ad Unit</button>
-                        <div class="flex items-center gap-3 bg-slate-800 p-4 rounded-2xl border border-white/5">
-                            <span class="text-xs font-bold uppercase">CPM (৳):</span>
-                            <input type="number" id="cpmRateInput" class="w-20 bg-transparent border-none text-center font-black" placeholder="60">
-                            <button onclick="updateCPM()" class="text-indigo-400 font-black text-xs">SET</button>
+                    <h2 class="font-black text-lg mb-6 flex items-center gap-2"><i class="fas fa-coins text-yellow-500"></i> Ad Engine Pro</h2>
+                    <textarea id="adCodeInput" placeholder="Paste JS/Ad Code here..." class="w-full h-32 mb-4"></textarea>
+                    <div class="flex gap-4">
+                        <button onclick="saveAd()" class="flex-1 bg-indigo-600 py-4 rounded-xl font-black uppercase text-xs">Deploy Ads</button>
+                        <div class="flex items-center gap-2 bg-slate-900 px-4 rounded-xl">
+                            <span class="text-[10px] font-bold">CPM:</span>
+                            <input type="number" id="cpmRateInput" class="w-20 !border-none text-center font-black text-indigo-400">
+                            <button onclick="updateCPM()" class="text-indigo-500 font-black text-xs">SET</button>
                         </div>
                     </div>
                 </div>
-                <div id="adList" class="space-y-4"></div>
+                <div id="adList" class="space-y-3"></div>
             </div>
 
-            <div id="tab-reports" class="hidden space-y-4 tab-content">
-                <h2 class="font-black text-red-500 uppercase tracking-widest text-xs">Complaints Desk</h2>
+            <div id="tab-monetize" class="hidden tab-content space-y-4">
+                <h2 class="font-black text-yellow-500 uppercase text-xs tracking-widest">Pending Approvals</h2>
+                <div id="monetizeList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div id="tab-security" class="hidden tab-content space-y-4">
+                <h2 class="font-black text-red-500 uppercase text-xs tracking-widest">Multi-Account Shield</h2>
+                <div id="securityList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div id="tab-reports" class="hidden tab-content space-y-3">
+                <h2 class="font-black text-pink-500 uppercase text-xs tracking-widest">User Complaints</h2>
                 <div id="reportList" class="space-y-3"></div>
             </div>
 
-            <div id="tab-system" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 tab-content">
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-yellow-500">
-                    <h3 class="font-black mb-4">Maintenance Mode 🛠️</h3>
-                    <p class="text-xs text-slate-400 mb-6">পুরো ওয়েবসাইট বন্ধ করে "Under Construction" মেসেজ দেখাবে।</p>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black uppercase text-xs transition">LOADING...</button>
+            <div id="tab-system" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-8 rounded-[2.5rem] border-t-4 border-orange-500">
+                    <h3 class="font-black mb-2">Maintenance Mode 🛠️</h3>
+                    <p class="text-xs text-slate-500 mb-6">পুরো সাইট এক ক্লিকে অফ করুন।</p>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-xl font-black transition uppercase text-xs"></button>
                 </div>
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-green-500">
-                    <h3 class="font-black mb-4">Referral Bonus 🎁</h3>
-                    <div class="flex gap-3">
-                        <input type="number" id="refBonusInput" placeholder="Bonus Amount" class="flex-1 rounded-xl px-4 py-3">
-                        <button onclick="updateRefBonus()" class="bg-green-600 px-6 rounded-xl font-black text-xs uppercase">Save</button>
+                <div class="glass p-8 rounded-[2.5rem] border-t-4 border-green-500">
+                    <h3 class="font-black mb-2">Referral Bonus 🎁</h3>
+                    <p class="text-xs text-slate-500 mb-6">রেফার বোনাস অ্যামাউন্ট সেট করুন।</p>
+                    <div class="flex gap-2">
+                        <input type="number" id="refBonusInput" class="flex-1">
+                        <button onclick="updateRefBonus()" class="bg-green-600 px-6 rounded-xl font-black text-xs uppercase">SAVE</button>
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
-        <div class="glass w-full max-w-lg rounded-[3rem] overflow-hidden">
-            <div class="p-8 border-b border-white/5 flex justify-between items-center">
-                <h3 class="font-black text-indigo-400 uppercase tracking-tighter">Magic Stat Editor ✨</h3>
-                <button onclick="closeMagic()" class="text-slate-500"><i class="fas fa-times"></i></button>
+    <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="glass w-full max-w-2xl rounded-[2.5rem] overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h3 class="font-black text-indigo-400 uppercase tracking-tighter" id="magicModalTitle">Magic Editor</h3>
+                <button onclick="closeMagic()" class="text-slate-500 hover:text-white"><i class="fas fa-times-circle text-2xl"></i></button>
             </div>
-            <div id="magicContent" class="p-8 space-y-4">
-                </div>
+            <div id="magicContent" class="p-6 overflow-y-auto no-scrollbar"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, deleteDoc, getDoc, setDoc, query, where, serverTimestamp, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, deleteDoc, setDoc, query, where, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -135,21 +146,19 @@
             messagingSenderId: "868584044532", 
             appId: "1:868584044532:web:51f07436a883f88332eba1" 
         };
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- Auth ---
+        // --- AUTH ---
         window.unlock = () => {
-            const pass = document.getElementById('accessKey').value;
-            if(pass === "150") {
+            if(document.getElementById('accessKey').value === "150") {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainUI').classList.remove('hidden');
                 startLiveSystem();
-            } else { alert("WRONG CODE!"); }
+            } else { alert("ACCESS DENIED"); }
         };
 
-        // --- Tab Management ---
+        // --- TAB CONTROL ---
         window.showTab = (t) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
@@ -158,198 +167,216 @@
         };
 
         function startLiveSystem() {
-            loadUsers();
-            loadAds();
-            loadReports();
-            loadGlobalSettings();
+            loadUsers(); loadAds(); loadReports(); loadMonetization(); loadSecurity(); loadGlobalSettings();
         }
 
-        // --- 1. & 6. & 9. & 10. USER MASTER CONTROL ---
+        // --- ১, ৫, ৬, ৯, ১০: USER & MAGIC CONTROL ---
         function loadUsers() {
             onSnapshot(collection(db, "users"), (snap) => {
                 const grid = document.getElementById('userGrid');
                 grid.innerHTML = "";
                 document.getElementById('countUsers').innerText = snap.size;
-
                 snap.forEach(d => {
-                    const u = d.data();
-                    const id = d.id;
+                    const u = d.data(); const id = d.id;
                     const card = document.createElement('div');
-                    card.className = "glass p-6 rounded-[2rem] border border-white/5 hover:border-indigo-500/30 transition group";
+                    card.className = "glass p-6 rounded-[2rem] border border-white/5 relative group admin-card";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-6">
                             <div class="relative">
-                                <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-14 h-14 rounded-2xl object-cover ring-2 ring-indigo-500/20">
-                                ${u.isVerified ? '<i class="fas fa-check-circle text-blue-400 absolute -top-2 -right-2 bg-slate-900 rounded-full text-sm"></i>' : ''}
+                                <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-indigo-500/20">
+                                ${u.isVerified ? '<i class="fas fa-check-circle text-blue-400 absolute -top-2 -right-2 bg-[#07090f] rounded-full text-sm"></i>' : ''}
                             </div>
                             <div class="flex-1">
                                 <h4 class="font-black text-sm uppercase truncate w-32">${u.name || 'Soldier'}</h4>
-                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Balance: ৳${(u.balance || 0).toFixed(2)}</p>
+                                <p class="text-[9px] font-bold text-indigo-400">৳${(u.balance || 0).toFixed(2)}</p>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <button onclick="openMagicEditor('${id}', '${u.name}', ${u.fakeViews || 0}, ${u.fakeLikes || 0})" class="text-indigo-400 hover:scale-110"><i class="fas fa-magic"></i></button>
+                                <button onclick="openProfileMagic('${id}', '${u.name}', ${u.fakeViews || 0})" class="text-indigo-400 hover:scale-110"><i class="fas fa-magic"></i></button>
                                 <button onclick="toggleShadowBan('${id}', ${u.isShadowBanned})" class="${u.isShadowBanned ? 'text-orange-500' : 'text-slate-600'}"><i class="fas fa-ghost"></i></button>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-2 gap-2 mb-3">
                             <button onclick="toggleVerify('${id}', ${u.isVerified})" class="py-2 bg-slate-800 text-[8px] font-black uppercase rounded-xl hover:bg-indigo-600 transition">Verify</button>
-                            <button onclick="hardBanDevice('${id}')" class="py-2 bg-red-900/20 text-red-500 text-[8px] font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition">Hard Ban</button>
+                            <button onclick="hardBanUser('${id}')" class="py-2 bg-red-900/20 text-red-500 text-[8px] font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition">Hard Ban</button>
                         </div>
-                        <button onclick="viewUserGallery('${id}')" class="w-full mt-2 py-2 bg-slate-800 text-[8px] font-black uppercase rounded-xl hover:bg-slate-700">📸 View All Content</button>
+                        <button onclick="viewUserGallery('${id}', '${u.name}')" class="w-full py-3 bg-indigo-600/10 text-indigo-400 text-[9px] font-black uppercase rounded-xl border border-indigo-500/20">📸 View All Content</button>
                     `;
                     grid.appendChild(card);
                 });
             });
         }
 
-        // --- 1. Shadow Ban 👻 ---
-        window.toggleShadowBan = async (id, status) => {
-            await updateDoc(doc(db, "users", id), { isShadowBanned: !status });
-            alert(status ? "Shadow Removed" : "Ghost Mode Activated!");
+        window.toggleShadowBan = async (id, s) => { await updateDoc(doc(db, "users", id), { isShadowBanned: !s }); };
+        window.toggleVerify = async (id, s) => { await updateDoc(doc(db, "users", id), { isVerified: !s }); };
+        window.hardBanUser = async (id) => { if(confirm("Terminate this user?")) await deleteDoc(doc(db, "users", id)); };
+
+        // --- ৫ & ১০: GALLERY & POST MAGIC ---
+        window.viewUserGallery = async (uid, name) => {
+            document.getElementById('magicModalTitle').innerText = name + "'s Posts";
+            document.getElementById('magicContent').innerHTML = `<p class="text-center text-xs animate-pulse">Loading Assets...</p>`;
+            document.getElementById('magicModal').classList.remove('hidden');
+
+            const snap = await getDocs(query(collection(db, "posts"), where("userId", "==", uid)));
+            let html = `<div class="space-y-4">`;
+            if(snap.empty) html += `<p class="text-center text-slate-500 py-10 uppercase text-[10px]">Empty Gallery</p>`;
+            snap.forEach(p => {
+                const post = p.data(); const pid = p.id;
+                html += `
+                    <div class="glass p-4 rounded-3xl border border-white/5 flex gap-4 items-center">
+                        <div class="w-20 h-20 bg-black rounded-2xl overflow-hidden flex-shrink-0">
+                            ${post.fileType === 'video' ? `<video src="${post.fileUrl}" class="w-full h-full object-cover"></video>` : `<img src="${post.fileUrl}" class="w-full h-full object-cover">`}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex gap-4 mb-2">
+                                <span class="text-[10px] font-black text-indigo-400"><i class="fas fa-eye"></i> ${post.views || 0}</span>
+                                <span class="text-[10px] font-black text-pink-500"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editPostStats('${pid}', ${post.views || 0}, ${post.likes || 0})" class="px-4 py-2 bg-indigo-600/20 text-indigo-400 rounded-xl text-[8px] font-black uppercase">Post Magic</button>
+                                <button onclick="deleteDoc(doc(db,'posts','${pid}'))" class="p-2 text-red-500"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('magicContent').innerHTML = html + `</div>`;
         };
 
-        // --- 9. Blue Tick ✅ ---
-        window.toggleVerify = async (id, status) => {
-            await updateDoc(doc(db, "users", id), { isVerified: !status });
-            alert("Verification Status Updated!");
+        window.editPostStats = async (pid, v, l) => {
+            const nv = prompt("Set Views:", v); const nl = prompt("Set Likes:", l);
+            if(nv !== null) await updateDoc(doc(db, "posts", pid), { views: parseInt(nv), likes: parseInt(nl) });
         };
 
-        // --- 6. Hard Ban 💀 ---
-        window.hardBanDevice = async (id) => {
-            if(confirm("ইউজারকে ডিলিট এবং ডিভাইস আইডি ব্লক করবেন?")) {
-                await deleteDoc(doc(db, "users", id));
-                // Device ban logic typically involves blacklisting the UID/IP
-                alert("Target Terminated!");
-            }
-        };
-
-        // --- 10. Custom Stats Editor 👈 ---
-        window.openMagicEditor = (id, name, v, l) => {
+        window.openProfileMagic = (id, name, v) => {
+            document.getElementById('magicModalTitle').innerText = "Profile Magic: " + name;
             document.getElementById('magicContent').innerHTML = `
                 <div class="space-y-4">
-                    <p class="text-xs text-center font-bold text-slate-400 uppercase">Editing Stats for ${name}</p>
-                    <input type="number" id="fViews" value="${v}" placeholder="Fake Views" class="w-full p-4 rounded-2xl">
-                    <input type="number" id="fLikes" value="${l}" placeholder="Fake Likes" class="w-full p-4 rounded-2xl">
-                    <button onclick="saveMagic('${id}')" class="w-full bg-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Apply Magic ✨</button>
-                </div>
-            `;
+                    <p class="text-xs text-slate-400 uppercase text-center">Change Total Profile Views</p>
+                    <input type="number" id="fViews" value="${v}" class="w-full">
+                    <button onclick="saveProfileMagic('${id}')" class="w-full bg-indigo-600 py-4 rounded-xl font-black uppercase text-xs">Apply Profile Magic ✨</button>
+                </div>`;
             document.getElementById('magicModal').classList.remove('hidden');
         };
-
-        window.saveMagic = async (id) => {
-            const v = parseInt(document.getElementById('fViews').value);
-            const l = parseInt(document.getElementById('fLikes').value);
-            await updateDoc(doc(db, "users", id), { fakeViews: v, fakeLikes: l });
+        window.saveProfileMagic = async (id) => {
+            await updateDoc(doc(db, "users", id), { fakeViews: parseInt(document.getElementById('fViews').value) });
             closeMagic();
         };
-        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
 
-        // --- 5. App Gallery View 📸 ---
-        window.viewUserGallery = async (uid) => {
-            const q = query(collection(db, "posts"), where("userId", "==", uid));
-            const snap = await getDocs(q);
-            let gallery = `<div class="grid grid-cols-3 gap-2">`;
-            snap.forEach(p => {
-                const data = p.data();
-                gallery += `<div class="aspect-square bg-black rounded-lg overflow-hidden border border-white/10">
-                    ${data.fileType === 'video' ? `<video src="${data.fileUrl}" class="w-full h-full object-cover"></video>` : `<img src="${data.fileUrl}" class="w-full h-full object-cover">`}
-                </div>`;
-            });
-            gallery += `</div>`;
-            document.getElementById('magicContent').innerHTML = gallery || "No Content Found";
-            document.getElementById('magicModal').classList.remove('hidden');
-        };
-
-        // --- 3. Ad Manager Pro 💰 ---
+        // --- ৩ & ৪: AD MANAGER & CPM ---
         window.saveAd = async () => {
             const code = document.getElementById('adCodeInput').value;
             if(!code) return;
-            await addDoc(collection(db, "appSettings", "ads_container", "all_ads"), {
-                code: code, status: true, views: 0, createdAt: serverTimestamp()
-            });
+            await addDoc(collection(db, "appSettings", "ads_container", "all_ads"), { code, status: true, createdAt: serverTimestamp() });
             document.getElementById('adCodeInput').value = "";
         };
-
         function loadAds() {
             onSnapshot(collection(db, "appSettings", "ads_container", "all_ads"), (snap) => {
-                const list = document.getElementById('adList');
-                list.innerHTML = "";
+                const list = document.getElementById('adList'); list.innerHTML = "";
                 document.getElementById('countAds').innerText = snap.size;
                 snap.forEach(d => {
                     const ad = d.data();
-                    const id = d.id;
                     list.innerHTML += `
-                        <div class="glass p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                        <div class="glass p-4 rounded-2xl flex justify-between items-center">
                             <div class="truncate w-40 font-mono text-[8px] text-indigo-400">${ad.code}</div>
                             <div class="flex gap-2">
-                                <button onclick="toggleAd('${id}', ${ad.status})" class="px-4 py-2 rounded-xl text-[8px] font-black ${ad.status ? 'bg-green-600' : 'bg-slate-700'} uppercase">${ad.status ? 'LIVE' : 'OFF'}</button>
-                                <button onclick="deleteDoc(doc(db,'appSettings','ads_container','all_ads','${id}'))" class="text-red-500 p-2"><i class="fas fa-trash"></i></button>
+                                <button onclick="toggleAd('${d.id}', ${ad.status})" class="px-4 py-2 rounded-xl text-[8px] font-black ${ad.status ? 'bg-green-600' : 'bg-slate-700'}">${ad.status ? 'LIVE' : 'OFF'}</button>
+                                <button onclick="deleteDoc(doc(db,'appSettings','ads_container','all_ads','${d.id}'))" class="text-red-500"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>`;
                 });
             });
         }
+        window.toggleAd = async (id, s) => { await updateDoc(doc(db, "appSettings", "ads_container", "all_ads", id), { status: !s }); };
+        window.updateCPM = async () => { await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(document.getElementById('cpmRateInput').value) }, { merge: true }); };
 
-        window.toggleAd = async (id, s) => {
-            await updateDoc(doc(db, "appSettings", "ads_container", "all_ads", id), { status: !s });
-        };
+        // --- ১১: MONETIZATION ---
+        function loadMonetization() {
+            onSnapshot(query(collection(db, "users"), where("monetizeStatus", "==", "pending")), (snap) => {
+                const list = document.getElementById('monetizeList'); list.innerHTML = "";
+                if(snap.size > 0) document.getElementById('mDot').classList.remove('hidden');
+                else { document.getElementById('mDot').classList.add('hidden'); list.innerHTML = `<p class="text-slate-600 text-center py-6 text-xs font-black uppercase">No Requests</p>`; }
+                snap.forEach(d => {
+                    const u = d.data();
+                    list.innerHTML += `
+                        <div class="glass p-5 rounded-[2rem] border-l-4 border-yellow-500 flex flex-col gap-3">
+                            <h4 class="font-black text-xs uppercase">${u.name}</h4>
+                            <div class="flex gap-2">
+                                <button onclick="approveMonetize('${d.id}', 'approved')" class="flex-1 py-3 bg-green-600 rounded-xl text-[9px] font-black uppercase">Approve ✅</button>
+                                <button onclick="approveMonetize('${d.id}', 'rejected')" class="flex-1 py-3 bg-red-600/20 text-red-500 rounded-xl text-[9px] font-black uppercase">Reject</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+        window.approveMonetize = async (id, s) => { await updateDoc(doc(db, "users", id), { monetizeStatus: s, isMonetized: s === 'approved' }); };
 
-        // --- 4. CPM Engine 📈 ---
-        window.updateCPM = async () => {
-            const rate = document.getElementById('cpmRateInput').value;
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(rate) }, { merge: true });
-            alert("CPM Updated!");
-        };
+        // --- ১২: SECURITY SHIELD ---
+        function loadSecurity() {
+            onSnapshot(query(collection(db, "users"), where("accountStatus", "==", "waiting_approval")), (snap) => {
+                const list = document.getElementById('securityList'); list.innerHTML = "";
+                if(snap.size > 0) document.getElementById('sDot').classList.remove('hidden');
+                else { document.getElementById('sDot').classList.add('hidden'); list.innerHTML = `<p class="text-slate-600 text-center py-6 text-xs font-black uppercase">Clear</p>`; }
+                snap.forEach(d => {
+                    const u = d.data();
+                    list.innerHTML += `
+                        <div class="glass p-5 rounded-[2rem] border-l-4 border-red-600 space-y-3">
+                            <h4 class="font-black text-xs uppercase text-red-400">${u.name}</h4>
+                            <div class="bg-black/40 p-3 rounded-xl text-[9px] text-slate-400">
+                                <p>Device: ${u.deviceModel || 'N/A'}</p>
+                                <p>IP: ${u.ipAddress || 'N/A'}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveAccount('${d.id}')" class="flex-1 py-3 bg-indigo-600 rounded-xl text-[9px] font-black uppercase">Allow ✅</button>
+                                <button onclick="hardBanUser('${d.id}')" class="flex-1 py-3 bg-red-600 rounded-xl text-[9px] font-black uppercase">Kill</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+        window.approveAccount = async (id) => { await updateDoc(doc(db, "users", id), { accountStatus: "active" }); };
 
-        // --- 8. User Reporting System 🚩 ---
+        // --- ৮: REPORTS ---
         function loadReports() {
             onSnapshot(collection(db, "reports"), (snap) => {
-                const list = document.getElementById('reportList');
-                list.innerHTML = "";
+                const list = document.getElementById('reportList'); list.innerHTML = "";
                 document.getElementById('countReports').innerText = snap.size;
                 if(snap.size > 0) document.getElementById('rDot').classList.remove('hidden');
                 snap.forEach(d => {
                     const r = d.data();
                     list.innerHTML += `
-                        <div class="glass p-5 rounded-[2rem] border-l-4 border-red-500 flex justify-between items-center">
-                            <div>
-                                <p class="text-[10px] font-black text-red-500 uppercase">Target: ${r.targetName}</p>
-                                <p class="text-xs text-white mt-1">${r.reason}</p>
-                            </div>
-                            <button onclick="deleteDoc(doc(db,'reports','${d.id}'))" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-green-500"><i class="fas fa-check"></i></button>
+                        <div class="glass p-4 rounded-[1.5rem] flex justify-between items-center border-l-4 border-pink-500">
+                            <p class="text-[10px]"><b class="text-pink-500">${r.targetName}:</b> ${r.reason}</p>
+                            <button onclick="deleteDoc(doc(db,'reports','${d.id}'))" class="text-green-500"><i class="fas fa-check-circle"></i></button>
                         </div>`;
                 });
             });
         }
 
-        // --- 2. Maintenance Mode 🛠️ ---
-        window.toggleMaintenance = async () => {
-            const s = !window.maintenanceOn;
-            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: s }, { merge: true });
-        };
-
-        // --- 7. Referral System 🎁 ---
-        window.updateRefBonus = async () => {
-            const amt = document.getElementById('refBonusInput').value;
-            await setDoc(doc(db, "appSettings", "referral"), { bonus: parseFloat(amt) }, { merge: true });
-            alert("Bonus Updated!");
-        };
+        // --- ২ & ৭: SYSTEM & GLOBAL ---
+        window.toggleMaintenance = async () => { await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.maintenanceOn }, { merge: true }); };
+        window.updateRefBonus = async () => { await setDoc(doc(db, "appSettings", "referral"), { bonus: parseFloat(document.getElementById('refBonusInput').value) }, { merge: true }); };
 
         function loadGlobalSettings() {
-            // CPM Load
             onSnapshot(doc(db, "appSettings", "algorithm"), (d) => {
-                const rate = d.data()?.trendBoost || 0;
-                document.getElementById('displayCPM').innerText = "৳" + rate;
-                document.getElementById('cpmRateInput').value = rate;
+                const r = d.data()?.trendBoost || 0;
+                document.getElementById('displayCPM').innerText = "৳" + r;
+                document.getElementById('cpmRateInput').value = r;
             });
-            // Maintenance Load
             onSnapshot(doc(db, "appSettings", "maintenance"), (d) => {
                 window.maintenanceOn = d.data()?.isOn;
                 const btn = document.getElementById('mBtn');
-                btn.innerText = window.maintenanceOn ? "Turn OFF Maintenance" : "Turn ON Maintenance";
-                btn.className = window.maintenanceOn ? "w-full py-4 rounded-2xl font-black bg-red-600 text-white" : "w-full py-4 rounded-2xl font-black bg-slate-700 text-indigo-400";
+                btn.innerText = window.maintenanceOn ? "OFF Maintenance" : "ON Maintenance";
+                btn.className = window.maintenanceOn ? "w-full py-4 rounded-xl font-black bg-red-600" : "w-full py-4 rounded-xl font-black bg-slate-800 text-indigo-400";
             });
         }
+
+        window.searchUser = () => {
+            const term = document.getElementById('uSearch').value.toLowerCase();
+            document.querySelectorAll('.admin-card').forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(term) ? 'block' : 'none';
+            });
+        };
+        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
     </script>
 </body>
 </html>
