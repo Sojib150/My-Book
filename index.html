@@ -3,68 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - My Book Elite Master</title>
+    <title>Login - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow: hidden; }
-        .glass-input { background: #f1f5f9; border: 2px solid transparent; transition: all 0.3s; }
-        .glass-input:focus { background: white; border-color: #2563eb; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1); }
-        
-        #customToast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px;
-            border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            z-index: 9999; display: flex; align-items: center; gap: 15px;
-            min-width: 320px; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        #customToast.show { top: 30px; }
-        .toast-icon { width: 35px; height: 35px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-
-    <div id="customToast">
-        <div id="toastIcon" class="toast-icon"></div>
-        <div>
-            <p id="toastTitle" class="text-[10px] font-black uppercase tracking-[2px] leading-none"></p>
-            <p id="toastMsg" class="text-xs text-gray-600 font-bold mt-1.5"></p>
-        </div>
-    </div>
-
-    <div class="w-full max-w-md bg-white rounded-[40px] p-8 md:p-10 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.08)] border border-gray-100 relative z-10">
-        <div class="text-center mb-10">
-            <div class="w-16 h-16 bg-blue-600 rounded-[24px] rotate-12 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-200">
-                <i class="fas fa-key text-white text-2xl -rotate-12"></i>
-            </div>
-            <h1 class="text-2xl font-black text-gray-900 tracking-tight">Access Gate</h1>
-            <p class="text-gray-400 text-[10px] mt-2 font-black uppercase tracking-[3px]">Security Shield Active</p>
-        </div>
-
-        <form id="loginForm" class="space-y-5">
-            <input type="email" id="email" placeholder="Email Address" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold text-black" required>
-            <input type="password" id="password" placeholder="Password" class="w-full glass-input rounded-2xl py-4 px-6 text-sm outline-none font-bold text-black" required>
-
-            <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-[2rem] shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all mt-4 text-sm uppercase tracking-widest">
-                Authorize Entry
-            </button>
-        </form>
-
-        <div class="mt-8 text-center">
-            <p class="text-gray-400 text-sm font-medium">New Agent? <a href="register.html" class="text-blue-600 font-black hover:underline ml-1">Create Account</a></p>
-        </div>
-    </div>
-
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    
     <div id="maintenanceOverlay" class="hidden fixed inset-0 bg-white z-[100] flex items-center justify-center p-6 text-center">
         <div>
-            <div class="w-24 h-24 bg-blue-50 text-blue-600 rounded-[40px] flex items-center justify-center mx-auto mb-6 text-4xl">
-                <i class="fas fa-cog animate-spin"></i>
-            </div>
-            <h2 class="text-2xl font-black text-gray-800 uppercase tracking-tighter">System Updating</h2>
-            <p id="maintenanceMsg" class="text-gray-500 mt-2 max-w-xs mx-auto text-sm font-medium"></p>
+            <h2 class="text-2xl font-bold text-red-600">সার্ভার মেইনটেন্যান্স চলছে</h2>
+            <p id="maintenanceMsg" class="text-gray-500 mt-2 font-medium"></p>
         </div>
+    </div>
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">লগইন করুন</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="ইমেইল" class="w-full p-2 mb-4 border rounded" required>
+            <input type="password" id="password" placeholder="পাসওয়ার্ড" class="w-full p-2 mb-4 border rounded" required>
+            <button type="submit" id="loginBtn" class="w-full bg-blue-600 text-white p-2 rounded">লগইন</button>
+        </form>
+        <p class="mt-4 text-center text-sm">অ্যাকাউন্ট নেই? <a href="register.html" class="text-blue-500">রেজিস্টার করুন</a></p>
+        <p id="msg" class="mt-4 text-center text-sm"></p>
     </div>
 
     <script type="module">
@@ -85,67 +44,57 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Toast Function
-        window.showToast = (title, msg, type = 'error') => {
-            const toast = document.getElementById('customToast');
-            const icon = document.getElementById('toastIcon');
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMsg').innerText = msg;
-            icon.className = `toast-icon ${type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`;
-            icon.innerHTML = type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check"></i>';
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        // --- ১২ দফা: মেইনটেন্যান্স চেক শুরু ---
+        const checkStatus = async () => {
+            const mSnap = await getDoc(doc(db, "appSettings", "adminConfig"));
+            if (mSnap.exists() && mSnap.data().maintenanceMode) {
+                document.getElementById('maintenanceOverlay').classList.remove('hidden');
+                document.getElementById('maintenanceMsg').innerText = mSnap.data().maintenanceNotice || "অ্যাডমিন অ্যাপ আপডেট করছে।";
+            }
         };
-
-        // ১২ দফা: মেইনটেন্যান্স চেক (রিলস ফাইলের সাথে সিঙ্ক করা পাথ)
-        const checkSystemStatus = async () => {
-            try {
-                const settingsSnap = await getDoc(doc(db, "appSettings", "adminConfig"));
-                if (settingsSnap.exists()) {
-                    const data = settingsSnap.data();
-                    if (data.maintenanceMode) {
-                        document.getElementById('maintenanceOverlay').classList.remove('hidden');
-                        document.getElementById('maintenanceMsg').innerText = data.maintenanceNotice || "অ্যাডমিন সিস্টেম আপডেট করছে। কিছুক্ষণ পর ট্রাই করুন।";
-                    }
-                }
-            } catch (e) { console.error("Status Check Failed"); }
-        };
-        checkSystemStatus();
+        checkStatus();
+        // --- শেষ ---
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('loginBtn');
 
             btn.disabled = true;
-            btn.innerText = "Verifying...";
+            btn.innerText = "চেক করা হচ্ছে...";
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // দফা ৬ এবং ১২: হার্ড ব্যান এবং একাউন্ট স্ট্যাটাস চেক
+                // --- ১২ দফা: হার্ড ব্যান ও এপ্রুভাল চেক ---
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
 
                     if (userData.isHardBanned) {
                         await signOut(auth);
-                        showToast("Banned", "আপনার এই ডিভাইসটি চিরস্থায়ীভাবে ব্যান করা হয়েছে।", "error");
-                    } else if (userData.accountStatus === "waiting_approval") {
+                        msg.innerText = "দুঃখিত! এই ডিভাইসটি চিরস্থায়ীভাবে ব্যান করা হয়েছে।";
+                        msg.style.color = "red";
+                    } 
+                    else if (userData.accountStatus === "waiting_approval") {
                         await signOut(auth);
-                        showToast("Pending", "আপনার একাউন্টটি এখনো অ্যাডমিন এপ্রুভ করেনি।", "error");
-                    } else {
-                        showToast("Welcome", "সফলভাবে লগইন হয়েছে। প্রবেশ করা হচ্ছে...", "success");
-                        setTimeout(() => { window.location.href = "home.html"; }, 1500);
+                        msg.innerText = "আপনার একাউন্টটি এখনো অ্যাডমিন এপ্রুভ করেনি।";
+                        msg.style.color = "orange";
+                    } 
+                    else {
+                        window.location.href = "home.html";
                     }
                 }
+                // --- শেষ ---
+
             } catch (error) {
-                showToast("Denied", "ভুল ইমেইল অথবা পাসওয়ার্ড!", "error");
-            } finally {
+                msg.innerText = "ভুল ইমেইল বা পাসওয়ার্ড!";
+                msg.style.color = "red";
                 btn.disabled = false;
-                btn.innerText = "Authorize Entry";
+                btn.innerText = "লগইন";
             }
         });
     </script>
