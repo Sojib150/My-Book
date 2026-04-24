@@ -11,24 +11,14 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .hashtag { color: #2563eb; font-weight: 600; cursor: pointer; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Drawer Animations */
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
         #commentSheet.active { transform: translateY(0); }
         .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 999; display: none; }
         .comment-blur.active { display: block; }
-
-        /* ✨ Glassmorphism Toast Style */
-        #customToast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px;
-            border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            z-index: 9999; display: flex; align-items: center; gap: 15px;
-            min-width: 300px; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
+        #customToast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 9999; display: flex; align-items: center; gap: 15px; min-width: 300px; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
         #customToast.show { top: 30px; }
         .toast-icon { width: 35px; height: 35px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .hidden-follow { display: none !important; }
     </style>
 </head>
 <body class="pb-24">
@@ -60,35 +50,44 @@
 
     <div class="bg-white/80 backdrop-blur-md border-b sticky top-[64px] z-40">
         <div class="max-w-md mx-auto flex">
-            <button id="showAll" class="flex-1 py-4 text-[11px] font-black border-b-4 border-blue-600 text-blue-600 uppercase tracking-widest">Feed</button>
+            <button class="flex-1 py-4 text-[11px] font-black border-b-4 border-blue-600 text-blue-600 uppercase tracking-widest">Feed</button>
             <button onclick="window.location.href='reels.html'" class="flex-1 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
                 <i class="fas fa-play-circle text-red-500"></i> Reels
             </button>
         </div>
     </div>
 
-    <div id="feed" class="max-w-md mx-auto p-3 mt-2 space-y-4">
-        <div class="text-center py-20 text-gray-400 text-sm italic">My Book Loading...</div>
-    </div>
+    <div id="feed" class="max-w-md mx-auto p-3 mt-2 space-y-4"></div>
 
     <a href="post.html" class="fixed bottom-8 right-6 bg-blue-600 text-white w-14 h-14 rounded-[20px] shadow-2xl flex items-center justify-center text-xl z-50 hover:scale-110 active:scale-95 transition-all">
         <i class="fas fa-plus"></i>
     </a>
 
+    <div id="reportModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[1000] hidden flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-[30px] w-full max-w-sm text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fas fa-flag"></i></div>
+            <h3 class="font-black text-lg text-gray-800 mb-2">Report Content?</h3>
+            <p class="text-xs text-gray-500 mb-6">Why are you reporting this post?</p>
+            <select id="reportReason" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl text-sm mb-6 outline-none font-bold">
+                <option>Bad Content</option>
+                <option>Harassment</option>
+                <option>Spam/Fake</option>
+                <option>Violence</option>
+            </select>
+            <div class="flex gap-3">
+                <button onclick="closeReport()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-black text-xs">CANCEL</button>
+                <button id="submitReportBtn" class="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black text-xs">SUBMIT</button>
+            </div>
+        </div>
+    </div>
+
     <div id="commentBlur" class="comment-blur" onclick="closeComments()"></div>
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[80vh] p-6 shadow-2xl flex flex-col">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onclick="closeComments()"></div>
-        <h3 class="font-black text-gray-800 text-center uppercase text-xs tracking-widest mb-6" id="commentHeader">Comments (0)</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar"></div>
-        <div class="flex flex-col gap-2 border-t pt-4">
-            <div id="replyBox" class="hidden text-[10px] text-blue-600 font-black bg-blue-50 p-3 rounded-2xl flex justify-between">
-                <span id="replyText">Replying...</span>
-                <button onclick="cancelReply()" class="text-red-500 uppercase">Cancel</button>
-            </div>
-            <div class="flex items-center gap-3">
-                <input type="text" id="commentInput" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-100 rounded-[20px] px-6 py-4 text-sm outline-none font-medium">
-                <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200"><i class="fas fa-paper-plane"></i></button>
-            </div>
+        <div class="flex items-center gap-3 border-t pt-4">
+            <input type="text" id="commentInput" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-100 rounded-[20px] px-6 py-4 text-sm outline-none font-medium">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -105,28 +104,13 @@
         let currentUser = null;
         let myFollowing = [];
         let activePostId = null;
-        let replyToId = null;
-
-        // 🍎 Custom Toast
-        window.showToast = (title, msg, type = 'error') => {
-            const toast = document.getElementById('customToast');
-            const icon = document.getElementById('toastIcon');
-            const tTitle = document.getElementById('toastTitle');
-            const tMsg = document.getElementById('toastMsg');
-            icon.className = type === 'error' ? "toast-icon bg-red-100 text-red-600" : "toast-icon bg-green-100 text-green-600";
-            icon.innerHTML = type === 'error' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>';
-            tTitle.className = `text-[10px] font-black uppercase tracking-[2px] ${type === 'error' ? 'text-red-600' : 'text-green-600'}`;
-            tTitle.innerText = title; tMsg.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 4000);
-        };
 
         onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUser = user;
-                loadNavData();
                 loadFollowingList();
                 renderFeed();
+                loadNavData();
             } else { window.location.href = "index.html"; }
         });
 
@@ -147,116 +131,114 @@
 
         async function renderFeed() {
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
             let adCode = adSnap.exists() ? adSnap.data().code : "";
-            let algoMode = algoSnap.exists() ? algoSnap.data().priority : 'fresh';
 
-            onSnapshot(query(collection(db, "posts")), snap => {
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
                 
-                let posts = [];
-                snap.forEach(d => {
-                    const data = d.data();
-                    if(!data.isShadowBanned) posts.push({id: d.id, ...data});
-                });
-
-                if(algoMode === 'popular') posts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-                else posts.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-
-                posts.forEach((p, index) => {
-                    // ১. বড় ব্যানার অ্যাড (প্রতি ৩ পোস্ট পর)
-                    if (index > 0 && index % 3 === 0 && adCode) {
-                        feed.innerHTML += `
-                            <div class="bg-white p-4 rounded-[30px] border-2 border-dashed border-gray-100 text-center my-2 shadow-sm">
-                                <p class="text-[8px] font-black text-gray-300 uppercase mb-2">Sponsored Content</p>
-                                <div class="ad-unit">${adCode}</div>
-                            </div>`;
-                    }
+                snap.forEach((d, index) => {
+                    const p = d.data(); const id = d.id;
+                    if(p.isShadowBanned) return;
 
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
                     const isFollowing = myFollowing.includes(p.userId) || p.userId === currentUser.uid;
-                    
-                    // ২. ইন-পোস্ট অ্যাড কোড (ভিডিও বা ইমেজের ঠিক নিচে থাকবে)
-                    let inlineAd = adCode ? `<div class="bg-gray-50/80 py-2 border-t border-b border-gray-100 text-[10px] font-black text-gray-400 text-center tracking-widest uppercase">Video Ad: ${adCode}</div>` : "";
+
+                    // ৩ পোস্ট পর পর বড় অ্যাড
+                    if (index > 0 && index % 3 === 0 && adCode) {
+                        feed.innerHTML += `<div class="bg-white p-4 rounded-[30px] border-2 border-dashed border-gray-100 text-center my-2 shadow-sm"><p class="text-[8px] font-black text-gray-300 uppercase mb-2">Sponsored</p><div>${adCode}</div></div>`;
+                    }
 
                     const card = document.createElement('div');
-                    card.className = "bg-white rounded-[30px] shadow-sm border border-gray-100 overflow-hidden mb-4";
+                    card.className = "post-card bg-white rounded-[30px] shadow-sm border border-gray-100 overflow-hidden mb-4";
                     card.innerHTML = `
                         <div class="p-4 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <a href="user.html?id=${p.userId}" class="w-11 h-11 rounded-[15px] border-2 border-gray-50 overflow-hidden">
-                                    <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover">
-                                </a>
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-11 h-11 rounded-2xl object-cover">
                                 <div>
                                     <h3 class="font-black text-sm text-gray-800">@${p.userName}</h3>
-                                    <p class="text-[9px] text-gray-400 font-black uppercase">Verified Access</p>
+                                    <p class="text-[8px] font-bold text-gray-400">OFFICIAL ACCESS</p>
                                 </div>
                             </div>
-                            ${(!isFollowing) ? `<button onclick="window.quickFollow('${p.userId}')" class="text-blue-600 text-[10px] font-black px-4 py-2 bg-blue-50 rounded-xl">FOLLOW</button>` : ''}
+                            <div class="flex items-center gap-3">
+                                ${(!isFollowing) ? `<button id="follow_${id}" onclick="window.quickFollow('${p.userId}', '${id}')" class="text-blue-600 text-[10px] font-black px-4 py-2 bg-blue-50 rounded-xl">FOLLOW</button>` : ''}
+                                <button onclick="window.openReport('${id}')" class="text-gray-300 px-2"><i class="fas fa-flag text-xs"></i></button>
+                            </div>
                         </div>
-                        <p class="px-5 pb-4 text-sm text-gray-700 leading-relaxed font-medium">${formatText(p.text)}</p>
-                        
-                        <div class="media-container bg-black">
+                        <p class="px-5 pb-4 text-sm text-gray-700 font-medium">${p.text || ''}</p>
+                        <div class="media-container bg-black relative">
                             ${p.fileUrl ? (p.fileType === 'video' ? 
-                                `<video src="${p.fileUrl}" loop controls playsinline class="w-full max-h-[450px]"></video>` : 
+                                `<video src="${p.fileUrl}" loop muted playsinline class="feed-video w-full max-h-[450px]" onclick="this.paused ? this.play() : this.pause()"></video>` : 
                                 `<img src="${p.fileUrl}" class="w-full object-cover max-h-[500px]">`) : ""}
                         </div>
+                        ${adCode ? `<div class="p-2 border-b border-gray-50 text-center bg-gray-50/50">${adCode}</div>` : ""}
 
-                        ${inlineAd} <div class="p-3 border-t border-gray-50 flex justify-around text-[11px] font-black text-gray-400">
-                            <button onclick="window.like('${p.id}')" class="flex-1 py-2 flex items-center justify-center gap-2 ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> ${p.likes || 0}</button>
-                            <button onclick="window.openComments('${p.id}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="far fa-comment text-lg"></i> Comment</button>
-                            <button onclick="window.shareToProfile('${p.id}', '${p.fileUrl}', '${p.fileType}', '${p.text || ''}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="fas fa-share-nodes text-lg"></i> Share</button>
+                        <div class="p-3 flex justify-around text-[11px] font-black text-gray-400">
+                            <button onclick="window.like('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2 ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> ${p.likes || 0}</button>
+                            <button onclick="window.openComments('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="far fa-comment text-lg"></i> Comment</button>
+                            <button onclick="window.shareToProfile('${id}', '${p.fileUrl}', '${p.fileType}', '${p.text || ''}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="fas fa-share-nodes text-lg"></i> Share</button>
                         </div>
                     `;
                     feed.appendChild(card);
                 });
+                observeVideos();
             });
         }
 
-        window.openComments = (postId) => {
+        // --- অটো-প্লে লজিক ---
+        function observeVideos() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target;
+                    if (entry.isIntersecting) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.7 });
+            document.querySelectorAll('.feed-video').forEach(vid => observer.observe(vid));
+        }
+
+        // --- ফলো এবং রিপোর্ট সিস্টেম ---
+        window.quickFollow = async (tid, postId) => {
+            document.getElementById(`follow_${postId}`).classList.add('hidden-follow');
+            await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: serverTimestamp() });
+            await setDoc(doc(db, "users", tid, "followers", currentUser.uid), { time: serverTimestamp() });
+            window.showToast("Success", "You are now following!", "success");
+        };
+
+        window.openReport = (postId) => {
             activePostId = postId;
-            document.getElementById('commentSheet').classList.add('active');
-            document.getElementById('commentBlur').classList.add('active');
-            loadComments(postId);
+            document.getElementById('reportModal').classList.remove('hidden');
         };
 
-        window.closeComments = () => {
-            document.getElementById('commentSheet').classList.remove('active');
-            document.getElementById('commentBlur').classList.remove('active');
-            cancelReply();
+        window.closeReport = () => {
+            document.getElementById('reportModal').classList.add('hidden');
         };
 
-        window.postComment = async () => {
-            const input = document.getElementById('commentInput');
-            if(!input.value.trim()) return showToast("Empty", "কিছু তো লিখুন!", "error");
-            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
-            const uData = uSnap.data();
-            const data = {
-                text: input.value, userId: currentUser.uid, userName: uData.name,
-                userPic: uData.profilePic, createdAt: serverTimestamp()
-            };
-            if(replyToId) {
-                await addDoc(collection(db, "posts", activePostId, "comments", replyToId, "replies"), data);
-                showToast("Replied", "উত্তর দেওয়া হয়েছে", "success");
-                cancelReply();
-            } else {
-                await addDoc(collection(db, "posts", activePostId, "comments"), {...data, likes: 0, likedBy: []});
-                showToast("Success", "কমেন্ট করা হয়েছে", "success");
-            }
-            input.value = "";
-        };
-
-        window.shareToProfile = async (id, url, type, text) => {
-            showToast("Sharing", "প্রোফাইলে শেয়ার করা হচ্ছে...", "success");
-            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
-            const u = uSnap.data();
-            await addDoc(collection(db, "posts"), {
-                userId: currentUser.uid, userName: u.name, userPic: u.profilePic,
-                fileUrl: url || "", fileType: type || "", text: "Shared: " + (text || ""),
-                createdAt: serverTimestamp(), likes: 0, likedBy: [], isShadowBanned: false
+        document.getElementById('submitReportBtn').onclick = async () => {
+            const reason = document.getElementById('reportReason').value;
+            await addDoc(collection(db, "reports"), {
+                postId: activePostId,
+                reporterId: currentUser.uid,
+                reason: reason,
+                timestamp: serverTimestamp(),
+                status: "pending"
             });
-            showToast("Shared", "সফলভাবে শেয়ার হয়েছে!", "success");
+            window.showToast("Reported", "Report sent to Commander!", "error");
+            closeReport();
+        };
+
+        // --- কমন ফাংশনস ---
+        window.showToast = (title, msg, type = 'error') => {
+            const toast = document.getElementById('customToast');
+            document.getElementById('toastIcon').className = type === 'error' ? "toast-icon bg-red-100 text-red-600" : "toast-icon bg-green-100 text-green-600";
+            document.getElementById('toastIcon').innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>`;
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
         window.like = async (id) => {
@@ -269,14 +251,15 @@
             });
         };
 
-        function formatText(text) {
-            return text ? text.replace(/#(\w+)/g, '<span class="hashtag" onclick="window.location.href=\'search.html?q=$1\'">#$1</span>') : "";
-        }
+        window.openComments = (id) => {
+            activePostId = id;
+            document.getElementById('commentSheet').classList.add('active');
+            document.getElementById('commentBlur').classList.add('active');
+        };
 
-        window.quickFollow = async (tid) => {
-            await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: serverTimestamp() });
-            await setDoc(doc(db, "users", tid, "followers", currentUser.uid), { time: serverTimestamp() });
-            showToast("Following", "ফলো করা হয়েছে!", "success");
+        window.closeComments = () => {
+            document.getElementById('commentSheet').classList.remove('active');
+            document.getElementById('commentBlur').classList.remove('active');
         };
     </script>
 </body>
