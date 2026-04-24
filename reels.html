@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body, html { height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
-        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; }
+        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; scrollbar-width: none; }
+        .reel-container::-webkit-scrollbar { display: none; }
         .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; height: 50%; pointer-events: none; }
-        .banner-ad { position: absolute; bottom: 20px; left: 10px; right: 10px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 16px; padding: 12px; z-index: 50; text-align: center; border: 1px solid rgba(255,255,255,0.3); color: white; font-weight: bold; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .banner-ad { position: absolute; bottom: 20px; left: 10px; right: 10px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 16px; padding: 12px; z-index: 50; text-align: center; border: 1px solid rgba(255,255,255,0.3); color: white; font-weight: bold; font-size: 11px; }
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
         #commentSheet.active { transform: translateY(0); }
         .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; backdrop-filter: blur(4px); }
@@ -29,23 +29,17 @@
         <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="font-black text-gray-800 text-center uppercase tracking-tighter text-lg mb-4" id="totalComments">Comments (0)</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 no-scrollbar text-black"></div>
-        <div class="flex flex-col gap-2 border-t pt-4 bg-white">
-            <div class="flex items-center gap-3">
-                <input type="text" id="commentInput" placeholder="Write a nice comment..." class="flex-1 bg-gray-100 border-none rounded-2xl px-5 py-4 text-sm outline-none text-black">
-                <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
+        <div class="flex items-center gap-3 border-t pt-4">
+            <input type="text" id="commentInput" placeholder="Add comment..." class="flex-1 bg-gray-100 rounded-2xl px-5 py-4 text-sm outline-none text-black">
+            <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <a href="home.html" class="fixed top-8 left-6 z-[60] text-white text-2xl drop-shadow-2xl opacity-80 hover:opacity-100 transition">
-        <i class="fas fa-chevron-left"></i>
-    </a>
+    <a href="home.html" class="fixed top-8 left-6 z-[60] text-white text-2xl drop-shadow-2xl opacity-80"><i class="fas fa-chevron-left"></i></a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, addDoc, serverTimestamp, getDoc, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -55,49 +49,46 @@
         
         let currentUser = null;
         let activePostId = null;
-        let currentAdCode = ""; // অ্যাড ট্র্যাকিং
+        let currentAdCode = "";
 
-        onAuthStateChanged(auth, user => { 
-            currentUser = user; 
-            loadReels();
-        });
+        onAuthStateChanged(auth, user => { currentUser = user; loadReels(); });
 
         async function loadReels() {
-            // ১. অ্যাডমিনের অ্যাড নিয়ে আসা
             const adQuery = query(collection(db, "appSettings", "ads_container", "all_ads"), where("status", "==", true));
             const adSnapDocs = await getDocs(adQuery);
-            currentAdCode = adSnapDocs.empty ? "" : adSnapDocs.docs[Math.floor(Math.random() * adSnapDocs.size)].data().code;
+            currentAdCode = adSnapDocs.empty ? "" : adSnapDocs.docs[0].data().code;
 
-            // ২. ভিডিও লোড করা (createdAt না থাকলেও যেন কালা না হয় তাই সাবধানে লোড)
             const q = query(collection(db, "posts"), where("fileType", "==", "video"));
-            
             onSnapshot(q, async snap => {
                 const container = document.getElementById('reelContainer');
                 container.innerHTML = "";
-
                 for (const postDoc of snap.docs) {
                     const p = postDoc.data();
                     const id = postDoc.id;
                     const authorSnap = await getDoc(doc(db, "users", p.userId));
                     const author = authorSnap.data() || {};
-                    
+                    const isLiked = p.likedBy?.includes(currentUser?.uid);
+
                     const div = document.createElement('div');
                     div.className = "reel-video";
                     div.innerHTML = `
-                        <video src="${p.fileUrl}" loop playsinline onplay="window.trackMasterView('${id}')"></video>
+                        <video src="${p.fileUrl}" loop playsinline preload="auto" onplay="window.trackMasterView('${id}')"></video>
                         <div class="overlay-gradient"></div>
                         ${currentAdCode ? `<div class="banner-ad">${currentAdCode}</div>` : ''}
 
-                        <div class="absolute right-5 bottom-36 flex flex-col gap-7 text-white text-center z-40">
+                        <div class="absolute right-5 bottom-36 flex flex-col gap-8 text-white text-center z-40">
                             <div class="flex flex-col items-center">
-                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-3xl"><i class="far fa-heart"></i></button>
+                                <button onclick="window.likeReel('${id}', event)" class="text-3xl active:scale-125 transition">
+                                    <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
+                                </button>
                                 <span class="text-xs font-bold mt-1">${p.likes || 0}</span>
                             </div>
-                            <div onclick="window.openComments('${id}', event)" class="text-3xl"><i class="far fa-comment-dots"></i></div>
+                            <button onclick="window.openComments('${id}', event)" class="text-3xl"><i class="far fa-comment-dots"></i></button>
+                            <button onclick="window.sharePost('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
                         </div>
 
                         <div class="absolute left-5 bottom-32 text-white z-40 flex items-center gap-3">
-                            <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full border border-white">
+                            <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full border border-white object-cover">
                             <div>
                                 <h4 class="font-bold text-sm">@${author.name || 'user'}</h4>
                                 <p class="text-xs opacity-80">${p.text || ''}</p>
@@ -111,17 +102,33 @@
             });
         }
 
-        // আর্নিং লজিক (শুধুমাত্র অ্যাড থাকলে টাকা জমা হবে)
         window.trackMasterView = async (postId) => {
             if(!currentUser) return;
             await updateDoc(doc(db, "posts", postId), { views: increment(1) });
-            
-            // চেক: অ্যাড শো করছে কি না
-            if (currentAdCode !== "") {
-                const cpmSnap = await getDoc(doc(db, "appSettings", "algorithm"));
-                const rate = cpmSnap.exists() ? (cpmSnap.data().trendBoost / 1000) : 0.005;
-                // ব্যালেন্স আপডেট
+            if (currentAdCode) {
+                const algSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+                const rate = algSnap.exists() ? (algSnap.data().trendBoost / 1000) : 0.002;
                 await updateDoc(doc(db, "users", currentUser.uid), { balance: increment(rate) });
+            }
+        };
+
+        window.likeReel = async (id, e) => {
+            e.stopPropagation(); if(!currentUser) return;
+            const ref = doc(db, "posts", id);
+            const snap = await getDoc(ref);
+            const isLiked = snap.data().likedBy?.includes(currentUser.uid);
+            await updateDoc(ref, {
+                likes: increment(isLiked ? -1 : 1),
+                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+            });
+        };
+
+        window.sharePost = (url, e) => {
+            e.stopPropagation();
+            if (navigator.share) {
+                navigator.share({ title: 'My Book Reel', url: url });
+            } else {
+                prompt("Copy link:", url);
             }
         };
 
@@ -139,7 +146,7 @@
                         }
                     }
                 });
-            }, { threshold: 0.7 });
+            }, { threshold: 0.5 }); // ৫০% স্ক্রিনে আসলে প্লে হবে, কাঁপাকাঁপি করবে না
             document.querySelectorAll('.reel-video').forEach(rv => observer.observe(rv));
         }
 
@@ -147,10 +154,41 @@
             e.stopPropagation(); activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
             document.getElementById('commentBlur').classList.add('active');
+            loadMasterComments(id);
         };
+
         window.closeComments = () => {
             document.getElementById('commentSheet').classList.remove('active');
             document.getElementById('commentBlur').classList.remove('active');
+        };
+
+        async function loadMasterComments(postId) {
+            const list = document.getElementById('commentList');
+            const q = query(collection(db, "posts", postId, "comments"), serverTimestamp()); //orderBy("createdAt", "desc") সরালাম এরর এড়াতে
+            onSnapshot(q, snap => {
+                list.innerHTML = "";
+                document.getElementById('totalComments').innerText = `Comments (${snap.size})`;
+                snap.forEach(d => {
+                    const c = d.data();
+                    list.innerHTML += `<div class="flex gap-3 mb-2">
+                        <img src="${c.userPic}" class="w-8 h-8 rounded-full">
+                        <div class="bg-gray-100 p-2 rounded-xl flex-1 text-sm">
+                            <p class="font-bold">@${c.userName}</p><p>${c.text}</p>
+                        </div>
+                    </div>`;
+                });
+            });
+        }
+
+        window.postComment = async () => {
+            const input = document.getElementById('commentInput');
+            if(!input.value || !activePostId) return;
+            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
+            await addDoc(collection(db, "posts", activePostId, "comments"), {
+                text: input.value, userId: currentUser.uid, userName: uSnap.data().name,
+                userPic: uSnap.data().profilePic, createdAt: serverTimestamp()
+            });
+            input.value = "";
         };
     </script>
 </body>
