@@ -8,86 +8,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .hashtag { color: #2563eb; font-weight: 600; cursor: pointer; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow-x: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Premium Drawer */
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
         #commentSheet.active { transform: translateY(0); }
-        .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 999; display: none; }
+        .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); z-index: 999; display: none; }
         .comment-blur.active { display: block; }
-        #customToast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); padding: 16px 24px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 9999; display: flex; align-items: center; gap: 15px; min-width: 300px; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-        #customToast.show { top: 30px; }
-        .toast-icon { width: 35px; height: 35px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+
+        /* Follow Button Magic */
         .hidden-follow { display: none !important; }
+        
+        /* Video Container */
+        .video-wrapper { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; }
+        video { width: 100%; cursor: pointer; }
     </style>
 </head>
 <body class="pb-24">
-
-    <div id="customToast">
-        <div id="toastIcon" class="toast-icon"></div>
-        <div>
-            <p id="toastTitle" class="text-[10px] font-black uppercase tracking-[2px] leading-none"></p>
-            <p id="toastMsg" class="text-xs text-gray-600 font-bold mt-1.5"></p>
-        </div>
-    </div>
 
     <nav class="bg-blue-600 p-4 text-white sticky top-0 z-50 shadow-lg">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black italic tracking-tighter">My Book</h1>
             <div class="flex items-center gap-5">
                 <a href="search.html"><i class="fas fa-search text-lg"></i></a>
-                <a href="messages.html" class="relative">
-                    <i class="fab fa-facebook-messenger text-xl"></i>
-                    <span id="msgCount" class="hidden absolute -top-2 -right-2 bg-red-500 text-[10px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-blue-600 font-bold">0</span>
-                </a>
-                <a href="profile.html" id="navProfile" class="w-9 h-9 bg-blue-700 rounded-2xl flex items-center justify-center border-2 border-blue-400 overflow-hidden shadow-inner text-xs font-bold">
-                    <span id="navInit">P</span>
+                <a href="messages.html"><i class="fab fa-facebook-messenger text-xl"></i></a>
+                <a href="profile.html" class="w-9 h-9 bg-blue-700 rounded-2xl flex items-center justify-center border-2 border-blue-400 overflow-hidden shadow-inner">
                     <img id="navPic" src="" class="w-full h-full object-cover hidden">
+                    <span id="navInit" class="text-xs font-bold uppercase">P</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="bg-white/80 backdrop-blur-md border-b sticky top-[64px] z-40">
-        <div class="max-w-md mx-auto flex">
-            <button class="flex-1 py-4 text-[11px] font-black border-b-4 border-blue-600 text-blue-600 uppercase tracking-widest">Feed</button>
-            <button onclick="window.location.href='reels.html'" class="flex-1 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2">
-                <i class="fas fa-play-circle text-red-500"></i> Reels
-            </button>
-        </div>
+    <div id="feed" class="max-w-md mx-auto p-3 mt-2 space-y-6">
+        <div class="text-center py-20 text-gray-400 italic">Initializing Premium Feed...</div>
     </div>
 
-    <div id="feed" class="max-w-md mx-auto p-3 mt-2 space-y-4"></div>
-
-    <a href="post.html" class="fixed bottom-8 right-6 bg-blue-600 text-white w-14 h-14 rounded-[20px] shadow-2xl flex items-center justify-center text-xl z-50 hover:scale-110 active:scale-95 transition-all">
-        <i class="fas fa-plus"></i>
-    </a>
-
-    <div id="reportModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[1000] hidden flex items-center justify-center p-6">
-        <div class="bg-white p-8 rounded-[30px] w-full max-w-sm text-center">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fas fa-flag"></i></div>
-            <h3 class="font-black text-lg text-gray-800 mb-2">Report Content?</h3>
-            <p class="text-xs text-gray-500 mb-6">Why are you reporting this post?</p>
-            <select id="reportReason" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl text-sm mb-6 outline-none font-bold">
-                <option>Bad Content</option>
-                <option>Harassment</option>
-                <option>Spam/Fake</option>
-                <option>Violence</option>
-            </select>
-            <div class="flex gap-3">
-                <button onclick="closeReport()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-black text-xs">CANCEL</button>
-                <button id="submitReportBtn" class="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black text-xs">SUBMIT</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="commentBlur" class="comment-blur" onclick="closeComments()"></div>
+    <div id="commentBlur" class="comment-blur" onclick="window.closeComments()"></div>
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[80vh] p-6 shadow-2xl flex flex-col">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onclick="closeComments()"></div>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar"></div>
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 no-scrollbar"></div>
         <div class="flex items-center gap-3 border-t pt-4">
-            <input type="text" id="commentInput" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-100 rounded-[20px] px-6 py-4 text-sm outline-none font-medium">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" id="commentInput" placeholder="Write a comment..." class="flex-1 bg-gray-100 rounded-2xl px-6 py-4 text-sm outline-none">
+            <button onclick="window.postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -96,21 +60,27 @@
         import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
         let currentUser = null;
-        let myFollowing = [];
         let activePostId = null;
 
         onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUser = user;
-                loadFollowingList();
-                renderFeed();
                 loadNavData();
+                renderFeed();
             } else { window.location.href = "index.html"; }
         });
 
@@ -123,12 +93,6 @@
             }
         }
 
-        function loadFollowingList() {
-            onSnapshot(collection(db, "users", currentUser.uid, "following"), snap => {
-                myFollowing = snap.docs.map(d => d.id);
-            });
-        }
-
         async function renderFeed() {
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             let adCode = adSnap.exists() ? adSnap.data().code : "";
@@ -137,46 +101,45 @@
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
                 
-                snap.forEach((d, index) => {
+                snap.forEach((d) => {
                     const p = d.data(); const id = d.id;
                     if(p.isShadowBanned) return;
 
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
-                    const isFollowing = myFollowing.includes(p.userId) || p.userId === currentUser.uid;
-
-                    // ৩ পোস্ট পর পর বড় অ্যাড
-                    if (index > 0 && index % 3 === 0 && adCode) {
-                        feed.innerHTML += `<div class="bg-white p-4 rounded-[30px] border-2 border-dashed border-gray-100 text-center my-2 shadow-sm"><p class="text-[8px] font-black text-gray-300 uppercase mb-2">Sponsored</p><div>${adCode}</div></div>`;
-                    }
 
                     const card = document.createElement('div');
-                    card.className = "post-card bg-white rounded-[30px] shadow-sm border border-gray-100 overflow-hidden mb-4";
+                    card.className = "bg-white rounded-[30px] shadow-sm border border-gray-100 overflow-hidden";
                     card.innerHTML = `
                         <div class="p-4 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-11 h-11 rounded-2xl object-cover">
+                            <a href="user.html?id=${p.userId}" class="flex items-center gap-3">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-11 h-11 rounded-2xl object-cover border">
                                 <div>
-                                    <h3 class="font-black text-sm text-gray-800">@${p.userName}</h3>
-                                    <p class="text-[8px] font-bold text-gray-400">OFFICIAL ACCESS</p>
+                                    <h3 class="font-black text-sm text-gray-800 tracking-tight">@${p.userName}</h3>
+                                    <p class="text-[8px] font-black text-blue-500 uppercase">Verified Master</p>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                ${(!isFollowing) ? `<button id="follow_${id}" onclick="window.quickFollow('${p.userId}', '${id}')" class="text-blue-600 text-[10px] font-black px-4 py-2 bg-blue-50 rounded-xl">FOLLOW</button>` : ''}
-                                <button onclick="window.openReport('${id}')" class="text-gray-300 px-2"><i class="fas fa-flag text-xs"></i></button>
-                            </div>
+                            </a>
+                            <button id="follow_${id}" onclick="window.quickFollow('${p.userId}', '${id}')" class="text-blue-600 text-[10px] font-black px-4 py-2 bg-blue-50 rounded-xl">FOLLOW</button>
                         </div>
-                        <p class="px-5 pb-4 text-sm text-gray-700 font-medium">${p.text || ''}</p>
-                        <div class="media-container bg-black relative">
+
+                        <p class="px-5 pb-4 text-sm text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
+                        
+                        <div class="video-wrapper">
                             ${p.fileUrl ? (p.fileType === 'video' ? 
-                                `<video src="${p.fileUrl}" loop muted playsinline class="feed-video w-full max-h-[450px]" onclick="this.paused ? this.play() : this.pause()"></video>` : 
-                                `<img src="${p.fileUrl}" class="w-full object-cover max-h-[500px]">`) : ""}
+                                `<video src="${p.fileUrl}" loop playsinline muted class="feed-video h-auto max-h-[500px]" onclick="window.handleVideo(this)"></video>
+                                 <div class="absolute bottom-4 right-4 bg-black/40 p-2 rounded-full text-white text-[10px] pointer-events-none"><i class="fas fa-volume-mute"></i></div>` : 
+                                `<img src="${p.fileUrl}" class="w-full object-cover">`) : ""}
                         </div>
-                        ${adCode ? `<div class="p-2 border-b border-gray-50 text-center bg-gray-50/50">${adCode}</div>` : ""}
 
                         <div class="p-3 flex justify-around text-[11px] font-black text-gray-400">
-                            <button onclick="window.like('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2 ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart text-lg"></i> ${p.likes || 0}</button>
-                            <button onclick="window.openComments('${id}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="far fa-comment text-lg"></i> Comment</button>
-                            <button onclick="window.shareToProfile('${id}', '${p.fileUrl}', '${p.fileType}', '${p.text || ''}')" class="flex-1 py-2 flex items-center justify-center gap-2"><i class="fas fa-share-nodes text-lg"></i> Share</button>
+                            <button onclick="window.like('${id}')" class="flex-1 py-3 flex items-center justify-center gap-2 ${isLiked ? 'text-red-500' : ''}">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart text-xl"></i> ${p.likes || 0}
+                            </button>
+                            <button onclick="window.openComments('${id}')" class="flex-1 py-3 flex items-center justify-center gap-2">
+                                <i class="far fa-comment text-xl"></i> Comment
+                            </button>
+                            <button onclick="window.shareToProfile('${id}', '${p.fileUrl}', '${p.fileType}', '${p.text || ''}')" class="flex-1 py-3 flex items-center justify-center gap-2">
+                                <i class="fas fa-share-nodes text-xl"></i> Share
+                            </button>
                         </div>
                     `;
                     feed.appendChild(card);
@@ -185,7 +148,18 @@
             });
         }
 
-        // --- অটো-প্লে লজিক ---
+        // --- Video Magic: Auto Play & Sound Management ---
+        window.handleVideo = (video) => {
+            if (video.paused) {
+                video.play();
+            } else {
+                // Click করলে Unmute হবে (সাউন্ড আসবে)
+                video.muted = !video.muted;
+                const icon = video.nextElementSibling.querySelector('i');
+                icon.className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+            }
+        };
+
         function observeVideos() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -194,51 +168,19 @@
                         video.play().catch(() => {});
                     } else {
                         video.pause();
+                        video.muted = true; // পরের বার যখন আসবে তখন আবার মিউট থাকবে
                     }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('.feed-video').forEach(vid => observer.observe(vid));
         }
 
-        // --- ফলো এবং রিপোর্ট সিস্টেম ---
+        // --- Profile Actions ---
         window.quickFollow = async (tid, postId) => {
-            document.getElementById(`follow_${postId}`).classList.add('hidden-follow');
+            const btn = document.getElementById(`follow_${postId}`);
+            btn.classList.add('hidden-follow');
             await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: serverTimestamp() });
             await setDoc(doc(db, "users", tid, "followers", currentUser.uid), { time: serverTimestamp() });
-            window.showToast("Success", "You are now following!", "success");
-        };
-
-        window.openReport = (postId) => {
-            activePostId = postId;
-            document.getElementById('reportModal').classList.remove('hidden');
-        };
-
-        window.closeReport = () => {
-            document.getElementById('reportModal').classList.add('hidden');
-        };
-
-        document.getElementById('submitReportBtn').onclick = async () => {
-            const reason = document.getElementById('reportReason').value;
-            await addDoc(collection(db, "reports"), {
-                postId: activePostId,
-                reporterId: currentUser.uid,
-                reason: reason,
-                timestamp: serverTimestamp(),
-                status: "pending"
-            });
-            window.showToast("Reported", "Report sent to Commander!", "error");
-            closeReport();
-        };
-
-        // --- কমন ফাংশনস ---
-        window.showToast = (title, msg, type = 'error') => {
-            const toast = document.getElementById('customToast');
-            document.getElementById('toastIcon').className = type === 'error' ? "toast-icon bg-red-100 text-red-600" : "toast-icon bg-green-100 text-green-600";
-            document.getElementById('toastIcon').innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>`;
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
         window.like = async (id) => {
@@ -255,11 +197,23 @@
             activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
             document.getElementById('commentBlur').classList.add('active');
+            // Load comments logic here...
         };
 
         window.closeComments = () => {
             document.getElementById('commentSheet').classList.remove('active');
             document.getElementById('commentBlur').classList.remove('active');
+        };
+
+        window.shareToProfile = async (id, url, type, text) => {
+            const uSnap = await getDoc(doc(db, "users", currentUser.uid));
+            const u = uSnap.data();
+            await addDoc(collection(db, "posts"), {
+                userId: currentUser.uid, userName: u.name, userPic: u.profilePic,
+                fileUrl: url || "", fileType: type || "", text: "Shared: " + (text || ""),
+                createdAt: serverTimestamp(), likes: 0, likedBy: [], isShadowBanned: false
+            });
+            alert("Shared to your profile!");
         };
     </script>
 </body>
