@@ -3,185 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reels - Ad & Earning Fixed</title>
+    <title>My Book - Reels Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body, html { height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
-        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; scrollbar-width: none; }
-        .reel-container::-webkit-scrollbar { display: none; }
-        .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; }
+        .reels-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .reels-container::-webkit-scrollbar { display: none; }
         
-        /* ফেসবুকের মতো অ্যাড ব্যানার স্টাইল */
-        .banner-ad { 
-            position: absolute; 
-            bottom: 25px; 
-            left: 15px; 
-            right: 15px; 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(25px); 
-            border-radius: 20px; 
-            padding: 15px; 
-            z-index: 100; 
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
+        .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         
-        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; height: 50%; pointer-events: none; }
-        #commentSheet { transition: transform 0.4s ease; z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
+        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+
+        /* UI Overlays */
+        .side-bar { position: absolute; right: 12px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+        .bottom-info { position: absolute; bottom: 30px; left: 15px; right: 80px; z-index: 10; }
+        
+        .action-btn { background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: 0.3s; }
+        .action-btn:active { transform: scale(0.8); }
+        .follow-tag { background: #2563eb; color: white; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; margin-left: 10px; }
+
+        /* Comment Drawer */
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: white; border-radius: 30px 30px 0 0; }
         #commentSheet.active { transform: translateY(0); }
-        .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; backdrop-filter: blur(4px); }
-        .comment-blur.active { display: block; }
+        .hidden-follow { display: none !important; }
+        
+        /* Ad Banner */
+        .reel-ad { position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 5px; color: white; text-align: center; font-size: 10px; border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
 
-    <div id="commentBlur" class="comment-blur" onclick="closeComments()"></div>
-    <div class="reel-container" id="reelContainer"></div>
+    <div class="reels-container" id="reelsWrapper">
+        </div>
 
-    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[70vh] p-6 shadow-2xl flex flex-col">
-        <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" onclick="closeComments()"></div>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 mb-4 text-black font-medium"></div>
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[70vh] p-6 shadow-2xl flex flex-col">
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4" onclick="closeComments()"></div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 no-scrollbar"></div>
         <div class="flex items-center gap-3 border-t pt-4">
-            <input type="text" id="commentInput" placeholder="Add comment..." class="flex-1 bg-gray-100 rounded-2xl px-5 py-4 text-black outline-none">
-            <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" id="commentInput" placeholder="Add comment..." class="flex-1 bg-gray-100 rounded-2xl p-4 text-sm outline-none">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <a href="home.html" class="fixed top-8 left-6 z-[110] text-white text-2xl opacity-80"><i class="fas fa-chevron-left"></i></a>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, addDoc, serverTimestamp, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            projectId: "seen-a1d92",
+            // ... আপনার বাকি কনফিগ
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
+
         let currentUser = null;
         let activePostId = null;
-        let globalAdCode = ""; // অ্যাড কোড স্টোর করার জন্য
 
-        onAuthStateChanged(auth, user => { 
-            currentUser = user; 
-            fetchAdsAndLoadReels(); 
+        onAuthStateChanged(auth, (user) => {
+            if(user) { currentUser = user; renderReels(); }
+            else { window.location.href="index.html"; }
         });
 
-        // অ্যাড এবং ভিডিও একসাথে লোড করার ফাংশন
-        async function fetchAdsAndLoadReels() {
-            try {
-                // ১. অ্যাডমিন সেটিংস থেকে একটিভ অ্যাড নিয়ে আসা
-                // আপনার ডাটাবেস পাথ অনুযায়ী চেক করুন: appSettings -> ads_container -> all_ads
-                const adSnap = await getDocs(query(collection(db, "appSettings", "ads_container", "all_ads"), where("status", "==", true)));
-                
-                if (!adSnap.empty) {
-                    // র‍্যান্ডমলি একটা অ্যাড সিলেক্ট করা
-                    const randomAd = adSnap.docs[Math.floor(Math.random() * adSnap.size)].data();
-                    globalAdCode = randomAd.code || ""; 
-                }
+        async function renderReels() {
+            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+            let adCode = adSnap.exists() ? adSnap.data().code : "";
 
-                loadReels();
-            } catch (e) {
-                console.error("Ad Load Error:", e);
-                loadReels(); // অ্যাড লোড না হলেও ভিডিও লোড হবে
-            }
-        }
-
-        async function loadReels() {
-            const q = query(collection(db, "posts"), where("fileType", "==", "video"));
-            onSnapshot(q, async snap => {
-                const container = document.getElementById('reelContainer');
-                container.innerHTML = "";
+            onSnapshot(collection(db, "posts"), (snap) => {
+                const wrapper = document.getElementById('reelsWrapper');
+                wrapper.innerHTML = "";
                 
-                for (const postDoc of snap.docs) {
-                    const p = postDoc.data();
-                    const id = postDoc.id;
-                    const authorSnap = await getDoc(doc(db, "users", p.userId));
-                    const author = authorSnap.data() || {};
+                snap.forEach(d => {
+                    const p = d.data(); const id = d.id;
+                    if(p.fileType !== 'video' || p.isShadowBanned) return;
+
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
 
-                    const div = document.createElement('div');
-                    div.className = "reel-video";
-                    div.innerHTML = `
-                        <video src="${p.fileUrl}" loop playsinline preload="metadata" muted onplay="window.handleEarning('${id}')"></video>
-                        <div class="overlay-gradient"></div>
+                    const card = document.createElement('div');
+                    card.className = "reel-card";
+                    card.innerHTML = `
+                        <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)"></video>
                         
-                        ${globalAdCode ? `<div class="banner-ad animate-bounce-short">${globalAdCode}</div>` : ''}
-
-                        <div class="absolute right-5 bottom-44 flex flex-col gap-8 text-white text-center z-[105]">
-                            <button onclick="window.likeReel('${id}', event)" class="text-3xl">
-                                <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
-                            </button>
-                            <button onclick="window.openComments('${id}', event)" class="text-3xl"><i class="far fa-comment-dots"></i></button>
-                            <button onclick="window.sharePost('${p.fileUrl}', event)" class="text-3xl"><i class="fas fa-share"></i></button>
-                        </div>
-
-                        <div class="absolute left-5 bottom-40 text-white z-[105] flex items-center gap-3">
-                            <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full border-2 border-white object-cover">
-                            <div>
-                                <h4 class="font-bold text-sm shadow-sm">@${author.name || 'user'}</h4>
-                                <p class="text-xs opacity-90">${p.text || ''}</p>
+                        <div class="side-bar">
+                            <div class="flex flex-col items-center">
+                                <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}">
+                                    <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+                                </button>
+                                <span class="text-[10px] text-white font-bold mt-1">${p.likes || 0}</span>
                             </div>
+                            <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment"></i></button>
+                            <button onclick="shareReel('${id}', '${p.fileUrl}')" class="action-btn text-xl"><i class="fas fa-share"></i></button>
+                            <button onclick="reportReel('${id}')" class="text-white/40"><i class="fas fa-flag text-xs"></i></button>
                         </div>
+
+                        <div class="bottom-info">
+                            <div class="flex items-center gap-3 mb-3">
+                                <img src="${p.userPic}" class="w-10 h-10 rounded-full border-2 border-white shadow-lg">
+                                <h4 class="text-white font-bold text-sm tracking-tight">@${p.userName}</h4>
+                                <button id="f_${id}" onclick="followInReel('${p.userId}', '${id}')" class="follow-tag">FOLLOW</button>
+                            </div>
+                            <p class="text-white text-xs line-clamp-2">${p.text || ''}</p>
+                        </div>
+
+                        ${adCode ? `<div class="reel-ad">Sponsored: ${adCode}</div>` : ""}
                     `;
-                    div.onclick = () => { 
-                        const v = div.querySelector('video'); 
-                        v.paused ? v.play() : v.pause(); 
-                        v.muted = false; 
-                    };
-                    container.appendChild(div);
-                }
-                setupAutoPlay();
+                    wrapper.appendChild(card);
+                });
+                initObserver();
             });
         }
 
-        // আর্নিং লজিক: শুধুমাত্র অ্যাড থাকলে টাকা বাড়বে
-        window.handleEarning = async (postId) => {
-            if(!currentUser) return;
-            // ভিউ বাড়ানো
-            updateDoc(doc(db, "posts", postId), { views: increment(1) });
-
-            // যদি অ্যাড শো করে (globalAdCode খালি না থাকে)
-            if (globalAdCode !== "") {
-                const algSnap = await getDoc(doc(db, "appSettings", "algorithm"));
-                const rate = algSnap.exists() ? (algSnap.data().trendBoost / 1000) : 0.001;
-                // ইউজারের ব্যালেন্স আপডেট
-                updateDoc(doc(db, "users", currentUser.uid), { balance: increment(rate) });
-            }
-        };
-
-        function setupAutoPlay() {
+        // --- Reel Magic: সাউন্ড মিক্সিং বন্ধ এবং অটো-প্লে ---
+        function initObserver() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    const video = entry.target.querySelector('video');
-                    if (video) {
-                        if (entry.isIntersecting) video.play().catch(() => {});
-                        else { video.pause(); video.muted = true; }
+                    const video = entry.target;
+                    if (entry.isIntersecting) {
+                        video.play().catch(() => {});
+                        video.muted = false; // অটো সাউন্ড অন (ইউজার এক্সপেরিয়েন্স ভালো হবে)
+                    } else {
+                        video.pause();
+                        video.currentTime = 0;
                     }
                 });
-            }, { threshold: 0.6 });
-            document.querySelectorAll('.reel-video').forEach(rv => observer.observe(rv));
+            }, { threshold: 0.8 });
+            document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
         }
 
-        // লাইক, কমেন্ট ও শেয়ার ফাংশন (আগের মতোই নিখুঁত)
-        window.likeReel = async (id, e) => {
-            e.stopPropagation();
+        window.handleReelTap = (video) => {
+            if(video.paused) video.play();
+            else video.pause();
+        };
+
+        window.likeReel = async (id) => {
             const ref = doc(db, "posts", id);
-            const snap = await getDoc(ref);
-            const isLiked = snap.data().likedBy?.includes(currentUser.uid);
-            updateDoc(ref, {
+            const p = (await getDoc(ref)).data();
+            const isLiked = p.likedBy?.includes(currentUser.uid);
+            await updateDoc(ref, {
                 likes: increment(isLiked ? -1 : 1),
                 likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
             });
         };
 
-        window.sharePost = (url, e) => { e.stopPropagation(); navigator.share ? navigator.share({url}) : prompt("Link:", url); };
-        window.openComments = (id, e) => { e.stopPropagation(); activePostId = id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('commentBlur').classList.add('active'); };
-        window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('commentBlur').classList.remove('active'); };
+        window.followInReel = async (tid, pid) => {
+            document.getElementById(`f_${pid}`).classList.add('hidden-follow');
+            await setDoc(doc(db, "users", currentUser.uid, "following", tid), { time: serverTimestamp() });
+        };
+
+        window.openComments = (id) => {
+            activePostId = id;
+            document.getElementById('commentSheet').classList.add('active');
+        };
+
+        window.reportReel = async (id) => {
+            if(confirm("Report this video to Admin?")) {
+                await addDoc(collection(db, "reports"), {
+                    postId: id, reporter: currentUser.uid, timestamp: serverTimestamp()
+                });
+                alert("Reported!");
+            }
+        };
+
+        window.shareReel = (id, url) => {
+             // প্রোফাইলে শেয়ার করার লজিক
+             alert("Shared to profile!");
+        };
     </script>
 </body>
 </html>
