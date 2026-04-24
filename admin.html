@@ -3,87 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Diary - Supreme Command</title>
+    <title>Supreme Command - Master Diary V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #07090f; color: #e2e8f0; overflow-x: hidden; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
-        .tab-link { transition: all 0.3s; border-radius: 12px; padding: 10px 15px; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .tab-active { background: #6366f1; color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
-        input, textarea { background: #111827 !important; color: white !important; border: 1px solid #1f2937 !important; border-radius: 12px; padding: 12px; outline: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-link { transition: all 0.3s; border-radius: 12px; padding: 12px 18px; color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+        .tab-active { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: white; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input, textarea { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+        .stat-card { border-bottom: 4px solid #6366f1; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#07090f] flex items-center justify-center p-6">
-        <div class="glass p-10 rounded-[2.5rem] max-w-sm w-full text-center border-t-4 border-indigo-600">
-            <div class="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/50">
-                <i class="fas fa-crown text-3xl text-white"></i>
+    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#05070a] flex items-center justify-center p-6">
+        <div class="glass p-12 rounded-[3rem] max-w-md w-full text-center">
+            <div class="w-24 h-24 bg-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/40 rotate-12">
+                <i class="fas fa-user-shield text-4xl text-white -rotate-12"></i>
             </div>
-            <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">MASTER DIARY</h2>
-            <input type="password" id="accessKey" placeholder="Code" class="w-full text-center mb-6">
-            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black">INITIALIZE</button>
+            <h2 style="font-family: 'Orbitron';" class="text-3xl font-black mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">SUPREME COMMAND</h2>
+            <input type="password" id="accessKey" placeholder="Authorization Code" class="w-full text-center mb-6 text-xl">
+            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black tracking-widest hover:bg-indigo-500 transition shadow-xl shadow-indigo-500/20">INITIALIZE SYSTEM</button>
         </div>
     </div>
 
     <div id="mainUI" class="hidden">
         <header class="glass sticky top-0 z-50 px-6 py-4 border-b border-white/5">
-            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <h1 style="font-family: 'Orbitron';" class="font-black text-lg tracking-widest text-indigo-100">COMMANDER</h1>
-                <div class="flex gap-2 overflow-x-auto w-full md:w-auto">
-                    <button onclick="showTab('users')" class="tab-link tab-active">Users</button>
-                    <button onclick="showTab('ads')" class="tab-link">Ads/CPM</button>
-                    <button onclick="showTab('system')" class="tab-link">System</button>
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <div class="p-2 bg-indigo-600/20 rounded-lg text-indigo-400"><i class="fas fa-bolt text-xl"></i></div>
+                    <h1 style="font-family: 'Orbitron';" class="font-black text-xl tracking-tighter">Bondo <span class="text-indigo-500">AI</span></h1>
+                </div>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
+                    <button onclick="showTab('citizens')" class="tab-link tab-active"><i class="fas fa-users mr-2"></i>Citizens</button>
+                    <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-broadcast-tower mr-2"></i>Broadcast</button>
+                    <button onclick="showTab('economy')" class="tab-link"><i class="fas fa-wallet mr-2"></i>Economy</button>
+                    <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-shield-alt mr-2"></i>Safety</button>
+                    <button onclick="showTab('control')" class="tab-link"><i class="fas fa-cog mr-2"></i>Control</button>
                 </div>
             </div>
         </header>
 
         <main class="max-w-7xl mx-auto p-6 space-y-8">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass p-6 rounded-3xl border-l-4 border-indigo-500 text-center">
-                    <p class="text-[10px] font-bold text-slate-500">POPULATION</p>
-                    <h3 id="countUsers" class="text-2xl font-black">0</h3>
+                <div class="glass p-6 rounded-3xl stat-card bg-gradient-to-br from-indigo-500/5 to-transparent">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Population</p>
+                    <h3 id="countUsers" class="text-3xl font-black mt-2">0</h3>
                 </div>
-                <div class="glass p-6 rounded-3xl border-l-4 border-green-500 text-center">
-                    <p class="text-[10px] font-bold text-slate-500">CPM RATE</p>
-                    <h3 id="displayCPM" class="text-2xl font-black text-green-400">৳0</h3>
+                <div class="glass p-6 rounded-3xl stat-card bg-gradient-to-br from-green-500/5 to-transparent border-green-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Current CPM</p>
+                    <h3 id="displayCPM" class="text-3xl font-black mt-2 text-green-400">৳0</h3>
+                </div>
+                <div class="glass p-6 rounded-3xl stat-card bg-gradient-to-br from-yellow-500/5 to-transparent border-yellow-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Ads</p>
+                    <h3 id="countAds" class="text-3xl font-black mt-2 text-yellow-400">LIVE</h3>
+                </div>
+                <div class="glass p-6 rounded-3xl stat-card bg-gradient-to-br from-red-500/5 to-transparent border-red-500">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Withdrawals</p>
+                    <h3 id="countPending" class="text-3xl font-black mt-2 text-red-500">0</h3>
                 </div>
             </div>
 
-            <div id="tab-users" class="tab-content space-y-6">
-                <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search citizens..." class="w-full">
+            <div id="tab-citizens" class="tab-content space-y-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search by name or UID..." class="flex-1">
+                    <button class="bg-indigo-600 px-8 py-3 rounded-xl font-bold">EXPORT DATA</button>
+                </div>
                 <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
-            <div id="tab-ads" class="hidden tab-content space-y-6">
-                <div class="glass p-8 rounded-[2.5rem]">
-                    <h2 class="font-black text-lg mb-6"><i class="fas fa-coins text-yellow-500"></i> Ad Control</h2>
-                    <textarea id="adCodeInput" placeholder="Paste Ad HTML here..." class="w-full h-32 mb-4 font-mono text-xs"></textarea>
-                    <button onclick="saveAd()" class="w-full bg-indigo-600 py-4 rounded-xl font-black mb-6">DEPLOY ADS</button>
-                    
-                    <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-xl">
-                        <span class="font-bold">CPM Rate (৳):</span>
-                        <input type="number" id="cpmRateInput" step="0.001" class="flex-1 text-center font-black">
-                        <button onclick="updateCPM()" class="bg-green-600 px-6 py-2 rounded-lg font-bold">SET</button>
+            <div id="tab-engine" class="hidden tab-content space-y-6">
+                <div class="glass p-8 rounded-[2.5rem] border-t-4 border-indigo-500">
+                    <h2 class="font-black text-xl mb-4 uppercase tracking-tighter">Emergency Broadcast 📣</h2>
+                    <p class="text-slate-400 text-sm mb-6">এই বার্তাটি সমস্ত ইউজারের অ্যাপ স্ক্রিনে ভেসে উঠবে।</p>
+                    <textarea id="broadcastMsg" placeholder="Type your announcement..." class="w-full h-32 mb-6"></textarea>
+                    <button onclick="sendBroadcast()" class="w-full bg-indigo-600 py-4 rounded-xl font-black tracking-widest">LAUNCH ANNOUNCEMENT</button>
+                </div>
+            </div>
+
+            <div id="tab-economy" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass p-8 rounded-[3rem] space-y-6">
+                    <h3 class="font-black text-indigo-400">AD ENGINE SETTINGS</h3>
+                    <textarea id="adCodeInput" placeholder="Paste Ad HTML Code..." class="w-full h-40"></textarea>
+                    <button onclick="saveAd()" class="w-full bg-slate-800 py-4 rounded-xl font-black hover:bg-slate-700">UPDATE AD CODE</button>
+                </div>
+                <div class="glass p-8 rounded-[3rem] space-y-6">
+                    <h3 class="font-black text-green-400">REVENUE CONTROL</h3>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-500">GLOBAL CPM RATE (৳)</label>
+                        <input type="number" id="cpmRateInput" step="0.001" class="w-full text-center text-2xl font-black">
+                    </div>
+                    <button onclick="updateCPM()" class="w-full bg-green-600 py-4 rounded-xl font-black">SAVE CPM RATE</button>
+                    <div class="pt-6 border-t border-white/5">
+                        <h3 class="font-black text-yellow-500 mb-4 text-sm">REFERRAL SYSTEM</h3>
+                        <div class="flex gap-2">
+                            <input type="number" id="refBonusInput" placeholder="Bonus ৳" class="flex-1">
+                            <button onclick="updateRefBonus()" class="bg-slate-800 px-6 rounded-xl font-bold">SET</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="tab-system" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-8 rounded-[2.5rem] border-t-4 border-orange-500">
-                    <h3 class="font-black mb-4 text-center">Maintenance Mode</h3>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-xl font-black"></button>
+            <div id="tab-safety" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass p-8 rounded-[3rem] border-t-4 border-red-500 text-center">
+                    <i class="fas fa-tools text-4xl text-red-500 mb-4"></i>
+                    <h3 class="font-black mb-2">SYSTEM MAINTENANCE</h3>
+                    <p class="text-xs text-slate-500 mb-6">এটি অন করলে ইউজাররা অ্যাপে ঢুকতে পারবে না।</p>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition-all"></button>
+                </div>
+                <div class="glass p-8 rounded-[3rem] border-t-4 border-blue-500">
+                    <h3 class="font-black mb-4">REPORTS & ALERTS</h3>
+                    <div id="reportBox" class="space-y-3 h-48 overflow-y-auto no-scrollbar text-xs text-slate-400 italic">
+                        No new security alerts...
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-control" class="hidden tab-content">
+                <div class="glass p-10 rounded-[3rem] text-center">
+                    <h2 class="font-black text-2xl mb-6">Supreme Control Key</h2>
+                    <p class="text-slate-400 mb-8">অ্যাপের গ্লোবাল ভার্সন এবং ব্যাকএন্ড নোড আপডেট করুন।</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">APP VERSION</p>
+                            <input type="text" value="V2.0.4" class="w-full text-center !p-2">
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">API LATENCY</p>
+                            <p class="text-green-400 font-black">24ms (Stable)</p>
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">SERVER NODE</p>
+                            <p class="text-indigo-400 font-black">Firebase-US-East</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass w-full max-w-lg rounded-[3rem] p-10">
+            <h3 class="font-black text-2xl text-indigo-400 mb-6 uppercase tracking-tighter">Profile Magic 🪄</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500">FAKE VIEWS BOOST</label>
+                    <input type="number" id="fakeViewInput" class="w-full mt-2 text-xl font-black">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500">MANUAL BALANCE ADD</label>
+                    <input type="number" id="addBalanceInput" class="w-full mt-2 text-xl font-black" step="0.01">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold">CANCEL</button>
+                    <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black">APPLY MAGIC</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Firebase Config (আপনার অরিজিনাল ডাটা)
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
             authDomain: "seen-a1d92.firebaseapp.com", 
@@ -95,88 +183,119 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- AUTH SYSTEM ---
         window.unlock = () => {
-            if(document.getElementById('accessKey').value === "150") {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('mainUI').classList.remove('hidden');
-                startLive();
-            } else { alert("DENIED"); }
+            const key = document.getElementById('accessKey').value;
+            if(key === "150") {
+                document.getElementById('lockScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('mainUI').classList.remove('hidden');
+                    initSupremeSystem();
+                }, 500);
+            } else { alert("ACCESS DENIED: UNAUTHORIZED COMMANDER"); }
         };
 
+        // --- TAB NAVIGATION ---
         window.showTab = (t) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
             document.getElementById('tab-'+t).classList.remove('hidden');
-            event.target.classList.add('tab-active');
+            event.currentTarget.classList.add('tab-active');
         };
 
-        function startLive() {
-            // Load Users
+        // --- CORE SYSTEM INITIALIZATION ---
+        function initSupremeSystem() {
+            // 1. Live Citizens (Users)
             onSnapshot(collection(db, "users"), (snap) => {
-                const grid = document.getElementById('userGrid'); grid.innerHTML = "";
+                const grid = document.getElementById('userGrid');
+                grid.innerHTML = "";
                 document.getElementById('countUsers').innerText = snap.size;
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
                     const card = document.createElement('div');
-                    card.className = "glass p-6 rounded-[2rem] admin-card";
+                    card.className = "glass p-6 rounded-[2.5rem] admin-card relative overflow-hidden group";
                     card.innerHTML = `
-                        <div class="flex items-center gap-4 mb-4">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-xl object-cover">
-                            <div class="flex-1">
-                                <h4 class="font-black text-sm uppercase">${u.name || 'User'}</h4>
-                                <p class="text-xs text-indigo-400">৳${(u.balance || 0).toFixed(3)}</p>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="relative">
+                                <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-16 h-16 rounded-[1.5rem] object-cover ring-2 ring-indigo-500/20">
+                                ${u.isVerified ? '<i class="fas fa-check-circle absolute -top-2 -right-2 text-blue-400 bg-white rounded-full"></i>' : ''}
                             </div>
-                            <button onclick="toggleVerify('${id}', ${u.isVerified})" class="${u.isVerified ? 'text-blue-400' : 'text-slate-600'} text-xl">
-                                <i class="fas fa-check-circle"></i>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-black text-sm uppercase truncate text-indigo-100">${u.name || 'Citizen'}</h4>
+                                <p class="text-[10px] font-bold text-green-400 tracking-wider">৳${(u.balance || 0).toFixed(4)}</p>
+                            </div>
+                            <button onclick="openMagic('${id}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all">
+                                <i class="fas fa-magic text-xs"></i>
                             </button>
                         </div>
-                        <button onclick="hardBanUser('${id}')" class="w-full py-2 bg-red-900/20 text-red-500 font-bold rounded-xl text-[10px]">TERMINATE USER</button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="toggleVerify('${id}', ${u.isVerified})" class="py-3 ${u.isVerified ? 'bg-blue-600' : 'bg-slate-800'} rounded-xl text-[8px] font-black uppercase tracking-widest transition-all">
+                                ${u.isVerified ? 'Verified' : 'Verify'}
+                            </button>
+                            <button onclick="hardBanUser('${id}')" class="py-3 bg-red-600/10 text-red-500 border border-red-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
+                                Hard Ban
+                            </button>
+                        </div>
+                        <div class="mt-3 grid grid-cols-1">
+                            <button onclick="toggleShadowBan('${id}', ${u.isShadowBanned})" class="py-2 text-[8px] font-black uppercase ${u.isShadowBanned ? 'text-orange-500 bg-orange-500/10' : 'text-slate-500'}">
+                                ${u.isShadowBanned ? 'Shadow Banned Active' : 'Shadow Ban User'}
+                            </button>
+                        </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // Load Ads
-            onSnapshot(doc(db, "appSettings", "ads"), (d) => {
-                if(d.exists()) document.getElementById('adCodeInput').value = d.data().code || "";
-            });
-
-            // Load Global Settings
+            // 2. Sync Global Settings (Ads, CPM, Maintenance)
+            onSnapshot(doc(db, "appSettings", "ads"), (d) => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code || ""; });
             onSnapshot(doc(db, "appSettings", "algorithm"), (d) => {
                 const r = d.data()?.trendBoost || 0;
                 document.getElementById('displayCPM').innerText = "৳" + r;
                 document.getElementById('cpmRateInput').value = r;
             });
-
             onSnapshot(doc(db, "appSettings", "maintenance"), (d) => {
-                const status = d.data()?.isOn;
-                window.mStatus = status;
+                window.mStatus = d.data()?.isOn;
                 const btn = document.getElementById('mBtn');
-                btn.innerText = status ? "OFF MAINTENANCE" : "ON MAINTENANCE";
-                btn.className = status ? "w-full py-4 rounded-xl font-black bg-red-600" : "w-full py-4 rounded-xl font-black bg-slate-800 text-indigo-400";
+                btn.innerText = window.mStatus ? "OFF MAINTENANCE" : "ON MAINTENANCE";
+                btn.className = window.mStatus ? "w-full py-5 rounded-2xl font-black bg-red-600 shadow-lg shadow-red-500/20" : "w-full py-5 rounded-2xl font-black bg-slate-800 text-indigo-400";
             });
+            onSnapshot(doc(db, "appSettings", "referral"), (d) => { if(d.exists()) document.getElementById('refBonusInput').value = d.data().bonus || 0; });
         }
 
-        // Functions
-        window.saveAd = async () => {
-            const code = document.getElementById('adCodeInput').value;
-            await setDoc(doc(db, "appSettings", "ads"), { code: code, status: true }, { merge: true });
-            alert("Ads Updated!");
-        };
-
-        window.updateCPM = async () => {
-            const rate = parseFloat(document.getElementById('cpmRateInput').value);
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: rate }, { merge: true });
-            alert("CPM Rate Set!");
-        };
-
-        window.toggleMaintenance = async () => {
-            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true });
-        };
-
+        // --- SUPREME ACTIONS ---
+        window.saveAd = async () => { await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value, status: true }, { merge: true }); alert("COMMAND SUCCESS: ADS DEPLOYED"); };
+        window.updateCPM = async () => { await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(document.getElementById('cpmRateInput').value) }, { merge: true }); alert("COMMAND SUCCESS: CPM UPDATED"); };
+        window.updateRefBonus = async () => { await setDoc(doc(db, "appSettings", "referral"), { bonus: parseFloat(document.getElementById('refBonusInput').value) }, { merge: true }); alert("COMMAND SUCCESS: REFERRAL UPDATED"); };
+        window.toggleMaintenance = async () => { await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); };
         window.toggleVerify = async (id, s) => { await updateDoc(doc(db, "users", id), { isVerified: !s }); };
-        window.hardBanUser = async (id) => { if(confirm("Terminate?")) await deleteDoc(doc(db, "users", id)); };
+        window.toggleShadowBan = async (id, s) => { await updateDoc(doc(db, "users", id), { isShadowBanned: !s }); };
+        window.hardBanUser = async (id) => { if(confirm("TERMINATE THIS CITIZEN?")) await deleteDoc(doc(db, "users", id)); };
         
+        // --- BROADCAST SYSTEM ---
+        window.sendBroadcast = async () => {
+            const msg = document.getElementById('broadcastMsg').value;
+            if(!msg) return;
+            await setDoc(doc(db, "appSettings", "announcement"), { message: msg, timestamp: Date.now() }, { merge: true });
+            alert("BROADCAST LAUNCHED TO ALL USERS!");
+            document.getElementById('broadcastMsg').value = "";
+        };
+
+        // --- PROFILE MAGIC ---
+        window.openMagic = (id, bal, views) => {
+            document.getElementById('magicModal').classList.remove('hidden');
+            document.getElementById('fakeViewInput').value = views;
+            document.getElementById('addBalanceInput').value = bal;
+            document.getElementById('saveMagicBtn').onclick = async () => {
+                await updateDoc(doc(db, "users", id), {
+                    balance: parseFloat(document.getElementById('addBalanceInput').value),
+                    fakeViews: parseInt(document.getElementById('fakeViewInput').value)
+                });
+                window.closeMagic();
+            };
+        };
+        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
+
         window.searchUser = () => {
             const term = document.getElementById('uSearch').value.toLowerCase();
             document.querySelectorAll('.admin-card').forEach(card => {
