@@ -3,60 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reels - My Book Elite Master</title>
+    <title>Reels - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body, html { height: 100%; overflow: hidden; background: #000; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; scrollbar-width: none; }
-        .reel-container::-webkit-scrollbar { display: none; }
+        body, html { height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        .reel-container { height: 100vh; scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; }
         .reel-video { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: contain; }
-        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.95)); position: absolute; bottom: 0; width: 100%; height: 60%; pointer-events: none; }
-        .banner-ad { position: absolute; bottom: 100px; left: 10px; right: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 16px; padding: 12px; z-index: 50; border: 1px solid rgba(255,255,255,0.2); text-align: center; color: white; font-size: 10px; font-weight: bold; }
-        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 35px 35px 0 0; }
-        #commentSheet.active { transform: translateY(0); }
-        .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; display: none; backdrop-filter: blur(8px); }
-        .comment-blur.active { display: block; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .overlay-gradient { background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; height: 50%; pointer-events: none; }
+        .banner-ad { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 16px; padding: 8px; z-index: 50; text-align: center; border: 1px solid rgba(255,255,255,0.2); max-height: 80px; overflow: hidden; }
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); border-radius: 30px 30px 0 0; }
+        #commentSheet.active { transform: translateY(0); }
+        .comment-blur { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; backdrop-filter: blur(4px); }
+        .comment-blur.active { display: block; }
+        .heart-pop { animation: pop 0.4s ease-out; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body class="bg-black">
+<body class="no-scrollbar">
 
     <div id="commentBlur" class="comment-blur" onclick="closeComments()"></div>
+    <div class="reel-container no-scrollbar" id="reelContainer"></div>
 
-    <div class="reel-container" id="reelContainer">
-        <div class="h-full flex items-center justify-center text-white/20 font-black tracking-widest text-[10px] uppercase">
-            Loading Master Reels...
-        </div>
-    </div>
-
-    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[75vh] p-8 shadow-2xl flex flex-col">
-        <div class="w-12 h-1.5 bg-gray-100 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
-        <h3 class="font-black text-gray-900 text-center uppercase tracking-[2px] text-xs mb-6" id="totalComments">Comments (0)</h3>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 mb-4 pr-2 no-scrollbar text-black"></div>
-        <div class="flex flex-col gap-3 border-t pt-5 bg-white">
-            <div id="replyIndicator" class="hidden text-[9px] text-blue-600 font-black uppercase tracking-widest ml-2 flex justify-between">
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 bg-white h-[70vh] p-6 shadow-2xl flex flex-col">
+        <div class="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeComments()"></div>
+        <h3 class="font-black text-gray-800 text-center uppercase tracking-tighter text-lg mb-4" id="totalComments">Comments (0)</h3>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 no-scrollbar text-black"></div>
+        <div class="flex flex-col gap-2 border-t pt-4 bg-white">
+            <div id="replyIndicator" class="hidden text-[10px] text-indigo-600 font-bold ml-2 flex justify-between items-center bg-indigo-50 p-1 px-3 rounded-lg">
                 <span id="replyingToText">Replying to...</span>
                 <button onclick="cancelReply()" class="text-red-500 underline">Cancel</button>
             </div>
             <div class="flex items-center gap-3">
-                <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-medium outline-none text-black">
-                <button onclick="postComment()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition">
-                    <i class="fas fa-paper-plane text-lg"></i>
+                <input type="text" id="commentInput" placeholder="Write a nice comment..." class="flex-1 bg-gray-100 border-none rounded-2xl px-5 py-4 text-sm outline-none text-black">
+                <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <a href="home.html" class="fixed top-10 left-6 z-[60] text-white text-xl p-3 bg-black/20 rounded-full backdrop-blur-md">
+    <a href="home.html" class="fixed top-8 left-6 z-[60] text-white text-2xl drop-shadow-2xl opacity-80 hover:opacity-100 transition">
         <i class="fas fa-chevron-left"></i>
     </a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -66,37 +61,30 @@
         
         let currentUser = null;
         let activePostId = null;
-        let adminConfig = {};
         let replyToId = null;
+        let adminConfig = {};
 
         onAuthStateChanged(auth, async user => { 
-            if(user) {
-                currentUser = user;
-                const status = await checkGlobalSecurity(user.uid);
-                if(status) loadMasterReels();
-            } else { window.location.href="index.html"; }
+            currentUser = user; 
+            await checkSystemStatus(); // ১২ দফা ২: মেইনটেন্যান্স চেক
         });
 
-        async function checkGlobalSecurity(uid) {
-            const uSnap = await getDoc(doc(db, "users", uid));
-            const uData = uSnap.data() || {};
-            if(uData.isHardBanned) {
-                document.body.innerHTML = `<div class="h-screen bg-black flex items-center justify-center text-red-500 font-bold uppercase">Device Banned 💀</div>`;
-                return false;
-            }
+        // ১২ দফা ২: মেইনটেন্যান্স এবং সিকিউরিটি চেক
+        async function checkSystemStatus() {
             const mSnap = await getDoc(doc(db, "appSettings", "adminConfig"));
             adminConfig = mSnap.data() || {};
-            if(adminConfig.maintenanceMode) {
-                document.body.innerHTML = `<div class="h-screen bg-white flex items-center justify-center text-black font-bold uppercase">Maintenance Mode 🛠️</div>`;
-                return false;
+            
+            if (adminConfig.maintenanceMode) {
+                document.body.innerHTML = `<div class="h-screen bg-black flex items-center justify-center text-center p-10 text-white"><h1 class="text-xl font-bold">সার্ভার আপডেট চলছে 🛠️</h1></div>`;
+                return;
             }
-            return true;
+            loadReels();
         }
 
-        async function loadMasterReels() {
+        async function loadReels() {
             const adCode = adminConfig.adStatus ? adminConfig.adCode : "";
-            // ইনডেক্স থাকলে orderBy এখন কাজ করবে
-            let q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"));
+            // ইনডেক্স থাকলে orderBy সহ কোয়েরি
+            const q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"));
             
             onSnapshot(q, async snap => {
                 const container = document.getElementById('reelContainer');
@@ -104,54 +92,61 @@
 
                 for (const postDoc of snap.docs) {
                     const p = postDoc.data();
-                    const pid = postDoc.id;
+                    const id = postDoc.id;
+
                     const authorSnap = await getDoc(doc(db, "users", p.userId));
                     const author = authorSnap.data() || {};
                     
-                    if(author.isShadowBanned && p.userId !== currentUser.uid) continue;
+                    // ১২ দফা ১: শ্যাডো ব্যান লজিক
+                    if(author.isShadowBanned && p.userId !== currentUser?.uid) continue;
 
+                    // ১২ দফা ১০: কাস্টম স্ট্যাটাস (ফেক ভিউ/লাইক)
                     const displayLikes = p.fakeLikes || p.likes || 0;
                     const displayViews = p.fakeViews || p.views || 0;
-                    const isLiked = p.likedBy?.includes(currentUser.uid);
+                    const isVerified = author.isVerified || false; // দফা ৯: নীল টিক
+                    const isLiked = p.likedBy?.includes(currentUser?.uid);
                     
-                    const reel = document.createElement('div');
-                    reel.className = "reel-video";
-                    reel.innerHTML = `
-                        <video src="${p.fileUrl}" loop playsinline onplay="window.trackMasterView('${pid}', '${p.userId}')"></video>
+                    const div = document.createElement('div');
+                    div.className = "reel-video";
+                    div.innerHTML = `
+                        <video src="${p.fileUrl}" loop playsinline class="w-full h-full" onplay="window.trackMasterView('${id}', '${p.userId}')"></video>
                         <div class="overlay-gradient"></div>
-                        ${adCode ? `<div class="banner-ad">${adCode}</div>` : ''}
+                        ${adCode ? `<div class="banner-ad text-[10px] text-white font-bold">${adCode}</div>` : ''}
 
-                        <div class="absolute right-6 bottom-40 flex flex-col gap-8 text-white text-center z-50">
+                        <div class="absolute right-5 bottom-36 flex flex-col gap-7 text-white text-center z-40">
                             <div class="flex flex-col items-center">
-                                <button onclick="window.likeMasterReel('${pid}', event)" id="btn-${pid}" class="text-3xl">
-                                    <i class="${isLiked ? 'fas text-red-500' : 'far'} fa-heart"></i>
+                                <button onclick="window.likeReel('${id}', event)" id="btn-${id}" class="text-4xl active:scale-125 transition">
+                                    <i class="${isLiked ? 'fas text-red-500 heart-pop' : 'far'} fa-heart"></i>
                                 </button>
-                                <span class="text-[10px] font-black mt-2">${displayLikes}</span>
+                                <span class="text-xs font-black mt-1">${displayLikes}</span>
                             </div>
-                            <div class="flex flex-col items-center" onclick="window.openComments('${pid}', event)">
-                                <i class="far fa-comment-dots text-3xl"></i>
-                                <span class="text-[10px] font-black mt-2">Chat</span>
+                            <div class="flex flex-col items-center" onclick="window.openComments('${id}', event)">
+                                <i class="far fa-comment-dots text-4xl"></i>
+                                <span class="text-xs font-black mt-1">Reply</span>
                             </div>
                         </div>
 
-                        <div class="absolute left-6 bottom-32 text-white z-50 max-w-[70%]">
-                            <div class="flex items-center gap-3 mb-4">
-                                <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full border-2 border-white object-cover">
-                                <h4 class="font-black text-sm uppercase tracking-tighter">@${author.name || 'user'} ${author.isVerified ? '✅' : ''}</h4>
+                        <div class="absolute left-5 bottom-28 text-white z-40 flex items-center gap-3">
+                            <img src="${author.profilePic || 'https://via.placeholder.com/150'}" class="w-11 h-11 rounded-full border-2 border-white object-cover">
+                            <div>
+                                <h4 class="font-black text-sm flex items-center gap-1 uppercase">@${author.name || 'user'} ${isVerified ? '<i class="fas fa-check-circle text-blue-400 text-[10px]"></i>' : ''}</h4>
+                                <p class="text-[11px] opacity-80 line-clamp-1">${p.text || ''}</p>
+                                <p class="text-[9px] font-bold text-gray-300 mt-1"><i class="fas fa-play mr-1"></i> ${displayViews} Views</p>
                             </div>
-                            <p class="text-[12px] opacity-90">${p.text || ''}</p>
-                            <p class="text-[9px] mt-2 opacity-50"><i class="fas fa-play"></i> ${displayViews} Views</p>
                         </div>
                     `;
-                    reel.onclick = () => { const v = reel.querySelector('video'); v.paused ? v.play() : v.pause(); };
-                    container.appendChild(reel);
+                    div.onclick = () => { const v = div.querySelector('video'); v.paused ? v.play() : v.pause(); };
+                    container.appendChild(div);
                 }
                 setupAutoPlay();
             });
         }
 
+        // ১২ দফা ৪: CPM ইনকাম লজিক
         window.trackMasterView = async (pid, authorId) => {
+            if(!currentUser) return;
             await updateDoc(doc(db, "posts", pid), { views: increment(1) });
+            
             const authorSnap = await getDoc(doc(db, "users", authorId));
             if(authorSnap.data()?.isMonetized) {
                 const earn = (adminConfig.cpmRate || 0.05) / 1000;
@@ -159,18 +154,18 @@
             }
         };
 
-        window.likeMasterReel = async (id, e) => {
+        window.likeReel = async (id, e) => {
+            if(!currentUser) return;
             e.stopPropagation();
             const ref = doc(db, "posts", id);
-            const icon = document.getElementById(`btn-${id}`).querySelector('i');
-            const currentlyLiked = icon.classList.contains('fas');
+            const isCurrentlyLiked = document.getElementById(`btn-${id}`).querySelector('i').classList.contains('fas');
             await updateDoc(ref, {
-                likes: increment(currentlyLiked ? -1 : 1),
-                likedBy: currentlyLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+                likes: increment(isCurrentlyLiked ? -1 : 1),
+                likedBy: isCurrentlyLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
             });
         };
 
-        // --- Master Comment System ---
+        // কমেন্ট লজিক (আপনার অরিজিনাল ডাটাবেস পাথ অনুযায়ী)
         window.openComments = (postId, e) => {
             e.stopPropagation();
             activePostId = postId;
@@ -182,7 +177,6 @@
         window.closeComments = () => {
             document.getElementById('commentSheet').classList.remove('active');
             document.getElementById('commentBlur').classList.remove('active');
-            cancelReply();
         };
 
         async function loadMasterComments(postId) {
@@ -198,11 +192,9 @@
                     list.innerHTML += `
                         <div class="flex gap-4 items-start">
                             <img src="${c.userPic}" class="w-10 h-10 rounded-full object-cover">
-                            <div class="flex-1">
-                                <div class="bg-gray-50 p-3 rounded-2xl">
-                                    <p class="font-black text-[10px] text-blue-600 uppercase">@${c.userName}</p>
-                                    <p class="text-[13px] text-gray-700 font-medium">${c.text}</p>
-                                </div>
+                            <div class="bg-gray-100 p-3 rounded-2xl flex-1">
+                                <p class="font-bold text-[10px] text-indigo-600 uppercase">@${c.userName}</p>
+                                <p class="text-[13px] text-gray-700">${c.text}</p>
                             </div>
                         </div>`;
                 });
@@ -225,8 +217,6 @@
             });
             input.value = "";
         };
-
-        window.cancelReply = () => { replyToId = null; document.getElementById('replyIndicator').classList.add('hidden'); };
 
         function setupAutoPlay() {
             const observer = new IntersectionObserver((entries) => {
