@@ -12,9 +12,7 @@
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
         .tab-link { transition: all 0.3s; border-radius: 12px; padding: 10px 15px; color: #94a3b8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .tab-active { background: #6366f1; color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         input, textarea { background: #111827 !important; color: white !important; border: 1px solid #1f2937 !important; border-radius: 12px; padding: 12px; outline: none; }
-        input:focus { border-color: #6366f1 !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -25,24 +23,18 @@
                 <i class="fas fa-crown text-3xl text-white"></i>
             </div>
             <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">MASTER DIARY</h2>
-            <input type="password" id="accessKey" placeholder="Authorization Code" class="w-full text-center mb-6">
-            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black hover:scale-105 transition shadow-lg">INITIALIZE</button>
+            <input type="password" id="accessKey" placeholder="Code" class="w-full text-center mb-6">
+            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black">INITIALIZE</button>
         </div>
     </div>
 
     <div id="mainUI" class="hidden">
         <header class="glass sticky top-0 z-50 px-6 py-4 border-b border-white/5">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <span class="text-indigo-500 text-2xl"><i class="fas fa-terminal"></i></span>
-                    <h1 style="font-family: 'Orbitron';" class="font-black text-lg tracking-widest text-indigo-100">COMMANDER</h1>
-                </div>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
+                <h1 style="font-family: 'Orbitron';" class="font-black text-lg tracking-widest text-indigo-100">COMMANDER</h1>
+                <div class="flex gap-2 overflow-x-auto w-full md:w-auto">
                     <button onclick="showTab('users')" class="tab-link tab-active">Users</button>
                     <button onclick="showTab('ads')" class="tab-link">Ads/CPM</button>
-                    <button onclick="showTab('monetize')" class="tab-link relative">Monetize <span id="mDot" class="absolute top-0 right-0 w-2 h-2 bg-yellow-500 rounded-full hidden"></span></button>
-                    <button onclick="showTab('security')" class="tab-link relative">Security <span id="sDot" class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full hidden"></span></button>
-                    <button onclick="showTab('reports')" class="tab-link relative">Reports <span id="rDot" class="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full hidden"></span></button>
                     <button onclick="showTab('system')" class="tab-link">System</button>
                 </div>
             </div>
@@ -50,91 +42,47 @@
 
         <main class="max-w-7xl mx-auto p-6 space-y-8">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass p-6 rounded-3xl border-l-4 border-indigo-500">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Population</p>
+                <div class="glass p-6 rounded-3xl border-l-4 border-indigo-500 text-center">
+                    <p class="text-[10px] font-bold text-slate-500">POPULATION</p>
                     <h3 id="countUsers" class="text-2xl font-black">0</h3>
                 </div>
-                <div class="glass p-6 rounded-3xl border-l-4 border-green-500">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Revenue Unit</p>
+                <div class="glass p-6 rounded-3xl border-l-4 border-green-500 text-center">
+                    <p class="text-[10px] font-bold text-slate-500">CPM RATE</p>
                     <h3 id="displayCPM" class="text-2xl font-black text-green-400">৳0</h3>
-                </div>
-                <div class="glass p-6 rounded-3xl border-l-4 border-yellow-500">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Ad Status</p>
-                    <h3 id="countAds" class="text-2xl font-black text-yellow-400">0</h3>
-                </div>
-                <div class="glass p-6 rounded-3xl border-l-4 border-red-500">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">System Alerts</p>
-                    <h3 id="countReports" class="text-2xl font-black text-red-500">0</h3>
                 </div>
             </div>
 
             <div id="tab-users" class="tab-content space-y-6">
-                <div class="flex gap-4">
-                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search citizens..." class="flex-1">
-                </div>
+                <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search citizens..." class="w-full">
                 <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
             <div id="tab-ads" class="hidden tab-content space-y-6">
                 <div class="glass p-8 rounded-[2.5rem]">
-                    <h2 class="font-black text-lg mb-6 flex items-center gap-2"><i class="fas fa-coins text-yellow-500"></i> Ad Engine Pro</h2>
-                    <textarea id="adCodeInput" placeholder="Paste JS/Ad Code here..." class="w-full h-32 mb-4 font-mono text-xs"></textarea>
-                    <div class="flex gap-4">
-                        <button onclick="saveAd()" class="flex-1 bg-indigo-600 py-4 rounded-xl font-black uppercase text-xs">Deploy Ads</button>
-                        <div class="flex items-center gap-2 bg-slate-900 px-4 rounded-xl">
-                            <span class="text-[10px] font-bold">CPM (৳):</span>
-                            <input type="number" id="cpmRateInput" step="0.001" class="w-24 !border-none text-center font-black text-indigo-400">
-                            <button onclick="updateCPM()" class="text-indigo-500 font-black text-xs">SET</button>
-                        </div>
+                    <h2 class="font-black text-lg mb-6"><i class="fas fa-coins text-yellow-500"></i> Ad Control</h2>
+                    <textarea id="adCodeInput" placeholder="Paste Ad HTML here..." class="w-full h-32 mb-4 font-mono text-xs"></textarea>
+                    <button onclick="saveAd()" class="w-full bg-indigo-600 py-4 rounded-xl font-black mb-6">DEPLOY ADS</button>
+                    
+                    <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-xl">
+                        <span class="font-bold">CPM Rate (৳):</span>
+                        <input type="number" id="cpmRateInput" step="0.001" class="flex-1 text-center font-black">
+                        <button onclick="updateCPM()" class="bg-green-600 px-6 py-2 rounded-lg font-bold">SET</button>
                     </div>
                 </div>
-                <div id="adList" class="space-y-3"></div>
-            </div>
-
-            <div id="tab-monetize" class="hidden tab-content space-y-4">
-                <h2 class="font-black text-yellow-500 uppercase text-xs tracking-widest">Pending Approvals</h2>
-                <div id="monetizeList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            </div>
-
-            <div id="tab-security" class="hidden tab-content space-y-4">
-                <h2 class="font-black text-red-500 uppercase text-xs tracking-widest">Multi-Account Shield</h2>
-                <div id="securityList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            </div>
-
-            <div id="tab-reports" class="hidden tab-content space-y-3">
-                <h2 class="font-black text-pink-500 uppercase text-xs tracking-widest">User Complaints</h2>
-                <div id="reportList" class="space-y-3"></div>
             </div>
 
             <div id="tab-system" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="glass p-8 rounded-[2.5rem] border-t-4 border-orange-500">
-                    <h3 class="font-black mb-2">Maintenance Mode 🛠️</h3>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-xl font-black transition uppercase text-xs"></button>
-                </div>
-                <div class="glass p-8 rounded-[2.5rem] border-t-4 border-green-500">
-                    <h3 class="font-black mb-2">Referral Bonus 🎁</h3>
-                    <div class="flex gap-2">
-                        <input type="number" id="refBonusInput" class="flex-1">
-                        <button onclick="updateRefBonus()" class="bg-green-600 px-6 rounded-xl font-black text-xs uppercase">SAVE</button>
-                    </div>
+                    <h3 class="font-black mb-4 text-center">Maintenance Mode</h3>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-xl font-black"></button>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
-        <div class="glass w-full max-w-2xl rounded-[2.5rem] overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-                <h3 class="font-black text-indigo-400 uppercase tracking-tighter" id="magicModalTitle">Magic Editor</h3>
-                <button onclick="closeMagic()" class="text-slate-500 hover:text-white"><i class="fas fa-times-circle text-2xl"></i></button>
-            </div>
-            <div id="magicContent" class="p-6 overflow-y-auto no-scrollbar"></div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, deleteDoc, setDoc, query, where, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -147,16 +95,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- AUTH ---
         window.unlock = () => {
             if(document.getElementById('accessKey').value === "150") {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainUI').classList.remove('hidden');
-                startLiveSystem();
-            } else { alert("ACCESS DENIED"); }
+                startLive();
+            } else { alert("DENIED"); }
         };
 
-        // --- TAB CONTROL ---
         window.showTab = (t) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
@@ -164,98 +110,73 @@
             event.target.classList.add('tab-active');
         };
 
-        window.startLiveSystem = () => {
-            loadUsers(); loadAds(); loadReports(); loadMonetization(); loadSecurity(); loadGlobalSettings();
-        };
-
-        // --- USERS ---
-        function loadUsers() {
+        function startLive() {
+            // Load Users
             onSnapshot(collection(db, "users"), (snap) => {
-                const grid = document.getElementById('userGrid');
-                grid.innerHTML = "";
+                const grid = document.getElementById('userGrid'); grid.innerHTML = "";
                 document.getElementById('countUsers').innerText = snap.size;
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
                     const card = document.createElement('div');
-                    card.className = "glass p-6 rounded-[2rem] border border-white/5 relative admin-card";
+                    card.className = "glass p-6 rounded-[2rem] admin-card";
                     card.innerHTML = `
-                        <div class="flex items-center gap-4 mb-6">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-indigo-500/20">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="${u.profilePic || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-xl object-cover">
                             <div class="flex-1">
-                                <h4 class="font-black text-sm uppercase truncate w-32">${u.name || 'User'}</h4>
-                                <p class="text-[9px] font-bold text-indigo-400">৳${(u.balance || 0).toFixed(3)}</p>
+                                <h4 class="font-black text-sm uppercase">${u.name || 'User'}</h4>
+                                <p class="text-xs text-indigo-400">৳${(u.balance || 0).toFixed(3)}</p>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <button onclick="openProfileMagic('${id}', '${u.name}', ${u.fakeViews || 0})" class="text-indigo-400"><i class="fas fa-magic"></i></button>
-                                <button onclick="toggleVerify('${id}', ${u.isVerified})" class="${u.isVerified ? 'text-blue-400' : 'text-slate-600'}"><i class="fas fa-check-circle"></i></button>
-                            </div>
+                            <button onclick="toggleVerify('${id}', ${u.isVerified})" class="${u.isVerified ? 'text-blue-400' : 'text-slate-600'} text-xl">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="hardBanUser('${id}')" class="py-2 bg-red-900/20 text-red-500 text-[8px] font-black uppercase rounded-xl">Hard Ban</button>
-                            <button onclick="viewUserGallery('${id}', '${u.name}')" class="py-2 bg-indigo-600/10 text-indigo-400 text-[8px] font-black uppercase rounded-xl">Gallery</button>
-                        </div>
+                        <button onclick="hardBanUser('${id}')" class="w-full py-2 bg-red-900/20 text-red-500 font-bold rounded-xl text-[10px]">TERMINATE USER</button>
                     `;
                     grid.appendChild(card);
                 });
             });
-        }
 
-        // --- ADS ENGINE (সংশোধিত কানেকশন) ---
-        window.saveAd = async () => {
-            const code = document.getElementById('adCodeInput').value;
-            if(!code) return alert("অ্যাড কোড দিন!");
-            await addDoc(collection(db, "appSettings", "ads_container", "all_ads"), { 
-                code: code, 
-                status: true, 
-                createdAt: serverTimestamp() 
+            // Load Ads
+            onSnapshot(doc(db, "appSettings", "ads"), (d) => {
+                if(d.exists()) document.getElementById('adCodeInput').value = d.data().code || "";
             });
-            document.getElementById('adCodeInput').value = "";
-            alert("অ্যাড লাইভ হয়েছে!");
-        };
 
-        function loadAds() {
-            onSnapshot(collection(db, "appSettings", "ads_container", "all_ads"), (snap) => {
-                const list = document.getElementById('adList'); list.innerHTML = "";
-                document.getElementById('countAds').innerText = snap.size;
-                snap.forEach(d => {
-                    const ad = d.data();
-                    list.innerHTML += `
-                        <div class="glass p-4 rounded-2xl flex justify-between items-center">
-                            <div class="truncate w-40 font-mono text-[8px] text-indigo-400">${ad.code}</div>
-                            <div class="flex gap-2">
-                                <button onclick="toggleAd('${d.id}', ${ad.status})" class="px-4 py-2 rounded-xl text-[8px] font-black ${ad.status ? 'bg-green-600' : 'bg-slate-700'}">${ad.status ? 'LIVE' : 'OFF'}</button>
-                                <button onclick="deleteDoc(doc(db,'appSettings','ads_container','all_ads','${d.id}'))" class="text-red-500"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>`;
-                });
-            });
-        }
-        window.toggleAd = async (id, s) => { await updateDoc(doc(db, "appSettings", "ads_container", "all_ads", id), { status: !s }); };
-        window.updateCPM = async () => { 
-            const rate = parseFloat(document.getElementById('cpmRateInput').value);
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: rate }, { merge: true }); 
-            alert("CPM রেট আপডেট হয়েছে!");
-        };
-
-        // --- SYSTEM SETTINGS ---
-        function loadGlobalSettings() {
+            // Load Global Settings
             onSnapshot(doc(db, "appSettings", "algorithm"), (d) => {
                 const r = d.data()?.trendBoost || 0;
                 document.getElementById('displayCPM').innerText = "৳" + r;
                 document.getElementById('cpmRateInput').value = r;
             });
+
             onSnapshot(doc(db, "appSettings", "maintenance"), (d) => {
-                window.maintenanceOn = d.data()?.isOn;
+                const status = d.data()?.isOn;
+                window.mStatus = status;
                 const btn = document.getElementById('mBtn');
-                btn.innerText = window.maintenanceOn ? "OFF Maintenance" : "ON Maintenance";
-                btn.className = window.maintenanceOn ? "w-full py-4 rounded-xl font-black bg-red-600" : "w-full py-4 rounded-xl font-black bg-slate-800 text-indigo-400";
+                btn.innerText = status ? "OFF MAINTENANCE" : "ON MAINTENANCE";
+                btn.className = status ? "w-full py-4 rounded-xl font-black bg-red-600" : "w-full py-4 rounded-xl font-black bg-slate-800 text-indigo-400";
             });
         }
 
-        // --- অন্যান্য ফাংশন ---
+        // Functions
+        window.saveAd = async () => {
+            const code = document.getElementById('adCodeInput').value;
+            await setDoc(doc(db, "appSettings", "ads"), { code: code, status: true }, { merge: true });
+            alert("Ads Updated!");
+        };
+
+        window.updateCPM = async () => {
+            const rate = parseFloat(document.getElementById('cpmRateInput').value);
+            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: rate }, { merge: true });
+            alert("CPM Rate Set!");
+        };
+
+        window.toggleMaintenance = async () => {
+            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true });
+        };
+
         window.toggleVerify = async (id, s) => { await updateDoc(doc(db, "users", id), { isVerified: !s }); };
-        window.hardBanUser = async (id) => { if(confirm("Terminate this user?")) await deleteDoc(doc(db, "users", id)); };
-        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
+        window.hardBanUser = async (id) => { if(confirm("Terminate?")) await deleteDoc(doc(db, "users", id)); };
+        
         window.searchUser = () => {
             const term = document.getElementById('uSearch').value.toLowerCase();
             document.querySelectorAll('.admin-card').forEach(card => {
@@ -263,8 +184,6 @@
                 card.style.display = name.includes(term) ? 'block' : 'none';
             });
         };
-
-        // বাকি ফাংশনগুলো (Monetize, Security, Reports) আপনার অরিজিনাল কোডের মতোই কাজ করবে।
     </script>
 </body>
 </html>
