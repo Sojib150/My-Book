@@ -80,8 +80,9 @@
             <div id="tab-engine" class="hidden tab-content space-y-6">
                 <div class="glass p-8 rounded-[2.5rem] border-t-4 border-indigo-500">
                     <h2 class="font-black text-xl mb-4 uppercase tracking-tighter">Emergency Broadcast 📣</h2>
+                    <p class="text-slate-400 text-sm mb-6">এই বার্তাটি সমস্ত ইউজারের অ্যাপ স্ক্রিনে ভেসে উঠবে।</p>
                     <textarea id="broadcastMsg" placeholder="Type your announcement..." class="w-full h-32 mb-6"></textarea>
-                    <button id="broadcastBtn" onclick="sendBroadcast()" class="w-full bg-indigo-600 py-4 rounded-xl font-black tracking-widest">LAUNCH ANNOUNCEMENT</button>
+                    <button onclick="sendBroadcast()" class="w-full bg-indigo-600 py-4 rounded-xl font-black tracking-widest">LAUNCH ANNOUNCEMENT</button>
                 </div>
             </div>
 
@@ -89,12 +90,22 @@
                 <div class="glass p-8 rounded-[3rem] space-y-6">
                     <h3 class="font-black text-indigo-400">AD ENGINE SETTINGS</h3>
                     <textarea id="adCodeInput" placeholder="Paste Ad HTML Code..." class="w-full h-40"></textarea>
-                    <button onclick="saveAd()" class="w-full bg-slate-800 py-4 rounded-xl font-black">UPDATE AD CODE</button>
+                    <button onclick="saveAd()" class="w-full bg-slate-800 py-4 rounded-xl font-black hover:bg-slate-700">UPDATE AD CODE</button>
                 </div>
                 <div class="glass p-8 rounded-[3rem] space-y-6">
                     <h3 class="font-black text-green-400">REVENUE CONTROL</h3>
-                    <input type="number" id="cpmRateInput" step="0.001" class="w-full text-center text-2xl font-black">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-500">GLOBAL CPM RATE (৳)</label>
+                        <input type="number" id="cpmRateInput" step="0.001" class="w-full text-center text-2xl font-black">
+                    </div>
                     <button onclick="updateCPM()" class="w-full bg-green-600 py-4 rounded-xl font-black">SAVE CPM RATE</button>
+                    <div class="pt-6 border-t border-white/5">
+                        <h3 class="font-black text-yellow-500 mb-4 text-sm">REFERRAL SYSTEM</h3>
+                        <div class="flex gap-2">
+                            <input type="number" id="refBonusInput" placeholder="Bonus ৳" class="flex-1">
+                            <button onclick="updateRefBonus()" class="bg-slate-800 px-6 rounded-xl font-bold">SET</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -102,21 +113,34 @@
                 <div class="glass p-8 rounded-[3rem] border-t-4 border-red-500 text-center">
                     <i class="fas fa-tools text-4xl text-red-500 mb-4"></i>
                     <h3 class="font-black mb-2">SYSTEM MAINTENANCE</h3>
+                    <p class="text-xs text-slate-500 mb-6">এটি অন করলে ইউজাররা অ্যাপে ঢুকতে পারবে না।</p>
                     <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition-all"></button>
                 </div>
                 <div class="glass p-8 rounded-[3rem] border-t-4 border-blue-500">
                     <h3 class="font-black mb-4">REPORTS & ALERTS</h3>
-                    <div id="reportBox" class="text-xs text-slate-400 italic">No new security alerts...</div>
+                    <div id="reportBox" class="space-y-3 h-48 overflow-y-auto no-scrollbar text-xs text-slate-400 italic">
+                        No new security alerts...
+                    </div>
                 </div>
             </div>
 
             <div id="tab-control" class="hidden tab-content">
                 <div class="glass p-10 rounded-[3rem] text-center">
                     <h2 class="font-black text-2xl mb-6">Supreme Control Key</h2>
+                    <p class="text-slate-400 mb-8">অ্যাপের গ্লোবাল ভার্সন এবং ব্যাকএন্ড নোড আপডেট করুন।</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="p-6 bg-white/5 rounded-3xl">VERSION: V2.0.4</div>
-                        <div class="p-6 bg-white/5 rounded-3xl">NODE: Stable</div>
-                        <div class="p-6 bg-white/5 rounded-3xl">SERVER: Firebase-US</div>
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">APP VERSION</p>
+                            <input type="text" value="V2.0.4" class="w-full text-center !p-2">
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">API LATENCY</p>
+                            <p class="text-green-400 font-black">24ms (Stable)</p>
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-3xl">
+                            <p class="text-[10px] font-bold mb-2">SERVER NODE</p>
+                            <p class="text-indigo-400 font-black">Firebase-US-East</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,8 +151,14 @@
         <div class="glass w-full max-w-lg rounded-[3rem] p-10">
             <h3 class="font-black text-2xl text-indigo-400 mb-6 uppercase tracking-tighter">Profile Magic 🪄</h3>
             <div class="space-y-6">
-                <input type="number" id="fakeViewInput" placeholder="Fake Views" class="w-full text-xl font-black">
-                <input type="number" id="addBalanceInput" placeholder="Balance" class="w-full text-xl font-black" step="0.01">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500">FAKE VIEWS BOOST</label>
+                    <input type="number" id="fakeViewInput" class="w-full mt-2 text-xl font-black">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500">MANUAL BALANCE ADD</label>
+                    <input type="number" id="addBalanceInput" class="w-full mt-2 text-xl font-black" step="0.01">
+                </div>
                 <div class="flex gap-4">
                     <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold">CANCEL</button>
                     <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black">APPLY MAGIC</button>
@@ -139,8 +169,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Firebase Config (আপনার অরিজিনাল ডাটা)
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
             authDomain: "seen-a1d92.firebaseapp.com", 
@@ -152,16 +183,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- AUTH ---
+        // --- AUTH SYSTEM ---
         window.unlock = () => {
-            if(document.getElementById('accessKey').value === "150") {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('mainUI').classList.remove('hidden');
-                initSupremeSystem();
-            } else { alert("ACCESS DENIED"); }
+            const key = document.getElementById('accessKey').value;
+            if(key === "150") {
+                document.getElementById('lockScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('mainUI').classList.remove('hidden');
+                    initSupremeSystem();
+                }, 500);
+            } else { alert("ACCESS DENIED: UNAUTHORIZED COMMANDER"); }
         };
 
-        // --- TABS ---
+        // --- TAB NAVIGATION ---
         window.showTab = (t) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('tab-active'));
@@ -169,8 +204,9 @@
             event.currentTarget.classList.add('tab-active');
         };
 
-        // --- CORE SYSTEM (ALL FEATURES RESTORED) ---
+        // --- CORE SYSTEM INITIALIZATION ---
         function initSupremeSystem() {
+            // 1. Live Citizens (Users)
             onSnapshot(collection(db, "users"), (snap) => {
                 const grid = document.getElementById('userGrid');
                 grid.innerHTML = "";
@@ -178,30 +214,41 @@
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
                     const card = document.createElement('div');
-                    card.className = "glass p-6 rounded-[2.5rem] admin-card relative";
+                    card.className = "glass p-6 rounded-[2.5rem] admin-card relative overflow-hidden group";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-6">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-16 h-16 rounded-[1.5rem] object-cover">
-                            <div class="flex-1">
-                                <h4 class="font-black text-sm uppercase">${u.name || 'Citizen'}</h4>
-                                <p class="text-xs text-green-400 font-bold">৳${(u.balance || 0).toFixed(4)}</p>
+                            <div class="relative">
+                                <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-16 h-16 rounded-[1.5rem] object-cover ring-2 ring-indigo-500/20">
+                                ${u.isVerified ? '<i class="fas fa-check-circle absolute -top-2 -right-2 text-blue-400 bg-white rounded-full"></i>' : ''}
                             </div>
-                            <button onclick="openMagic('${id}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
-                                <i class="fas fa-magic"></i>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-black text-sm uppercase truncate text-indigo-100">${u.name || 'Citizen'}</h4>
+                                <p class="text-[10px] font-bold text-green-400 tracking-wider">৳${(u.balance || 0).toFixed(4)}</p>
+                            </div>
+                            <button onclick="openMagic('${id}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all">
+                                <i class="fas fa-magic text-xs"></i>
                             </button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="toggleVerify('${id}', ${u.isVerified})" class="py-3 ${u.isVerified ? 'bg-blue-600' : 'bg-slate-800'} rounded-xl text-[8px] font-black uppercase">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="toggleVerify('${id}', ${u.isVerified})" class="py-3 ${u.isVerified ? 'bg-blue-600' : 'bg-slate-800'} rounded-xl text-[8px] font-black uppercase tracking-widest transition-all">
                                 ${u.isVerified ? 'Verified' : 'Verify'}
                             </button>
-                            <button onclick="hardBanUser('${id}')" class="py-3 bg-red-600/10 text-red-500 rounded-xl text-[8px] font-black uppercase">BAN</button>
+                            <button onclick="hardBanUser('${id}')" class="py-3 bg-red-600/10 text-red-500 border border-red-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
+                                Hard Ban
+                            </button>
+                        </div>
+                        <div class="mt-3 grid grid-cols-1">
+                            <button onclick="toggleShadowBan('${id}', ${u.isShadowBanned})" class="py-2 text-[8px] font-black uppercase ${u.isShadowBanned ? 'text-orange-500 bg-orange-500/10' : 'text-slate-500'}">
+                                ${u.isShadowBanned ? 'Shadow Banned Active' : 'Shadow Ban User'}
+                            </button>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // Global Sync
+            // 2. Sync Global Settings (Ads, CPM, Maintenance)
+            onSnapshot(doc(db, "appSettings", "ads"), (d) => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code || ""; });
             onSnapshot(doc(db, "appSettings", "algorithm"), (d) => {
                 const r = d.data()?.trendBoost || 0;
                 document.getElementById('displayCPM').innerText = "৳" + r;
@@ -211,33 +258,64 @@
                 window.mStatus = d.data()?.isOn;
                 const btn = document.getElementById('mBtn');
                 btn.innerText = window.mStatus ? "OFF MAINTENANCE" : "ON MAINTENANCE";
-                btn.className = window.mStatus ? "w-full py-4 rounded-2xl font-black bg-red-600" : "w-full py-4 rounded-2xl font-black bg-slate-800";
+                btn.className = window.mStatus ? "w-full py-5 rounded-2xl font-black bg-red-600 shadow-lg shadow-red-500/20" : "w-full py-5 rounded-2xl font-black bg-slate-800 text-indigo-400";
             });
+            onSnapshot(doc(db, "appSettings", "referral"), (d) => { if(d.exists()) document.getElementById('refBonusInput').value = d.data().bonus || 0; });
         }
 
-        // --- ACTIONS ---
-        window.sendBroadcast = async () => {
-            const msg = document.getElementById('broadcastMsg').value;
-            if(!msg) return alert("মেসেজ দিন!");
-            const btn = document.getElementById('broadcastBtn');
+        // --- SUPREME ACTIONS ---
+        window.saveAd = async () => { await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value, status: true }, { merge: true }); alert("COMMAND SUCCESS: ADS DEPLOYED"); };
+        window.updateCPM = async () => { await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(document.getElementById('cpmRateInput').value) }, { merge: true }); alert("COMMAND SUCCESS: CPM UPDATED"); };
+        window.updateRefBonus = async () => { await setDoc(doc(db, "appSettings", "referral"), { bonus: parseFloat(document.getElementById('refBonusInput').value) }, { merge: true }); alert("COMMAND SUCCESS: REFERRAL UPDATED"); };
+        window.toggleMaintenance = async () => { await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); };
+        window.toggleVerify = async (id, s) => { await updateDoc(doc(db, "users", id), { isVerified: !s }); };
+        window.toggleShadowBan = async (id, s) => { await updateDoc(doc(db, "users", id), { isShadowBanned: !s }); };
+        window.hardBanUser = async (id) => { if(confirm("TERMINATE THIS CITIZEN?")) await deleteDoc(doc(db, "users", id)); };
+        
+        // --- BROADCAST SYSTEM ---
+                Window.sendBroadcast = async () => {
+            const msgInput = document.getElementById('broadcastMsg');
+            const msg = msgInput.value;
+            if(!msg) return alert("মেসেজ লিখুন!");
+
+            // বাটন ফিডব্যাক (অপশনাল কিন্তু ভালো)
+            const btn = event.target;
             btn.innerText = "SENDING...";
             btn.disabled = true;
 
             try {
+                // ১. সব ইউজারকে খুঁজে বের করা
                 const usersSnap = await getDocs(collection(db, "users"));
                 const batch = writeBatch(db);
-                usersSnap.forEach(uDoc => {
-                    const nRef = doc(collection(db, "users", uDoc.id, "notifications"));
-                    batch.set(nRef, { type: "admin", message: msg, time: serverTimestamp(), status: "unread" });
+
+                // ২. লুপ চালিয়ে সবার নোটিফিকেশন বক্সে মেসেজটি ঢুকানো
+                usersSnap.forEach((userDoc) => {
+                    const notifRef = doc(collection(db, "users", userDoc.id, "notifications"));
+                    batch.set(notifRef, {
+                        type: "admin",
+                        senderName: "Bondo AI Admin",
+                        message: msg,
+                        time: serverTimestamp(), // ফায়ারবেস টাইম
+                        status: "unread"
+                    });
                 });
+
+                // ৩. একবারে সব ডাটা পুশ করা
                 await batch.commit();
-                alert("BROADCAST SENT!");
-                document.getElementById('broadcastMsg').value = "";
-            } catch(e) { alert("Error!"); }
-            btn.innerText = "LAUNCH ANNOUNCEMENT";
-            btn.disabled = false;
+                
+                alert("BROADCAST LAUNCHED TO ALL USERS! 🚀");
+                msgInput.value = "";
+            } catch (err) {
+                console.error(err);
+                alert("ভুল হয়েছে! কনসোল চেক করুন।");
+            } finally {
+                btn.innerText = "LAUNCH ANNOUNCEMENT";
+                btn.disabled = false;
+            }
         };
 
+
+        // --- PROFILE MAGIC ---
         window.openMagic = (id, bal, views) => {
             document.getElementById('magicModal').classList.remove('hidden');
             document.getElementById('fakeViewInput').value = views;
@@ -247,15 +325,18 @@
                     balance: parseFloat(document.getElementById('addBalanceInput').value),
                     fakeViews: parseInt(document.getElementById('fakeViewInput').value)
                 });
-                document.getElementById('magicModal').classList.add('hidden');
+                window.closeMagic();
             };
         };
         window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
-        window.toggleMaintenance = async () => { await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); };
-        window.toggleVerify = async (id, s) => { await updateDoc(doc(db, "users", id), { isVerified: !s }); };
-        window.hardBanUser = async (id) => { if(confirm("BAN?")) await deleteDoc(doc(db, "users", id)); };
-        window.saveAd = async () => { await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); };
-        window.updateCPM = async () => { await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(document.getElementById('cpmRateInput').value) }, { merge: true }); };
+
+        window.searchUser = () => {
+            const term = document.getElementById('uSearch').value.toLowerCase();
+            document.querySelectorAll('.admin-card').forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(term) ? 'block' : 'none';
+            });
+        };
     </script>
 </body>
 </html>
