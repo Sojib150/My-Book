@@ -22,25 +22,21 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 bg-gray-50">
 
-    <nav class="bg-white/90 backdrop-blur-xl border-b sticky top-0 z-50 px-5 py-4">
+    <nav class="bg-white/95 backdrop-blur-xl border-b sticky top-0 z-50 px-5 py-4 shadow-sm">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-black text-blue-600 italic tracking-tighter">My Book</h1>
-            <div class="flex items-center gap-6 text-gray-600">
+            <div class="flex items-center gap-5 text-gray-600">
                 <a href="search.html"><i class="fa-solid fa-search text-xl"></i></a>
-                
                 <a href="reels.html"><i class="fa-solid fa-play-circle text-xl text-red-500"></i></a>
-
                 <a href="messages.html" class="relative">
                     <i class="fa-brands fa-facebook-messenger text-2xl text-blue-600"></i>
                 </a>
-
                 <div class="relative cursor-pointer" onclick="location.href='notifications.html'">
                     <i class="fa-solid fa-bell text-xl"></i>
-                    <div id="notifDot" class="notif-dot"></div>
+                    <div id="notifDot" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></div>
                 </div>
-
                 <img id="navPic" onclick="location.href='profile.html'" src="https://via.placeholder.com/100" class="w-9 h-9 rounded-full border-2 border-blue-100 object-cover cursor-pointer">
             </div>
         </div>
@@ -48,21 +44,24 @@
 
     <div class="max-w-md mx-auto p-4">
         
-        <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
-            </div>
-       <div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='upload-story.html'">
-                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
-                    <i class="fa-solid fa-plus"></i>
+        <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-8 py-2">
+            <div class="flex flex-col items-center gap-2 shrink-0 cursor-pointer" onclick="location.href='upload-story.html'">
+                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white shadow-sm">
+                    <i class="fa-solid fa-plus text-xl"></i>
                 </div>
-                <span class="text-[10px] font-bold text-gray-500">Your Story</span>
+                <span class="text-[11px] font-bold text-gray-500">Your Story</span>
             </div>
-            <div id="storyList" class="flex gap-4"></div>
+            
+            <div id="storyList" class="flex gap-4">
+                </div>
         </div>
 
-        <div id="feed" class="space-y-4">
-            <div class="text-center py-20 text-gray-400 font-bold"> নেটওয়ার্ক লোড হচ্ছে...</div>
-        </div>
+        <div id="feed" class="space-y-5">
+            </div>
     </div>
+
+</body>
+
 
     <button class="floating-btn" onclick="location.href='post.html'">
         <i class="fa-solid fa-plus"></i>
