@@ -273,13 +273,47 @@
         window.hardBanUser = async (id) => { if(confirm("TERMINATE THIS CITIZEN?")) await deleteDoc(doc(db, "users", id)); };
         
         // --- BROADCAST SYSTEM ---
-        window.sendBroadcast = async () => {
-            const msg = document.getElementById('broadcastMsg').value;
-            if(!msg) return;
-            await setDoc(doc(db, "appSettings", "announcement"), { message: msg, timestamp: Date.now() }, { merge: true });
-            alert("BROADCAST LAUNCHED TO ALL USERS!");
-            document.getElementById('broadcastMsg').value = "";
+                Window.sendBroadcast = async () => {
+            const msgInput = document.getElementById('broadcastMsg');
+            const msg = msgInput.value;
+            if(!msg) return alert("মেসেজ লিখুন!");
+
+            // বাটন ফিডব্যাক (অপশনাল কিন্তু ভালো)
+            const btn = event.target;
+            btn.innerText = "SENDING...";
+            btn.disabled = true;
+
+            try {
+                // ১. সব ইউজারকে খুঁজে বের করা
+                const usersSnap = await getDocs(collection(db, "users"));
+                const batch = writeBatch(db);
+
+                // ২. লুপ চালিয়ে সবার নোটিফিকেশন বক্সে মেসেজটি ঢুকানো
+                usersSnap.forEach((userDoc) => {
+                    const notifRef = doc(collection(db, "users", userDoc.id, "notifications"));
+                    batch.set(notifRef, {
+                        type: "admin",
+                        senderName: "Bondo AI Admin",
+                        message: msg,
+                        time: serverTimestamp(), // ফায়ারবেস টাইম
+                        status: "unread"
+                    });
+                });
+
+                // ৩. একবারে সব ডাটা পুশ করা
+                await batch.commit();
+                
+                alert("BROADCAST LAUNCHED TO ALL USERS! 🚀");
+                msgInput.value = "";
+            } catch (err) {
+                console.error(err);
+                alert("ভুল হয়েছে! কনসোল চেক করুন।");
+            } finally {
+                btn.innerText = "LAUNCH ANNOUNCEMENT";
+                btn.disabled = false;
+            }
         };
+
 
         // --- PROFILE MAGIC ---
         window.openMagic = (id, bal, views) => {
