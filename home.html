@@ -3,93 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Book - Imperial Home</title>
+    <title>My Book Elite - Professional Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; -webkit-tap-highlight-color: transparent; }
-        
-        /* Premium Card UI */
-        .post-card { background: white; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border: 1px solid #eef0f2; overflow: hidden; }
-        .video-box { width: 100%; background: #000; display: flex; align-items: center; min-height: 250px; overflow: hidden; }
-        video { width: 100%; max-height: 85vh; }
-        
-        /* Drawer Animations */
-        .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 25px rgba(0,0,0,0.1); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        .premium-card { background: white; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
+        .story-ring { border: 2.5px solid #2563eb; padding: 2px; transition: transform 0.3s; }
+        .story-ring:active { transform: scale(0.9); }
+        .video-box { width: 100%; background: #000; min-height: 280px; position: relative; }
+        video { width: 100%; max-height: 80vh; border-radius: 4px; }
+        .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; border-radius: 28px 28px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
         .drawer.active { transform: translateY(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; z-index: 999; }
-        
-        /* Dynamic Ad Slot */
-        .ad-slot { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 0; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        .ad-slot iframe { border: none; margin: 0 auto; display: block; }
-
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: none; z-index: 999; }
+        .floating-btn { position: fixed; bottom: 85px; right: 20px; width: 56px; height: 56px; background: #2563eb; color: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 8px 20px rgba(37,99,235,0.4); z-index: 900; }
+        .notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
-    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 px-4 py-3">
+    <nav class="bg-white/90 backdrop-blur-xl border-b sticky top-0 z-50 px-5 py-4">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-black text-blue-600 italic tracking-tighter">My Book</h1>
-            <div class="flex items-center gap-5 text-gray-500">
+            <div class="flex items-center gap-6 text-gray-600">
                 <a href="search.html"><i class="fa-solid fa-search text-xl"></i></a>
-                <a href="reels.html"><i class="fa-solid fa-play-circle text-xl text-red-500"></i></a>
-                <a href="messages.html"><i class="fa-brands fa-facebook-messenger text-2xl"></i></a>
-                <img id="navPic" src="https://via.placeholder.com/100" class="w-8 h-8 rounded-full border border-blue-100 object-cover">
+                <div class="relative cursor-pointer" onclick="location.href='notifications.html'">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                    <div id="notifDot" class="notif-dot"></div>
+                </div>
+                <img id="navPic" onclick="location.href='profile.html'" src="https://via.placeholder.com/100" class="w-9 h-9 rounded-full border-2 border-blue-100 object-cover cursor-pointer">
             </div>
         </div>
     </nav>
 
-    <div id="feed" class="max-w-md mx-auto p-2 space-y-3">
-        <div class="text-center py-20 text-gray-400 font-bold">১৮ দফার নেটওয়ার্ক লোড হচ্ছে...</div>
+    <div class="max-w-md mx-auto p-3">
+        <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
+            <div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='upload-story.html'">
+                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <span class="text-[10px] font-bold text-gray-500">Your Story</span>
+            </div>
+            <div id="storyList" class="flex gap-4"></div>
+        </div>
+
+        <div id="feed" class="space-y-4">
+            <div class="text-center py-20 text-gray-400 font-bold">এলিট নেটওয়ার্ক লোড হচ্ছে...</div>
+        </div>
     </div>
+
+    <button class="floating-btn" onclick="location.href='create-post.html'">
+        <i class="fa-solid fa-plus"></i>
+    </button>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
 
-    <div id="reportDrawer" class="drawer p-6">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-lg font-bold text-center mb-4 text-gray-800">রিপোর্ট করার কারণ</h3>
-        <div class="space-y-2">
-            <button onclick="submitReport('Spam')" class="w-full p-4 bg-gray-50 rounded-2xl text-left font-bold text-sm hover:bg-red-50 transition text-gray-700">স্প্যাম বা বিরক্তিকর</button>
-            <button onclick="submitReport('Harassment')" class="w-full p-4 bg-gray-50 rounded-2xl text-left font-bold text-sm hover:bg-red-50 transition text-gray-700">হয়রানি বা বুলিং</button>
-            <button onclick="submitReport('Fake')" class="w-full p-4 bg-gray-50 rounded-2xl text-left font-bold text-sm hover:bg-red-50 transition text-gray-700">মিথ্যা তথ্য</button>
+    <div id="reportDrawer" class="drawer p-8">
+        <div class="w-14 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
+        <h3 class="text-xl font-extrabold text-center mb-6">রিপোর্ট ক্যাটাগরি</h3>
+        <div class="space-y-3">
+            <button onclick="submitReport('Spam')" class="w-full p-5 bg-gray-50 rounded-2xl text-left font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition">স্প্যাম বা বিরক্তিকর</button>
+            <button onclick="submitReport('Harassment')" class="w-full p-5 bg-gray-50 rounded-2xl text-left font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition">হয়রানি বা বুলিং</button>
+            <button onclick="submitReport('Inappropriate')" class="w-full p-5 bg-gray-50 rounded-2xl text-left font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition">অশ্লীল কন্টেন্ট</button>
         </div>
     </div>
 
-    <div id="commentSheet" class="drawer h-[80vh] flex flex-col p-5">
-        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar p-1"></div>
-        
-        <div id="replyLabel" class="hidden bg-blue-50 p-2 text-[10px] font-bold text-blue-600 flex justify-between rounded-t-lg">
-            <span>Replying to <span id="repName"></span></span>
-            <button onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
+    <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-6">
+        <div class="w-14 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar"></div>
+        <div id="replyBox" class="hidden bg-blue-50 p-3 rounded-t-2xl text-xs font-bold text-blue-600 flex justify-between border-b">
+            <span>Replying to <span id="replyingTo"></span></span>
+            <button onclick="cancelReply()"><i class="fa-solid fa-times"></i></button>
         </div>
-        
-        <div class="flex gap-2 border-t pt-3 bg-white">
-            <input id="cInput" type="text" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm">
-            <button onclick="postComment()" class="bg-blue-600 text-white px-5 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <div id="shareDrawer" class="drawer p-6">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h3 class="text-lg font-bold text-center mb-6">শেয়ার করুন</h3>
-        <div class="grid grid-cols-2 gap-6">
-            <button onclick="share('profile')" class="flex flex-col items-center gap-2">
-                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-user-plus"></i></div>
-                <span class="text-[11px] font-extrabold">প্রোফাইল</span>
-            </button>
-            <button onclick="share('native')" class="flex flex-col items-center gap-2">
-                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-sm"><i class="fa-solid fa-share-nodes"></i></div>
-                <span class="text-[11px] font-extrabold">অন্যান্য</span>
-            </button>
+        <div class="flex gap-3 border-t pt-4 bg-white">
+            <input id="cInput" type="text" placeholder="মন্তব্য করুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm font-semibold">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -97,111 +93,134 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let user = null; let activePostId = null; let shareData = {};
+        let user = null; let activePostId = null;
 
-        onAuthStateChanged(auth, u => { if(u){ user=u; renderFeed(); loadProfile(); } else location.href="index.html"; });
+        onAuthStateChanged(auth, u => { if(u){ user=u; renderFeed(); loadProfile(); checkNotif(); loadStories(); } else location.href="index.html"; });
 
         async function loadProfile() {
             const d = await getDoc(doc(db, "users", user.uid));
-            if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || "https://via.placeholder.com/100";
+            if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || "";
+        }
+
+        async function checkNotif() {
+            onSnapshot(query(collection(db, "users", user.uid, "notifications")), snap => {
+                document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none';
+            });
+        }
+
+        async function loadStories() {
+            onSnapshot(collection(db, "stories"), snap => {
+                const sL = document.getElementById('storyList'); sL.innerHTML = "";
+                snap.forEach(d => {
+                    const s = d.data();
+                    sL.innerHTML += `
+                        <div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'">
+                            <img src="${s.userPic}" class="w-16 h-16 rounded-full p-1 border-2 border-blue-600 object-cover">
+                            <span class="text-[9px] font-bold text-gray-600">${s.userName}</span>
+                        </div>`;
+                });
+            });
         }
 
         async function renderFeed() {
-            // অ্যাডমিন প্যানেল থেকে অ্যাড কোড লোড
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const globalAdCode = adSnap.exists() ? adSnap.data().code : "";
+            const globalAd = adSnap.exists() ? adSnap.data().code : "";
 
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), async snap => {
                 const feed = document.getElementById('feed'); feed.innerHTML = "";
                 for(let ds of snap.docs) {
                     const p = ds.data(); const id = ds.id;
                     if(p.isShadowBanned) continue;
-                    
-                    const uRef = (await getDoc(doc(db, "users", p.userId))).data();
-                    const isV = uRef && uRef.isVerified === true;
-                    const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('en-GB',{hour:'numeric',minute:'numeric',hour12:true,day:'numeric',month:'short'}) : 'Just now';
 
-                    const card = document.createElement('div'); card.className = "post-card";
+                    const uRef = (await getDoc(doc(db, "users", p.userId))).data();
+                    const isV = uRef && uRef.isVerified;
+                    const isMine = p.userId === user.uid;
+                    const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'সবেমাত্র';
+
+                    const card = document.createElement('div'); card.className = "premium-card";
                     card.innerHTML = `
                         <div class="p-4 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <img src="${p.userPic}" class="w-10 h-10 rounded-xl object-cover border border-gray-100">
+                            <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
+                                <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50">
                                 <div>
-                                    <div class="flex items-center gap-1 font-extrabold text-sm text-gray-800">@${p.userName} ${isV?'<i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>':''}</div>
-                                    <p class="text-[9px] text-gray-400 font-black uppercase">${date} • ${isV?'Verified Elite':'Member'}</p>
+                                    <div class="flex items-center gap-1 font-extrabold text-[14px]">@${p.userName} ${isV?'<i class="fa-solid fa-certificate text-blue-500 text-[10px]"></i>':''}</div>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">${date}</p>
                                 </div>
                             </div>
-                            <button onclick="openReport('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-ellipsis-v text-xs"></i></button>
+                            <div class="flex items-center gap-2">
+                                ${isMine ? `<button onclick="deletePost('${id}')" class="text-red-400 p-2"><i class="fa-solid fa-trash-can text-sm"></i></button>` : ''}
+                                <button onclick="openReport('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-ellipsis-h"></i></button>
+                            </div>
                         </div>
-                        <p class="px-4 pb-3 text-[13px] text-gray-700 leading-snug">${p.text || ''}</p>
-                        <div class="video-box">${p.fileUrl ? (p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="feed-vid" onclick="toggleVid(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`) : ""}</div>
+                        <p class="px-5 pb-3 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
+                        <div class="video-box">${p.fileUrl ? (p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`) : ""}</div>
                         
-                        ${globalAdCode ? `<div class="ad-slot"><span class="bg-blue-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase mb-1 inline-block">Sponsored</span><div id="ad-box-${id}"></div></div>` : ""}
+                        ${globalAd ? `<div class="bg-gray-50 border-y py-3 text-center"><div id="ad-frame-${id}"></div></div>` : ""}
 
-                        <div class="flex border-t">
-                            <button onclick="like('${id}')" class="flex-1 py-4 flex flex-col items-center gap-1 text-[11px] font-black ${p.likedBy?.includes(user.uid)?'text-red-500':'text-gray-400'}">
-                                <i class="fa-${p.likedBy?.includes(user.uid)?'solid':'regular'} fa-heart text-xl"></i> ${p.likes||0}
+                        <div class="flex justify-around py-2 border-t mt-1">
+                            <button onclick="like('${id}','${p.userId}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${p.likedBy?.includes(user.uid)?'text-red-500':'text-gray-400'}">
+                                <i class="fa-${p.likedBy?.includes(user.uid)?'solid':'regular'} fa-heart text-xl"></i>
+                                <span class="text-[10px] font-black">${p.likes||0}</span>
                             </button>
-                            <button onclick="openC('${id}')" class="flex-1 py-4 flex flex-col items-center gap-1 text-[11px] font-black text-gray-400">
-                                <i class="fa-regular fa-comment text-xl"></i> Comment
+                            <button onclick="openC('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400">
+                                <i class="fa-regular fa-comment-dots text-xl"></i>
+                                <span class="text-[10px] font-black">${p.commentCount||0}</span>
                             </button>
-                            <button onclick="openS('${id}','${p.fileUrl}','${p.text}')" class="flex-1 py-4 flex flex-col items-center gap-1 text-[11px] font-black text-gray-400">
-                                <i class="fa-solid fa-share-nodes text-xl"></i> Share
+                            <button onclick="openS('${id}','${p.fileUrl}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400">
+                                <i class="fa-solid fa-share-nodes text-xl"></i>
+                                <span class="text-[10px] font-black">SHARE</span>
                             </button>
                         </div>
                     `;
                     feed.appendChild(card);
-
-                    // অ্যাড ইনজেক্ট করা
-                    if(globalAdCode) {
-                        setTimeout(() => {
-                            const box = document.getElementById(`ad-box-${id}`);
-                            if(box){
-                                const frame = document.createElement('iframe');
-                                frame.style.width="100%"; frame.style.height="75px"; frame.style.border="none";
-                                box.appendChild(frame);
-                                const fDoc = frame.contentWindow.document;
-                                fDoc.open();
-                                fDoc.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${globalAdCode}</body>`);
-                                fDoc.close();
-                            }
-                        }, 800);
-                    }
+                    if(globalAd) injectAd(id, globalAd);
                 }
-                setupIntersection();
+                initIntersection();
             });
         }
 
-        window.toggleVid = (v) => { document.querySelectorAll('.feed-vid').forEach(av => { if(av!==v) av.muted=true; }); v.muted = !v.muted; };
-        function setupIntersection() {
-            const obs = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else { e.target.pause(); e.target.muted=true; } }); }, { threshold: 0.7 });
-            document.querySelectorAll('.feed-vid').forEach(v => obs.observe(v));
+        function injectAd(id, code) {
+            setTimeout(() => {
+                const box = document.getElementById(`ad-frame-${id}`);
+                if(box){
+                    const frame = document.createElement('iframe');
+                    frame.style.width="100%"; frame.style.height="70px"; frame.style.border="none";
+                    box.appendChild(frame);
+                    frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`);
+                }
+            }, 1000);
         }
 
-        window.like = async (id) => {
-            const r = doc(db, "posts", id); const d = (await getDoc(r)).data();
+        window.deletePost = async (id) => { if(confirm("পোস্টটি ডিলিট করতে চান?")) await deleteDoc(doc(db, "posts", id)); };
+
+        window.like = async (id, ownerId) => {
+            const ref = doc(db, "posts", id); const d = (await getDoc(ref)).data();
             const hasL = d.likedBy?.includes(user.uid);
-            await updateDoc(r, { likes: increment(hasL?-1:1), likedBy: hasL?arrayRemove(user.uid):arrayUnion(user.uid) });
+            await updateDoc(ref, { likes: increment(hasL?-1:1), likedBy: hasL?arrayRemove(user.uid):arrayUnion(user.uid) });
+            if(!hasL && ownerId !== user.uid) {
+                await addDoc(collection(db, "users", ownerId, "notifications"), { type: 'like', from: user.uid, time: serverTimestamp() });
+            }
         };
 
-        window.openC = (id) => { activePostId=id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadC(id); };
-        function loadC(id) {
+        window.openC = (id) => { activePostId=id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadComments(id); };
+        
+        async function loadComments(id) {
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
                 const l = document.getElementById('commentList'); l.innerHTML = "";
                 sn.forEach(c => {
                     const d = c.data(); const cid = c.id;
                     const isL = d.likedBy?.includes(user.uid);
                     l.innerHTML += `
-                        <div class="flex gap-3 group">
-                            <img src="${d.userPic}" class="w-9 h-9 rounded-full object-cover border">
+                        <div class="flex gap-4">
+                            <img src="${d.userPic}" onclick="location.href='user.html?id=${d.userId}'" class="w-10 h-10 rounded-full object-cover border cursor-pointer">
                             <div class="flex-1">
-                                <div class="bg-gray-100 p-3 rounded-2xl inline-block max-w-[90%]">
-                                    <p class="text-[10px] font-black text-blue-700">@${d.userName}</p>
-                                    <p class="text-[12px] text-gray-800 leading-tight">${d.text}</p>
+                                <div class="bg-gray-100 p-4 rounded-2xl inline-block max-w-[95%]">
+                                    <p class="text-[11px] font-black text-blue-600 mb-1">@${d.userName}</p>
+                                    <p class="text-[13px] text-gray-800 leading-tight">${d.text}</p>
                                 </div>
-                                <div class="flex gap-4 mt-1 ml-1 text-[10px] font-extrabold text-gray-400">
+                                <div class="flex gap-5 mt-2 ml-2 text-[10px] font-bold text-gray-400">
                                     <button onclick="likeC('${id}','${cid}')" class="${isL?'text-red-500':''}">Like (${d.likes||0})</button>
-                                    <button onclick="prepRep('${d.userName}')">Reply</button>
+                                    <button onclick="prepReply('${d.userName}')">Reply</button>
                                 </div>
                             </div>
                         </div>`;
@@ -210,35 +229,25 @@
         }
 
         window.postComment = async () => {
-            const val = document.getElementById('cInput').value; if(!val) return;
-            const uData = (await getDoc(doc(db, "users", user.uid))).data();
-            await addDoc(collection(db, "posts", activePostId, "comments"), { text: val, userId: user.uid, userName: uData.name, userPic: uData.profilePic, time: serverTimestamp(), likes:0, likedBy:[] });
+            const v = document.getElementById('cInput').value; if(!v) return;
+            const u = (await getDoc(doc(db, "users", user.uid))).data();
+            await addDoc(collection(db, "posts", activePostId, "comments"), { text: v, userId: user.uid, userName: u.name, userPic: u.profilePic, time: serverTimestamp(), likes:0, likedBy:[] });
+            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
             cancelReply();
         };
 
-        window.likeC = async (pid, cid) => {
-            const r = doc(db, "posts", pid, "comments", cid); const d = (await getDoc(r)).data();
-            const isL = d.likedBy?.includes(user.uid);
-            await updateDoc(r, { likes: increment(isL?-1:1), likedBy: isL?arrayRemove(user.uid):arrayUnion(user.uid) });
-        };
+        window.prepReply = (n) => { document.getElementById('replyBox').classList.remove('hidden'); document.getElementById('replyingTo').innerText=n; document.getElementById('cInput').value=`@${n} `; document.getElementById('cInput').focus(); };
+        window.cancelReply = () => { document.getElementById('replyBox').classList.add('hidden'); document.getElementById('cInput').value=""; };
 
-        window.prepRep = (n) => { document.getElementById('replyLabel').classList.remove('hidden'); document.getElementById('repName').innerText=n; document.getElementById('cInput').value=`@${n} `; document.getElementById('cInput').focus(); };
-        window.cancelReply = () => { document.getElementById('replyLabel').classList.add('hidden'); document.getElementById('cInput').value=""; };
-
-        window.openReport = (id) => { activePostId=id; document.getElementById('reportDrawer').classList.add('active'); document.getElementById('overlay').style.display='block'; };
-        window.submitReport = async (res) => { await addDoc(collection(db, "reports"), { postId: activePostId, reason: res, reporter: user.uid, time: serverTimestamp() }); alert("রিপোর্ট অ্যাডমিন প্যানেলে পাঠানো হয়েছে।"); closeAll(); };
-
-        window.openS = (id, url, txt) => { shareData={id,url,txt}; document.getElementById('shareDrawer').classList.add('active'); document.getElementById('overlay').style.display='block'; };
-        window.share = async (type) => {
-            if(type==='profile'){
-                const u = (await getDoc(doc(db, "users", user.uid))).data();
-                await addDoc(collection(db, "posts"), { userId: user.uid, userName: u.name, userPic: u.profilePic, fileUrl: shareData.url||"", fileType: "video", text: "Shared: "+shareData.txt, createdAt: serverTimestamp(), likes: 0, likedBy: [], isShadowBanned: false });
-                alert("আপনার প্রোফাইলে শেয়ার হয়েছে!");
-            } else if(navigator.share) { navigator.share({ title: 'My Book', text: shareData.txt, url: window.location.href }); }
-            closeAll();
-        };
+        window.handleVideo = (v) => { document.querySelectorAll('.post-vid').forEach(av => { if(av!==v) av.muted=true; }); v.muted = !v.muted; };
+        function initIntersection() {
+            const obs = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else { e.target.pause(); e.target.muted=true; } }); }, { threshold: 0.7 });
+            document.querySelectorAll('.post-vid').forEach(v => obs.observe(v));
+        }
 
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; };
+        window.openReport = (id) => { activePostId=id; document.getElementById('reportDrawer').classList.add('active'); document.getElementById('overlay').style.display='block'; };
+        window.submitReport = async (res) => { await addDoc(collection(db, "reports"), { postId: activePostId, reason: res, reporter: user.uid, time: serverTimestamp() }); alert("রিপোর্ট করা হয়েছে।"); closeAll(); };
     </script>
 </body>
 </html>
