@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - My Book Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f9fafb; }
+        .notif-card { background: white; transition: all 0.3s; border-bottom: 1px solid #f1f5f9; }
+        .notif-card.unread { background: #eff6ff; border-left: 4px solid #2563eb; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 px-5 py-4">
+        <div class="max-w-md mx-auto flex items-center gap-4">
+            <button onclick="location.href='Home.html'" class="text-gray-600 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
+            <h1 class="text-xl font-bold text-gray-800">নোটিফিকেশন</h1>
+        </div>
+    </nav>
+
+    <div id="notifList" class="max-w-md mx-auto min-h-screen">
+        <div class="text-center py-20 text-gray-400 font-bold">লোড হচ্ছে...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, u => {
+            if(u) loadNotifications(u.uid);
+            else location.href="index.html";
+        });
+
+        async function loadNotifications(uid) {
+            const list = document.getElementById('notifList');
+            
+            onSnapshot(query(collection(db, "users", uid, "notifications"), orderBy("time", "desc")), async snap => {
+                if(snap.empty) {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-32 text-gray-400">
+                        <i class="fa-solid fa-bell-slash text-5xl mb-4 opacity-20"></i>
+                        <p class="font-bold">এখনও কোনো নোটিফিকেশন নেই</p>
+                    </div>`;
+                    return;
+                }
+
+                list.innerHTML = "";
+                for(let ds of snap.docs) {
+                    const n = ds.data();
+                    const nid = ds.id;
+                    let fromUser = { name: "Admin", pic: "https://via.placeholder.com/100" };
+
+                    // যদি ইউজার থেকে নোটিফিকেশন আসে (লাইক/কমেন্ট)
+                    if(n.from !== 'admin') {
+                        const uD = (await getDoc(doc(db, "users", n.from))).data();
+                        if(uD) { fromUser.name = uD.name; fromUser.pic = uD.profilePic; }
+                    }
+
+                    let msg = "";
+                    let icon = "";
+                    let iconBg = "";
+
+                    if(n.type === 'like') { msg = "আপনার পোস্টে লাইক দিয়েছেন"; icon = "fa-heart"; iconBg = "bg-red-100 text-red-500"; }
+                    else if(n.type === 'comment') { msg = "আপনার পোস্টে কমেন্ট করেছেন"; icon = "fa-comment"; iconBg = "bg-blue-100 text-blue-500"; }
+                    else if(n.type === 'admin') { msg = n.message || "অ্যাডমিন থেকে একটি বার্তা এসেছে"; icon = "fa-star"; iconBg = "bg-yellow-100 text-yellow-600"; }
+
+                    const time = n.time ? new Date(n.time.seconds*1000).toLocaleString('bn-BD', {hour:'numeric', minute:'numeric', day:'numeric', month:'short'}) : 'সবেমাত্র';
+
+                    const card = document.createElement('div');
+                    card.className = `notif-card p-4 flex gap-4 items-start cursor-pointer hover:bg-gray-50`;
+                    card.innerHTML = `
+                        <div class="relative">
+                            <img src="${fromUser.pic}" class="w-12 h-12 rounded-2xl object-cover border border-gray-100 shadow-sm">
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 ${iconBg} rounded-full flex items-center justify-center border-2 border-white text-[10px]">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[13px] text-gray-800 leading-tight">
+                                <span class="font-black text-gray-900">@${fromUser.name}</span> ${msg}
+                            </p>
+                            <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-tighter">${time}</p>
+                        </div>
+                        <button onclick="deleteNotif('${uid}', '${nid}')" class="text-gray-300 hover:text-red-400 p-2"><i class="fa-solid fa-xmark text-sm"></i></button>
+                    `;
+                    list.appendChild(card);
+                }
+            });
+        }
+
+        window.deleteNotif = async (uid, nid) => {
+            await deleteDoc(doc(db, "users", uid, "notifications", nid));
+        };
+    </script>
+</body>
+</html>
