@@ -238,12 +238,73 @@
         document.getElementById('confirmDelBtn').onclick = async () => { if(postToDelete){ await deleteDoc(doc(db, "posts", postToDelete)); closeAll(); } };
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; cancelReply(); };
         window.sharePost = (id) => navigator.share ? navigator.share({ title: 'My Book', url: window.location.href }) : alert("লিঙ্ক কপি করা হয়েছে!");
-        window.handleVideo = (v) => { v.muted = !v.muted; };
-        function initIntersection() { const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? e.target.play().catch(()=>{}) : e.target.pause()), { threshold: 0.7 }); document.querySelectorAll('.post-vid').forEach(v => obs.observe(v)); }
-        async function loadProfile() { const d = await getDoc(doc(db, "users", user.uid)); if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; }
-        async function checkNotif() { onSnapshot(query(collection(db, "users", user.uid, "notifications")), snap => document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'); }
-        async function loadStories() { onSnapshot(collection(db, "stories"), snap => { const sL = document.getElementById('storyList'); sL.innerHTML = ""; snap.forEach(d => sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><img src="${d.data().userPic}" class="w-16 h-16 rounded-full p-1 border-2 border-blue-600 object-cover"><span class="text-[9px] font-bold text-gray-600">${d.data().userName}</span></div>`); }); }
-        function injectAd(id, code) { setTimeout(() => { const box = document.getElementById(`ad-frame-${id}`); if(box){ const frame = document.createElement('iframe'); frame.style.width="100%"; frame.style.height="60px"; frame.style.border="none"; box.appendChild(frame); frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`); } }, 1500); }
+                // ১. ভিডিওতে টাচ করলে সাউন্ড অন হবে এবং বাকি সব মিউট হবে (সাউন্ড মিক্সিং ফিক্স)
+        window.handleVideo = (v) => { 
+            document.querySelectorAll('.post-vid').forEach(vid => {
+                if (vid !== v) vid.muted = true; 
+            });
+            v.muted = !v.muted; 
+            if(v.paused) v.play().catch(()=>{});
+        };
+
+        // ২. অটো-প্লে লজিক: ভিডিও স্ক্রিনে এলে চলবে, চলে গেলে পজ হবে
+        function initIntersection() { 
+            const obs = new IntersectionObserver(es => {
+                es.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.muted = true; // অটো-প্লে সব সময় মিউট অবস্থায় শুরু হতে হবে
+                        e.target.play().catch(() => {});
+                    } else {
+                        e.target.pause(); // চোখের আড়াল হলে পজ
+                        e.target.muted = true; 
+                    }
+                });
+            }, { threshold: 0.6 }); // ৬০% ভিডিও স্ক্রিনে আসলে চলবে
+
+            document.querySelectorAll('.post-vid').forEach(v => obs.observe(v)); 
+        }
+
+        // ৩. প্রোফাইল পিকচার লোড
+        async function loadProfile() { 
+            const d = await getDoc(doc(db, "users", user.uid)); 
+            if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; 
+        }
+
+        // ৪. নোটিফিকেশন চেক
+        async function checkNotif() { 
+            onSnapshot(query(collection(db, "users", user.uid, "notifications")), snap => {
+                document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none';
+            }); 
+        }
+
+        // ৫. স্টোরি লোড
+        async function loadStories() { 
+            onSnapshot(collection(db, "stories"), snap => { 
+                const sL = document.getElementById('storyList'); 
+                sL.innerHTML = ""; 
+                snap.forEach(d => {
+                    sL.innerHTML += `
+                        <div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'">
+                            <img src="${d.data().userPic}" class="w-16 h-16 rounded-full p-1 border-2 border-blue-600 object-cover">
+                            <span class="text-[9px] font-bold text-gray-600">${d.data().userName}</span>
+                        </div>`;
+                }); 
+            }); 
+        }
+
+        // ৬. অ্যাডস লজিক
+        function injectAd(id, code) { 
+            setTimeout(() => { 
+                const box = document.getElementById(`ad-frame-${id}`); 
+                if(box){ 
+                    const frame = document.createElement('iframe'); 
+                    frame.style.width="100%"; frame.style.height="60px"; frame.style.border="none"; 
+                    box.appendChild(frame); 
+                    frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`); 
+                } 
+            }, 1500); 
+        }
     </script>
 </body>
 </html>
+
