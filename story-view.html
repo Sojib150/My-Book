@@ -30,12 +30,12 @@
                         <p id="sTime" class="text-white/60 text-[10px] font-bold uppercase"></p>
                     </div>
                 </div>
-                <button onclick="location.href='Home.html'" class="text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="location.href='home.html'" class="text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
     </div>
 
-    <div class="story-content" onclick="location.href='Home.html'">
+    <div class="story-content" onclick="location.href='home.html'">
         <div id="mediaContainer"></div>
     </div>
 
@@ -50,11 +50,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const storyId = urlParams.get('id');
 
-        if(!storyId) location.href = "Home.html";
+        if(!storyId) location.href = "home.html";
 
         async function loadStory() {
             const sDoc = await getDoc(doc(db, "stories", storyId));
-            if(!sDoc.exists()) return location.href = "Home.html";
+            if(!sDoc.exists()) return location.href = "home.html";
 
             const s = sDoc.data();
             document.getElementById('sUserName').innerText = s.userName;
