@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story View - My Book </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #000; margin: 0; overflow: hidden; }
+        .story-progress { height: 3px; background: rgba(255,255,255,0.3); border-radius: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #fff; width: 0%; transition: width 5s linear; }
+        .story-content { height: 100vh; width: 100vw; display: flex; align-items: center; justify-content: center; }
+        img, video { max-width: 100%; max-height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+    <div class="fixed top-0 left-0 right-0 z-50 p-4 pt-6 bg-gradient-to-b from-black/60 to-transparent">
+        <div class="max-w-md mx-auto">
+            <div class="story-progress mb-4">
+                <div id="pBar" class="progress-bar"></div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img id="sUserPic" src="" class="w-10 h-10 rounded-full border-2 border-white object-cover">
+                    <div>
+                        <p id="sUserName" class="text-white text-sm font-black"></p>
+                        <p id="sTime" class="text-white/60 text-[10px] font-bold uppercase"></p>
+                    </div>
+                </div>
+                <button onclick="location.href='Home.html'" class="text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="story-content" onclick="location.href='Home.html'">
+        <div id="mediaContainer"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if(!storyId) location.href = "Home.html";
+
+        async function loadStory() {
+            const sDoc = await getDoc(doc(db, "stories", storyId));
+            if(!sDoc.exists()) return location.href = "Home.html";
+
+            const s = sDoc.data();
+            document.getElementById('sUserName').innerText = s.userName;
+            document.getElementById('sUserPic').src = s.userPic;
+            document.getElementById('sTime').innerText = "Active Story";
+
+            const container = document.getElementById('mediaContainer');
+            if(s.fileType === 'video') {
+                container.innerHTML = `<video src="${s.fileUrl}" autoplay muted playsinline class="w-full"></video>`;
+            } else {
+                container.innerHTML = `<img src="${s.fileUrl}" class="w-full">`;
+            }
+
+            // ৫ সেকেন্ড পর অটোমেটিক হোমে ফিরে যাওয়া
+            setTimeout(() => { document.getElementById('pBar').style.width = "100%"; }, 100);
+            setTimeout(() => { location.href = "home.html"; }, 5100);
+        }
+
+        loadStory();
+    </script>
+</body>
+</html>
