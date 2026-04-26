@@ -5,115 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        input, select, textarea { border: 1px solid #e5e7eb !important; }
-        .custom-alert { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        input, textarea, select { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 16px; padding: 14px; outline: none; transition: 0.3s; width: 100%; font-size: 14px; }
+        input:focus, textarea:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .save-btn { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        .img-edit-overlay { background: rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; }
+        .img-edit-overlay:hover { opacity: 1; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-10">
+<body class="pb-10">
 
-    <nav class="bg-white border-b sticky top-0 z-50 p-4 shadow-sm">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="profile.html" class="text-gray-600"><i class="fas fa-arrow-left text-xl"></i></a>
-                <h1 class="font-bold text-gray-800">প্রোফাইল এডিট</h1>
-            </div>
-            <button id="saveBtn" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-xs uppercase shadow-lg active:scale-90 transition-all">Save</button>
-        </div>
-    </nav>
+    <header class="p-6 flex items-center gap-4">
+        <button onclick="window.location.href='profile.html'" class="w-10 h-10 glass rounded-xl flex items-center justify-center">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <h1 class="text-xl font-black tracking-tight uppercase">Edit Profile</h1>
+    </header>
 
-    <div class="max-w-md mx-auto p-6 space-y-5">
-        <div class="flex flex-col items-center">
-            <div class="relative">
-                <div id="uAvatar" class="w-28 h-28 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
-                    <img id="previewImg" src="" class="w-full h-full object-cover hidden">
-                    <span id="initial">?</span>
-                </div>
-                <label for="fileInput" class="absolute bottom-1 right-1 bg-blue-600 text-white w-9 h-9 rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-lg">
-                    <i class="fas fa-camera"></i>
+    <main class="px-6 space-y-6">
+        <div class="flex flex-col items-center py-6">
+            <div class="relative w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-indigo-600/20 group">
+                <img id="currentPic" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+                <label for="picUpload" class="img-edit-overlay absolute inset-0 flex items-center justify-center cursor-pointer">
+                    <i class="fas fa-camera text-2xl text-white"></i>
                 </label>
-                <input type="file" id="fileInput" class="hidden" accept="image/*">
+                <input type="file" id="picUpload" class="hidden" accept="image/*">
             </div>
-            <p class="text-[10px] text-gray-400 mt-3 font-black uppercase tracking-widest">Update Photo</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase mt-4 tracking-widest">Tap to change avatar</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 mt-6">
+        <div class="glass p-8 rounded-[2.5rem] space-y-5">
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Full Name</label>
-                <input type="text" id="nameInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm focus:ring-2 focus:ring-blue-400 transition">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Display Name</label>
+                <input type="text" id="editName" placeholder="Your Name">
             </div>
 
             <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Bio</label>
-                <textarea id="bioInput" rows="2" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm focus:ring-2 focus:ring-blue-400 transition"></textarea>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">About Bio</label>
+                <textarea id="editBio" rows="3" placeholder="Tell the My Book world about you..."></textarea>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Birthday</label>
-                    <input type="date" id="dobInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Gender</label>
-                    <select id="genderInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-                        <option value="">Select</option>
-                        <option value="Male">ছেলে (Male)</option>
-                        <option value="Female">মেয়ে (Female)</option>
-                        <option value="Other">অন্যান্য</option>
+            <div class="pt-4 border-t border-white/5">
+                <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">Payment Details</h3>
+                <div class="space-y-4">
+                    <select id="pMethod">
+                        <option value="Bkash">bKash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
                     </select>
+                    <input type="number" id="pNumber" placeholder="Payment Account Number">
                 </div>
             </div>
 
-            <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Current City</label>
-                <input type="text" id="cityInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-            </div>
-
-            <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Education</label>
-                <input type="text" id="eduInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-            </div>
-
-            <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Occupation</label>
-                <input type="text" id="jobInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-            </div>
-
-            <div>
-                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Relationship Status</label>
-                <select id="relationInput" class="w-full bg-white rounded-xl py-3 px-4 mt-1 outline-none text-sm">
-                    <option value="">Select Status</option>
-                    <option value="Single">সিঙ্গেল (Single)</option>
-                    <option value="Married">বিবাহিত (Married)</option>
-                    <option value="In a Relationship">রিলেশনশিপে আছি</option>
-                </select>
-            </div>
+            <button id="saveBtn" class="save-btn w-full py-4 rounded-2xl font-black tracking-widest uppercase mt-4">
+                Update Profile
+            </button>
         </div>
-    </div>
-
-    <div id="statusPopup" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center shadow-2xl custom-alert">
-            <div id="popLoader" class="mb-4">
-                <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600"></i>
-            </div>
-            <div id="popSuccess" class="hidden mb-4 text-green-500">
-                <i class="fas fa-check-circle text-5xl"></i>
-            </div>
-            <div id="popError" class="hidden mb-4 text-red-500">
-                <i class="fas fa-exclamation-circle text-5xl"></i>
-            </div>
-            <h3 id="popTitle" class="text-lg font-bold text-gray-800">Processing...</h3>
-            <p id="popMsg" class="text-xs text-gray-500 mt-2">দয়া করে একটু অপেক্ষা করুন</p>
-            <button id="closePop" class="hidden mt-6 w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-800 text-xs uppercase tracking-widest">Close</button>
-        </div>
-    </div>
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -123,108 +81,69 @@
             messagingSenderId: "868584044532", 
             appId: "1:868584044532:web:51f07436a883f88332eba1" 
         };
+
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        let uid = null;
-        let base64Image = null;
+        let currentUserID = null;
 
-        onAuthStateChanged(auth, async user => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                uid = user.uid;
-                const snap = await getDoc(doc(db, "users", uid));
-                if (snap.exists()) {
-                    const d = snap.data();
-                    document.getElementById('nameInput').value = d.name || "";
-                    document.getElementById('bioInput').value = d.bio || "";
-                    document.getElementById('dobInput').value = d.dob || "";
-                    document.getElementById('genderInput').value = d.gender || "";
-                    document.getElementById('cityInput').value = d.city || "";
-                    document.getElementById('eduInput').value = d.education || "";
-                    document.getElementById('jobInput').value = d.job || "";
-                    document.getElementById('relationInput').value = d.relationship || "";
-                    if (d.profilePic) showPreview(d.profilePic);
-                    else document.getElementById('initial').innerText = (d.name || "U")[0].toUpperCase();
-                }
-            } else window.location.href = "index.html";
+                currentUserID = user.uid;
+                // লোড কারেন্ট ডাটা
+                onSnapshot(doc(db, "users", user.uid), (d) => {
+                    if (d.exists()) {
+                        const data = d.data();
+                        document.getElementById('editName').value = data.name || "";
+                        document.getElementById('editBio').value = data.bio || "";
+                        document.getElementById('currentPic').src = data.profilePic || "https://via.placeholder.com/150";
+                        document.getElementById('pMethod').value = data.paymentMethod || "Bkash";
+                        document.getElementById('pNumber').value = data.paymentNumber || "";
+                    }
+                });
+            } else {
+                window.location.href = "login.html";
+            }
         });
 
-        // Image Selection & Compression
-        document.getElementById('fileInput').onchange = e => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = event => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const size = 300; // Resize to 300px for stability
-                        canvas.width = size; canvas.height = size;
-                        ctx.drawImage(img, 0, 0, size, size);
-                        base64Image = canvas.toDataURL('image/jpeg', 0.7); // Compress quality to 70%
-                        showPreview(base64Image);
-                    };
-                };
-                reader.readAsDataURL(file);
+        // সেভ ডাটা লজিক
+        document.getElementById('saveBtn').onclick = async () => {
+            const name = document.getElementById('editName').value;
+            const bio = document.getElementById('editBio').value;
+            const method = document.getElementById('pMethod').value;
+            const number = document.getElementById('pNumber').value;
+            const btn = document.getElementById('saveBtn');
+
+            btn.innerText = "SAVING...";
+            btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "users", currentUserID), {
+                    name: name,
+                    bio: bio,
+                    paymentMethod: method,
+                    paymentNumber: number
+                });
+                alert("Profile Updated Successfully! 📖");
+                window.location.href = "profile.html";
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.innerText = "UPDATE PROFILE";
+                btn.disabled = false;
             }
         };
 
-        function showPreview(url) {
-            const img = document.getElementById('previewImg');
-            img.src = url;
-            img.classList.remove('hidden');
-            document.getElementById('initial').classList.add('hidden');
-        }
-
-        function showStatus(type, title, msg) {
-            const pop = document.getElementById('statusPopup');
-            const ldr = document.getElementById('popLoader');
-            const ok = document.getElementById('popSuccess');
-            const err = document.getElementById('popError');
-            const btn = document.getElementById('closePop');
-
-            pop.classList.remove('hidden');
-            ldr.classList.add('hidden'); ok.classList.add('hidden'); err.classList.add('hidden'); btn.classList.add('hidden');
-
-            if (type === 'load') ldr.classList.remove('hidden');
-            else if (type === 'success') { ok.classList.remove('hidden'); setTimeout(() => window.location.href = "profile.html", 1500); }
-            else if (type === 'error') { err.classList.remove('hidden'); btn.classList.remove('hidden'); }
-
-            document.getElementById('popTitle').innerText = title;
-            document.getElementById('popMsg').innerText = msg;
-        }
-
-        document.getElementById('closePop').onclick = () => document.getElementById('statusPopup').classList.add('hidden');
-
-        document.getElementById('saveBtn').onclick = async () => {
-            const name = document.getElementById('nameInput').value.trim();
-            if (!name) return alert("দয়া করে আপনার নাম লিখুন");
-
-            showStatus('load', 'Updating...', 'আপনার প্রোফাইল সেভ করা হচ্ছে');
-
-            try {
-                const data = {
-                    name,
-                    bio: document.getElementById('bioInput').value,
-                    dob: document.getElementById('dobInput').value,
-                    gender: document.getElementById('genderInput').value,
-                    city: document.getElementById('cityInput').value,
-                    education: document.getElementById('eduInput').value,
-                    job: document.getElementById('jobInput').value,
-                    relationship: document.getElementById('relationInput').value,
-                    lastUpdate: new Date()
-                };
-                if (base64Image) data.profilePic = base64Image;
-
-                await updateDoc(doc(db, "users", uid), data);
-                showStatus('success', 'Success!', 'প্রোফাইল সুন্দরভাবে আপডেট হয়েছে');
-            } catch (e) {
-                console.error(e);
-                showStatus('error', 'Error!', 'দুঃখিত, তথ্য সেভ করা সম্ভব হয়নি। আবার চেষ্টা করুন।');
-            }
+        // ছবি আপলোড লজিক (সিম্পল লিংকের মাধ্যমে)
+        document.getElementById('picUpload').onchange = function(e) {
+            // নোট: স্টোরেজ সেটআপ না থাকলে এখানে শুধু লোকাল প্রিভিউ দেখাবে
+            // ফুল প্রজেক্টে এখানে Firebase Storage ব্যবহার করতে হবে
+            const reader = new FileReader();
+            reader.onload = function(){
+                document.getElementById('currentPic').src = reader.result;
+                // এখানে আপনি ইমেজের URL আপডেট করার লজিক দিতে পারেন
+            };
+            reader.readAsDataURL(e.target.files[0]);
         };
     </script>
 </body>
