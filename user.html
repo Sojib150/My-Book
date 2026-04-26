@@ -5,146 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .grid-item { position: relative; aspect-ratio: 1/1; overflow: hidden; border-radius: 12px; background: #0f172a; cursor: pointer; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .post-type-icon { position: absolute; top: 8px; right: 8px; font-size: 12px; color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .btn-follow { background: #6366f1; transition: 0.3s; }
+        .btn-followed { background: rgba(255,255,255,0.1); color: #94a3b8; }
+        .nav-btn { transition: 0.3s; }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="pb-24">
 
-    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4 shadow-sm">
-        <div class="max-w-md mx-auto flex items-center gap-4">
-            <a href="home.html" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full transition"><i class="fas fa-chevron-left text-xl"></i></a>
-            <h1 class="font-bold text-gray-800 text-sm uppercase tracking-wider">বন্ধু প্রোফাইল</h1>
-        </div>
-    </nav>
+    <div class="relative h-44 bg-gradient-to-r from-indigo-900/40 to-purple-900/40">
+        <button onclick="history.back()" class="absolute top-6 left-6 w-10 h-10 glass rounded-xl flex items-center justify-center z-20">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
 
-    <div class="max-w-md mx-auto bg-white shadow-sm border-b relative text-center">
-        <div class="h-36 bg-gradient-to-r from-blue-400 to-blue-600 relative overflow-hidden">
-            <img id="coverImg" src="" class="w-full h-full object-cover hidden">
-        </div>
-        
-        <div class="relative flex justify-center -mt-16">
-            <div id="uAvatar" class="w-32 h-32 bg-blue-500 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-bold text-white">
-                <img id="profileImg" src="" class="w-full h-full object-cover hidden">
-                <span id="initialText">?</span>
-            </div>
-        </div>
-        
-        <div class="px-6 pb-6">
-            <h2 id="uName" class="text-2xl font-black text-gray-800 mt-4 leading-none italic">লোড হচ্ছে...</h2>
-            <p id="uEmail" class="text-gray-400 text-[10px] mt-1 font-bold"></p>
-            
-            <div class="mt-5 flex justify-center gap-2">
-                <button id="followBtn" class="hidden bg-blue-600 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-90 transition-all">Follow</button>
-                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-90 transition-all">Unfollow</button>
-                
-                <button id="msgBtn" class="bg-white text-blue-600 border border-blue-600 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-sm active:scale-90 transition-all">
-                    <i class="fas fa-comment-dots mr-1"></i> Message
+    <div class="px-6 -mt-16 relative z-10">
+        <div class="flex justify-between items-end mb-4">
+            <img id="targetPic" src="https://via.placeholder.com/150" class="w-28 h-28 rounded-[2.5rem] border-4 border-[#05070a] object-cover shadow-2xl">
+            <div class="flex gap-2 mb-2">
+                <button id="msgBtn" class="w-12 h-12 glass rounded-2xl flex items-center justify-center text-indigo-400">
+                    <i class="fas fa-comment-dots"></i>
                 </button>
+                <button id="followBtn" class="btn-follow px-8 h-12 rounded-2xl font-black text-xs uppercase tracking-widest">Follow</button>
             </div>
+        </div>
 
-            <div class="flex justify-around mt-8 border-t pt-6">
-                <div class="text-center"><p id="pCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Posts</p></div>
-                <div class="text-center"><p id="followerCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Followers</p></div>
-                <div class="text-center"><p id="followingCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Following</p></div>
+        <div class="mb-6">
+            <div class="flex items-center gap-2">
+                <h2 id="targetName" class="text-2xl font-black tracking-tight uppercase">Loading...</h2>
+                <span id="targetBadge" class="hidden text-blue-500"><i class="fas fa-check-circle"></i></span>
             </div>
+            <p id="targetBio" class="text-xs text-slate-400 mt-1 leading-relaxed max-w-xs">Connecting dots in the digital world...</p>
+        </div>
+
+        <div class="flex gap-8 py-4 border-t border-white/5">
+            <div><span id="targetFollowers" class="font-black text-white">0</span> <span class="text-[10px] font-bold text-slate-500 uppercase ml-1">Followers</span></div>
+            <div><span id="targetPostsCount" class="font-black text-white">0</span> <span class="text-[10px] font-bold text-slate-500 uppercase ml-1">Posts</span></div>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-2 bg-white">
-        <div class="flex border-b">
-            <button id="tabAll" class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600"><i class="fas fa-th"></i></button>
-            <button id="tabVideos" class="flex-1 py-3 text-gray-300"><i class="fas fa-video"></i></button>
+    <div class="px-6 mt-6">
+        <div class="flex gap-4 mb-6 text-[10px] font-black uppercase tracking-[0.2em]">
+            <span class="text-indigo-400 border-b-2 border-indigo-400 pb-2">Feed</span>
+            <span class="text-slate-500">About</span>
         </div>
-        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
+
+        <div id="userPostsGrid" class="grid grid-cols-3 gap-2">
+            </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app",
+            messagingSenderId: "868584044532",
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetId = urlParams.get('id');
-        let currentUser = null;
-        let posts = [];
+        // ১. URL থেকে UID বের করা (Reels থেকে পাঠানো)
+        const params = new URLSearchParams(window.location.search);
+        const targetUID = params.get('uid');
 
-        onAuthStateChanged(auth, user => {
-            if(user) {
-                currentUser = user;
-                if(currentUser.uid === targetId) window.location.href = "profile.html";
-                init();
-            } else { window.location.href = "index.html"; }
+        onAuthStateChanged(auth, (user) => {
+            if (user && targetUID) {
+                loadProfile();
+                loadUserPosts();
+                checkFollowStatus(user.uid);
+                
+                // মেসেজ বাটনের লিঙ্ক
+                document.getElementById('msgBtn').onclick = () => {
+                    window.location.href = `messages.html?chatWith=${targetUID}`;
+                };
+            }
         });
 
-        // মেসেজ বাটনের লজিক
-        document.getElementById('msgBtn').onclick = () => {
-            window.location.href = `chat.html?id=${targetId}`;
-        };
-
-        async function init() {
-            const userDoc = await getDoc(doc(db, "users", targetId));
-            let name = "User";
-            if(userDoc.exists()) {
-                const data = userDoc.data();
-                name = data.name || data.email.split('@')[0];
-                document.getElementById('uEmail').innerText = data.email;
-                if(data.profilePic) {
-                    document.getElementById('profileImg').src = data.profilePic;
-                    document.getElementById('profileImg').classList.remove('hidden');
-                    document.getElementById('initialText').classList.add('hidden');
-                }
-                if(data.coverPic) {
-                    document.getElementById('coverImg').src = data.coverPic;
-                    document.getElementById('coverImg').classList.remove('hidden');
-                }
+        async function loadProfile() {
+            const d = await getDoc(doc(db, "users", targetUID));
+            if (d.exists()) {
+                const data = d.data();
+                document.getElementById('targetName').innerText = data.name;
+                document.getElementById('targetPic').src = data.profilePic || "https://via.placeholder.com/150";
+                document.getElementById('targetBio').innerText = data.bio || "No bio added.";
+                document.getElementById('targetFollowers').innerText = data.followers || 0;
+                if(data.isVerified) document.getElementById('targetBadge').classList.remove('hidden');
             }
-            document.getElementById('uName').innerText = name;
-            document.getElementById('initialText').innerText = name[0].toUpperCase();
+        }
 
-            onSnapshot(doc(db, "users", currentUser.uid, "following", targetId), s => {
-                if(s.exists()) {
-                    document.getElementById('unfollowBtn').classList.remove('hidden');
-                    document.getElementById('followBtn').classList.add('hidden');
+        function loadUserPosts() {
+            const q = query(collection(db, "posts"), where("userId", "==", targetUID));
+            onSnapshot(q, (snap) => {
+                const grid = document.getElementById('userPostsGrid');
+                grid.innerHTML = "";
+                document.getElementById('targetPostsCount').innerText = snap.size;
+                
+                snap.forEach(d => {
+                    const post = d.data();
+                    const item = document.createElement('div');
+                    item.className = "grid-item";
+                    
+                    // ফটো বা ভিডিও অনুযায়ী গ্রিড আইটেম
+                    if(post.fileType === 'video') {
+                        item.innerHTML = `
+                            <video src="${post.fileUrl}#t=0.5"></video>
+                            <div class="post-type-icon"><i class="fas fa-play"></i></div>
+                        `;
+                    } else {
+                        item.innerHTML = `<img src="${post.fileUrl}">`;
+                    }
+
+                    // পোস্টে ক্লিক করলে Reels বা Post view তে যাওয়ার লজিক
+                    item.onclick = () => window.location.href = `reels.html?postId=${d.id}`;
+                    grid.appendChild(item);
+                });
+            });
+        }
+
+        async function checkFollowStatus(myUID) {
+            const followRef = doc(db, "users", myUID, "following", targetUID);
+            const followBtn = document.getElementById('followBtn');
+            
+            onSnapshot(followRef, (d) => {
+                if(d.exists()) {
+                    followBtn.innerText = "Followed";
+                    followBtn.className = "btn-followed px-8 h-12 rounded-2xl font-black text-xs uppercase tracking-widest";
+                    followBtn.onclick = () => deleteDoc(followRef);
                 } else {
-                    document.getElementById('followBtn').classList.remove('hidden');
-                    document.getElementById('unfollowBtn').classList.add('hidden');
+                    followBtn.innerText = "Follow";
+                    followBtn.className = "btn-follow px-8 h-12 rounded-2xl font-black text-xs uppercase tracking-widest text-white";
+                    followBtn.onclick = () => setDoc(followRef, { time: serverTimestamp() });
                 }
             });
-
-            onSnapshot(collection(db, "users", targetId, "followers"), s => document.getElementById('followerCount').innerText = s.size);
-            onSnapshot(collection(db, "users", targetId, "following"), s => document.getElementById('followingCount').innerText = s.size);
-
-            onSnapshot(query(collection(db, "posts"), where("userId", "==", targetId)), s => {
-                posts = []; s.forEach(d => posts.push(d.data()));
-                render('all');
-                document.getElementById('pCount').innerText = s.size;
-            });
         }
-
-        document.getElementById('followBtn').onclick = async () => {
-            await setDoc(doc(db, "users", currentUser.uid, "following", targetId), { time: new Date() });
-            await setDoc(doc(db, "users", targetId, "followers", currentUser.uid), { time: new Date() });
-        };
-        document.getElementById('unfollowBtn').onclick = async () => {
-            await deleteDoc(doc(db, "users", currentUser.uid, "following", targetId));
-            await deleteDoc(doc(db, "users", targetId, "followers", currentUser.uid));
-        };
-
-        function render(type) {
-            const container = document.getElementById('uPosts'); container.innerHTML = "";
-            const filtered = type === 'video' ? posts.filter(p => p.fileType === 'video') : posts;
-            filtered.forEach(p => {
-                const d = document.createElement('div');
-                d.className = "aspect-square bg-gray-100 relative overflow-hidden";
-                d.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><i class="fas fa-play absolute inset-0 m-auto w-fit h-fit text-white text-[10px]"></i>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px] text-gray-400">${p.text?.slice(0,30)}</div>`;
-                container.appendChild(d);
-            });
-        }
-
-        document.getElementById('tabAll').onclick = () => render('all');
-        document.getElementById('tabVideos').onclick = () => render('video');
     </script>
 </body>
 </html>
