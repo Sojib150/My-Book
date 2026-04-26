@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        input, textarea, select { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 16px; padding: 14px; outline: none; transition: 0.3s; width: 100%; font-size: 14px; }
+        input:focus, textarea:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .save-btn { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        .img-edit-overlay { background: rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; }
+        .img-edit-overlay:hover { opacity: 1; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <header class="p-6 flex items-center gap-4">
+        <button onclick="window.location.href='profile.html'" class="w-10 h-10 glass rounded-xl flex items-center justify-center">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <h1 class="text-xl font-black tracking-tight uppercase">Edit Profile</h1>
+    </header>
+
+    <main class="px-6 space-y-6">
+        <div class="flex flex-col items-center py-6">
+            <div class="relative w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-indigo-600/20 group">
+                <img id="currentPic" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+                <label for="picUpload" class="img-edit-overlay absolute inset-0 flex items-center justify-center cursor-pointer">
+                    <i class="fas fa-camera text-2xl text-white"></i>
+                </label>
+                <input type="file" id="picUpload" class="hidden" accept="image/*">
+            </div>
+            <p class="text-[10px] font-bold text-slate-500 uppercase mt-4 tracking-widest">Tap to change avatar</p>
+        </div>
+
+        <div class="glass p-8 rounded-[2.5rem] space-y-5">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Display Name</label>
+                <input type="text" id="editName" placeholder="Your Name">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">About Bio</label>
+                <textarea id="editBio" rows="3" placeholder="Tell the My Book world about you..."></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-white/5">
+                <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-4">Payment Details</h3>
+                <div class="space-y-4">
+                    <select id="pMethod">
+                        <option value="Bkash">bKash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
+                    </select>
+                    <input type="number" id="pNumber" placeholder="Payment Account Number">
+                </div>
+            </div>
+
+            <button id="saveBtn" class="save-btn w-full py-4 rounded-2xl font-black tracking-widest uppercase mt-4">
+                Update Profile
+            </button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserID = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserID = user.uid;
+                // লোড কারেন্ট ডাটা
+                onSnapshot(doc(db, "users", user.uid), (d) => {
+                    if (d.exists()) {
+                        const data = d.data();
+                        document.getElementById('editName').value = data.name || "";
+                        document.getElementById('editBio').value = data.bio || "";
+                        document.getElementById('currentPic').src = data.profilePic || "https://via.placeholder.com/150";
+                        document.getElementById('pMethod').value = data.paymentMethod || "Bkash";
+                        document.getElementById('pNumber').value = data.paymentNumber || "";
+                    }
+                });
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // সেভ ডাটা লজিক
+        document.getElementById('saveBtn').onclick = async () => {
+            const name = document.getElementById('editName').value;
+            const bio = document.getElementById('editBio').value;
+            const method = document.getElementById('pMethod').value;
+            const number = document.getElementById('pNumber').value;
+            const btn = document.getElementById('saveBtn');
+
+            btn.innerText = "SAVING...";
+            btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "users", currentUserID), {
+                    name: name,
+                    bio: bio,
+                    paymentMethod: method,
+                    paymentNumber: number
+                });
+                alert("Profile Updated Successfully! 📖");
+                window.location.href = "profile.html";
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.innerText = "UPDATE PROFILE";
+                btn.disabled = false;
+            }
+        };
+
+        // ছবি আপলোড লজিক (সিম্পল লিংকের মাধ্যমে)
+        document.getElementById('picUpload').onchange = function(e) {
+            // নোট: স্টোরেজ সেটআপ না থাকলে এখানে শুধু লোকাল প্রিভিউ দেখাবে
+            // ফুল প্রজেক্টে এখানে Firebase Storage ব্যবহার করতে হবে
+            const reader = new FileReader();
+            reader.onload = function(){
+                document.getElementById('currentPic').src = reader.result;
+                // এখানে আপনি ইমেজের URL আপডেট করার লজিক দিতে পারেন
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+    </script>
+</body>
+</html>
