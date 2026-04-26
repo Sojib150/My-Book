@@ -6,6 +6,9 @@
     <title>Edit Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
@@ -16,6 +19,10 @@
         .save-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
         .img-edit-overlay { background: rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; }
         .img-edit-overlay:hover { opacity: 1; }
+        
+        /* SweetAlert কাস্টম স্টাইল */
+        .swal2-popup { border-radius: 2rem !important; background: #0f172a !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1); }
+        .swal2-styled.swal2-confirm { background: #6366f1 !important; border-radius: 1rem !important; padding: 10px 30px !important; }
     </style>
 </head>
 <body class="pb-10">
@@ -91,7 +98,6 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserID = user.uid;
-                // লোড কারেন্ট ডাটা
                 onSnapshot(doc(db, "users", user.uid), (d) => {
                     if (d.exists()) {
                         const data = d.data();
@@ -107,13 +113,18 @@
             }
         });
 
-        // সেভ ডাটা লজিক
+        // সেভ ডাটা লজিক (Updated with SweetAlert)
         document.getElementById('saveBtn').onclick = async () => {
             const name = document.getElementById('editName').value;
             const bio = document.getElementById('editBio').value;
             const method = document.getElementById('pMethod').value;
             const number = document.getElementById('pNumber').value;
             const btn = document.getElementById('saveBtn');
+
+            if(!name) {
+                Swal.fire('Oops!', 'আপনার নাম দিতে ভুলবেন না!', 'warning');
+                return;
+            }
 
             btn.innerText = "SAVING...";
             btn.disabled = true;
@@ -125,25 +136,42 @@
                     paymentMethod: method,
                     paymentNumber: number
                 });
-                alert("Profile Updated Successfully! 📖");
-                window.location.href = "profile.html";
+
+                // আধুনিক প্রিমিয়াম পপ-আপ
+                Swal.fire({
+                    title: 'সফল হয়েছে!',
+                    text: 'আপনার প্রোফাইল আপডেট করা হয়েছে 📖',
+                    icon: 'success',
+                    confirmButtonText: 'ঠিক আছে',
+                    confirmButtonColor: '#6366f1'
+                }).then(() => {
+                    window.location.href = "profile.html";
+                });
+
             } catch (e) {
-                alert("Error: " + e.message);
+                Swal.fire('Error', e.message, 'error');
                 btn.innerText = "UPDATE PROFILE";
                 btn.disabled = false;
             }
         };
 
-        // ছবি আপলোড লজিক (সিম্পল লিংকের মাধ্যমে)
+        // ছবি আপলোড লজিক (Cloudinary ইন্টিগ্রেশন ছাড়া শুধু প্রিভিউ)
         document.getElementById('picUpload').onchange = function(e) {
-            // নোট: স্টোরেজ সেটআপ না থাকলে এখানে শুধু লোকাল প্রিভিউ দেখাবে
-            // ফুল প্রজেক্টে এখানে Firebase Storage ব্যবহার করতে হবে
             const reader = new FileReader();
             reader.onload = function(){
                 document.getElementById('currentPic').src = reader.result;
-                // এখানে আপনি ইমেজের URL আপডেট করার লজিক দিতে পারেন
             };
             reader.readAsDataURL(e.target.files[0]);
+            
+            // টিপস: আপনি চাইলে এখানে SweetAlert দিয়ে বলতে পারেন "ফটো আপডেট করতে সেভ বাটনে ক্লিক করুন"
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'ফটো সিলেক্ট হয়েছে, সেভ বাটনে ক্লিক করুন',
+                showConfirmButton: false,
+                timer: 3000
+            });
         };
     </script>
 </body>
