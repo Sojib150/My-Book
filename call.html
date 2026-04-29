@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calling... - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
+</head>
+<body class="bg-gray-900 h-screen flex flex-col items-center justify-center text-white p-6 overflow-hidden">
+
+    <div id="video-container" class="relative w-full max-w-md h-[70vh] bg-black rounded-3xl overflow-hidden shadow-2xl">
+        <div id="remote-player" class="w-full h-full"></div>
+        <div id="local-player" class="absolute bottom-4 right-4 w-32 h-44 bg-gray-800 rounded-2xl border-2 border-white/20 overflow-hidden z-10"></div>
+        
+        <div id="calling-info" class="absolute top-10 left-0 right-0 text-center">
+            <div class="w-20 h-20 bg-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold shadow-xl animate-pulse">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2 id="statusText" class="text-lg font-bold tracking-widest uppercase">Connecting...</h2>
+        </div>
+    </div>
+
+    <div class="mt-10 flex gap-8 items-center">
+        <button id="micBtn" class="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center text-xl hover:bg-white/20 transition">
+            <i class="fas fa-microphone"></i>
+        </button>
+        <button id="leaveBtn" class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-lg hover:bg-red-600 active:scale-90 transition">
+            <i class="fas fa-phone-slash"></i>
+        </button>
+        <button id="videoBtn" class="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center text-xl hover:bg-white/20 transition">
+            <i class="fas fa-video"></i>
+        </button>
+    </div>
+
+    <script type="module">
+        const APP_ID = "fe0a5bc2049d480695ca993ee4050d65"; // আপনার আইডি
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id');
+        const callType = urlParams.get('type'); // audio or video
+
+        let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        let localTracks = { videoTrack: null, audioTrack: null };
+        let remoteUsers = {};
+
+        async function joinCall() {
+            // চ্যানেল আইডি হিসেবে টার্গেট ইউজারের আইডি ব্যবহার করছি (টেস্ট করার জন্য)
+            // প্রফেশনাল ক্ষেত্রে এখানে একটি ইউনিক রুম আইডি জেনারেট করা হয়
+            const channelName = "chat_room_123"; 
+
+            client.on("user-published", async (user, mediaType) => {
+                await client.subscribe(user, mediaType);
+                if (mediaType === "video") {
+                    document.getElementById('calling-info').classList.add('hidden');
+                    const remotePlayer = document.getElementById("remote-player");
+                    user.videoTrack.play(remotePlayer);
+                }
+                if (mediaType === "audio") {
+                    user.audioTrack.play();
+                }
+            });
+
+            const uid = await client.join(APP_ID, channelName, null, null);
+
+            // অডিও ট্র্যাক সবসময় চালু হবে
+            localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            
+            if (callType === 'video') {
+                localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack();
+                localTracks.videoTrack.play("local-player");
+                await client.publish([localTracks.audioTrack, localTracks.videoTrack]);
+            } else {
+                document.getElementById('local-player').classList.add('hidden');
+                document.getElementById('videoBtn').classList.add('opacity-30');
+                await client.publish([localTracks.audioTrack]);
+            }
+
+            document.getElementById('statusText').innerText = "On Call";
+        }
+
+        joinCall();
+
+        // কল শেষ করা
+        document.getElementById('leaveBtn').onclick = async () => {
+            for (let trackName in localTracks) {
+                let track = localTracks[trackName];
+                if (track) {
+                    track.stop();
+                    track.close();
+                    localTracks[trackName] = null;
+                }
+            }
+            await client.leave();
+            window.location.href = "messages.html";
+        };
+    </script>
+</body>
+</html>
