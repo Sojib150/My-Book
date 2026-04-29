@@ -3,136 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - My Book</title>
+    <title>Premium Profile - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .profile-ring { padding: 4px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 2.5rem; }
-        .action-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .action-btn:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f1; }
-        .nav-btn { transition: 0.3s; }
-        .nav-btn:active { transform: scale(0.9); }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+        .profile-card { border-radius: 30px 30px 0 0; margin-top: -30px; }
+        .stat-card { background: #f8fafc; border-radius: 15px; transition: all 0.3s; }
+        .stat-card:active { transform: scale(0.95); background: #f1f5f9; }
+        .post-img { aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-24">
+<body class="bg-gray-100 min-h-screen pb-24">
 
-    <div class="relative h-48 bg-gradient-to-b from-indigo-600/20 to-transparent">
-        <div class="absolute -bottom-16 left-0 right-0 flex flex-col items-center">
-            <div class="profile-ring shadow-2xl shadow-indigo-500/20">
-                <img id="uPic" src="https://via.placeholder.com/150" class="w-32 h-32 rounded-[2.3rem] object-cover border-4 border-[#05070a]">
+    <nav class="glass-nav sticky top-0 z-50 p-4 flex justify-between items-center border-b max-w-md mx-auto">
+        <h1 id="topUser" class="font-black text-gray-800 tracking-tighter text-lg italic">PROFILE</h1>
+        <div class="flex gap-4">
+            <button onclick="window.location.href='search.html'"><i class="fas fa-search text-gray-500"></i></button>
+            <button onclick="window.location.href='edit-profile.html'"><i class="fas fa-cog text-gray-500"></i></button>
+        </div>
+    </nav>
+
+    <div class="max-w-md mx-auto relative">
+        <div class="h-48 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 relative">
+            <img id="coverImg" src="" class="w-full h-full object-cover hidden">
+            <div class="absolute inset-0 bg-black/10"></div>
+        </div>
+
+        <div class="bg-white profile-card relative px-6 pt-0 shadow-2xl">
+            <div class="flex justify-center relative -top-16">
+                <div class="w-32 h-32 rounded-full border-4 border-white shadow-xl bg-indigo-500 overflow-hidden flex items-center justify-center text-4xl text-white font-bold">
+                    <img id="profileImg" src="" class="w-full h-full object-cover hidden">
+                    <span id="initials">?</span>
+                </div>
             </div>
-            <div class="flex items-center gap-2 mt-4">
-                <h2 id="uName" class="text-2xl font-black tracking-tight">Loading...</h2>
-                <span id="uBadge" class="hidden text-blue-500 text-lg"><i class="fas fa-check-circle"></i></span>
+
+            <div class="text-center -mt-12">
+                <h2 id="uName" class="text-2xl font-black text-gray-800 tracking-tight leading-none italic uppercase">লোড হচ্ছে...</h2>
+                <p id="uEmail" class="text-[10px] text-gray-400 font-bold mt-1 tracking-widest"></p>
+                <p id="uBio" class="text-gray-500 text-xs mt-3 px-8 leading-relaxed italic">আপনার প্রোফাইল সাজাতে এডিট বাটনে ক্লিক করুন।</p>
             </div>
-            <p id="uEmail" class="text-slate-500 text-xs font-bold tracking-widest uppercase">email@example.com</p>
+
+            <div class="flex gap-2 mt-6">
+                <button onclick="window.location.href='edit-profile.html'" class="flex-1 bg-gray-900 text-white py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition">
+                    Edit Profile
+                </button>
+                <button onclick="window.location.href='home.html'" class="flex-1 bg-white border border-gray-200 text-gray-800 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-sm active:scale-95 transition">
+                    Share Profile
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mt-8 pb-8 border-b">
+                <div class="stat-card p-3 text-center">
+                    <p id="pCount" class="font-black text-lg text-indigo-600">0</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase">Posts</p>
+                </div>
+                <div class="stat-card p-3 text-center cursor-pointer" onclick="openList('followers')">
+                    <p id="followerCount" class="font-black text-lg text-indigo-600">0</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase">Followers</p>
+                </div>
+                <div class="stat-card p-3 text-center cursor-pointer" onclick="openList('following')">
+                    <p id="followingCount" class="font-black text-lg text-indigo-600">0</p>
+                    <p class="text-[8px] font-bold text-gray-400 uppercase">Following</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <main class="mt-24 px-6 space-y-8">
-        <div class="flex justify-around items-center glass p-6 rounded-[2rem] text-center">
-            <div>
-                <p id="uPosts" class="text-xl font-black">0</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Posts</p>
-            </div>
-            <div class="w-[1px] h-8 bg-white/5"></div>
-            <div>
-                <p id="uFollowers" class="text-xl font-black">0</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Followers</p>
-            </div>
-            <div class="w-[1px] h-8 bg-white/5"></div>
-            <div>
-                <p id="uFollowing" class="text-xl font-black">0</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Following</p>
+    <div class="max-w-md mx-auto bg-white mt-0 px-4 pt-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-black text-gray-800 text-xs uppercase tracking-widest">My Gallery</h3>
+            <div class="flex gap-2">
+                <button id="gridBtn" class="text-indigo-600"><i class="fas fa-th-large"></i></button>
+                <button id="listBtn" class="text-gray-300"><i class="fas fa-list"></i></button>
             </div>
         </div>
+        
+        <div id="uPosts" class="grid grid-cols-3 gap-2">
+            </div>
+    </div>
 
-        <div class="space-y-3">
-            <button onclick="window.location.href='edit-profile.html'" class="w-full flex items-center justify-between p-5 rounded-2xl action-btn">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center"><i class="fas fa-user-edit"></i></div>
-                    <span class="text-sm font-black uppercase tracking-tight">Edit Profile</span>
-                </div>
-                <i class="fas fa-chevron-right text-slate-600"></i>
-            </button>
-
-            <button onclick="window.location.href='Withdraw.html'" class="w-full flex items-center justify-between p-5 rounded-2xl action-btn">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-green-500/10 text-green-400 rounded-xl flex items-center justify-center"><i class="fas fa-wallet"></i></div>
-                    <span class="text-sm font-black uppercase tracking-tight">Wallet & Earnings</span>
-                </div>
-                <i class="fas fa-chevron-right text-slate-600"></i>
-            </button>
-
-            <button onclick="logout()" class="w-full flex items-center justify-between p-5 rounded-2xl action-btn">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center"><i class="fas fa-power-off"></i></div>
-                    <span class="text-sm font-black uppercase tracking-tight">Sign Out</span>
-                </div>
-            </button>
-        </div>
-
-        <div class="glass p-6 rounded-[2rem]">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">About Me</h3>
-            <p id="uBio" class="text-xs text-slate-400 leading-relaxed">No bio added yet. Tell the My Book community about yourself!</p>
-        </div>
-    </main>
-
-    <nav class="fixed bottom-6 left-6 right-6 glass rounded-[2rem] p-3 flex justify-around items-center z-50">
-        <button onclick="window.location.href='feed.html'" class="p-4 text-slate-500 nav-btn"><i class="fas fa-home"></i></button>
-        <button onclick="window.location.href='search.html'" class="p-4 text-slate-500 nav-btn"><i class="fas fa-search"></i></button>
-        <button onclick="window.location.href='add-post.html'" class="w-12 h-12 bg-indigo-600 rounded-2xl text-white shadow-lg shadow-indigo-500/40 nav-btn"><i class="fas fa-plus"></i></button>
-        <button onclick="window.location.href='dashboard.html'" class="p-4 text-slate-500 nav-btn"><i class="fas fa-chart-pie"></i></button>
-        <button onclick="window.location.href='profile.html'" class="p-4 text-indigo-400 nav-btn"><i class="fas fa-user"></i></button>
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-gray-900/90 backdrop-blur-xl rounded-3xl p-4 flex justify-around items-center shadow-2xl z-50">
+        <a href="home.html" class="text-gray-400 hover:text-white transition"><i class="fas fa-home"></i></a>
+        <a href="search.html" class="text-gray-400 hover:text-white transition"><i class="fas fa-search"></i></a>
+        <button class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center -mt-10 border-4 border-gray-100 shadow-xl active:scale-90 transition">
+            <i class="fas fa-plus"></i>
+        </button>
+        <a href="messages.html" class="text-gray-400 hover:text-white transition"><i class="fas fa-comment"></i></a>
+        <a href="profile.html" class="text-indigo-400"><i class="fas fa-user"></i></a>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            authDomain: "seen-a1d92.firebaseapp.com", 
-            projectId: "seen-a1d92", 
-            storageBucket: "seen-a1d92.firebasestorage.app", 
-            messagingSenderId: "868584044532", 
-            appId: "1:868584044532:web:51f07436a883f88332eba1" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                onSnapshot(doc(db, "users", user.uid), (d) => {
-                    if (d.exists()) {
-                        const data = d.data();
-                        document.getElementById('uName').innerText = data.name || "User";
-                        document.getElementById('uEmail').innerText = data.email;
-                        document.getElementById('uFollowers').innerText = data.followers || 0;
-                        document.getElementById('uFollowing').innerText = data.following || 0;
-                        document.getElementById('uPosts').innerText = data.postCount || 0;
-                        document.getElementById('uPic').src = data.profilePic || "https://via.placeholder.com/150";
-                        document.getElementById('uBio').innerText = data.bio || "No bio added yet.";
-                        
-                        if(data.isVerified) document.getElementById('uBadge').classList.remove('hidden');
-                    }
-                });
-            } else {
-                window.location.href = "login.html";
-            }
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                loadProfile(user.uid);
+                loadStats(user.uid);
+                loadPosts(user.uid);
+            } else { window.location.href = "index.html"; }
         });
 
-        window.logout = () => {
-            signOut(auth).then(() => {
-                window.location.href = "login.html";
+        async function loadProfile(uid) {
+            const snap = await getDoc(doc(db, "users", uid));
+            if(snap.exists()) {
+                const d = snap.data();
+                const name = d.name || auth.currentUser.email.split('@')[0];
+                document.getElementById('uName').innerText = name;
+                document.getElementById('topUser').innerText = name;
+                document.getElementById('uEmail').innerText = d.email || auth.currentUser.email;
+                document.getElementById('uBio').innerText = d.bio || "No bio available.";
+                document.getElementById('initials').innerText = name[0].toUpperCase();
+                
+                if(d.profilePic) {
+                    const img = document.getElementById('profileImg');
+                    img.src = d.profilePic; img.classList.remove('hidden');
+                    document.getElementById('initials').classList.add('hidden');
+                }
+                if(d.coverPic) {
+                    const img = document.getElementById('coverImg');
+                    img.src = d.coverPic; img.classList.remove('hidden');
+                }
+            }
+        }
+
+        function loadStats(uid) {
+            onSnapshot(collection(db, "users", uid, "followers"), s => document.getElementById('followerCount').innerText = s.size);
+            onSnapshot(collection(db, "users", uid, "following"), s => document.getElementById('followingCount').innerText = s.size);
+        }
+
+        function loadPosts(uid) {
+            const q = query(collection(db, "posts"), where("userId", "==", uid));
+            onSnapshot(q, s => {
+                const container = document.getElementById('uPosts'); container.innerHTML = "";
+                document.getElementById('pCount').innerText = s.size;
+                s.forEach(d => {
+                    const p = d.data();
+                    const div = document.createElement('div');
+                    div.className = "post-img bg-gray-200 overflow-hidden shadow-sm active:scale-95 transition";
+                    div.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px] flex items-center justify-center h-full text-gray-500">${p.text?.slice(0,20)}</div>`;
+                    container.appendChild(div);
+                });
             });
-        };
+        }
     </script>
 </body>
 </html>
