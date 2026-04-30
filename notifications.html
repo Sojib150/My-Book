@@ -3,27 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications - My Book Elite</title>
+    <title>Notifications - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f9fafb; }
-        .notif-card { background: white; transition: all 0.3s; border-bottom: 1px solid #f1f5f9; }
-        .notif-card.unread { background: #eff6ff; border-left: 4px solid #2563eb; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f9fafb; -webkit-tap-highlight-color: transparent; }
+        
+        .ios-blur { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+        
+        /* iPhone Notification Card Style */
+        .notif-card { 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .notif-card:active { transform: scale(0.97); background: #f2f2f7; }
+
+        /* Custom Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* New Notif Indicator */
+        .new-badge { width: 8px; height: 8px; background: #007aff; border-radius: 50%; }
     </style>
 </head>
-<body class="pb-10">
+<body class="pb-24">
 
-    <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 px-5 py-4">
-        <div class="max-w-md mx-auto flex items-center gap-4">
-            <button onclick="location.href='home.html'" class="text-gray-600 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
-            <h1 class="text-xl font-bold text-gray-800">নোটিফিকেশন</h1>
+    <nav class="ios-blur sticky top-0 z-50 px-5 pt-10 pb-4">
+        <div class="max-w-md mx-auto">
+            <div class="flex items-center justify-between">
+                <button onclick="location.href='home.html'" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-800 active:scale-90 transition">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                </button>
+                <h1 class="text-xl font-extrabold tracking-tight">Notifications</h1>
+                <div class="w-10"></div> </div>
         </div>
     </nav>
 
-    <div id="notifList" class="max-w-md mx-auto min-h-screen">
-        <div class="text-center py-20 text-gray-400 font-bold">লোড হচ্ছে...</div>
+    <div class="max-w-md mx-auto px-2">
+        <div id="notifList" class="min-h-screen">
+            <div class="flex flex-col items-center py-20">
+                <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-black/90 backdrop-blur-2xl rounded-[30px] p-3 shadow-2xl flex justify-around items-center z-[100]">
+        <a href="home.html" class="p-3 text-gray-500"><i class="fas fa-house-chimney text-lg"></i></a>
+        <a href="messages.html" class="p-3 text-gray-500"><i class="fas fa-comment-nodes text-lg"></i></a>
+        <div onclick="location.href='post.html'" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg active:scale-90 transition"><i class="fas fa-plus"></i></div>
+        <a href="notifications.html" class="p-3 text-white"><i class="fas fa-bell text-lg"></i></a>
+        <a href="profile.html" class="p-3 text-gray-500"><i class="fas fa-user text-lg"></i></a>
     </div>
 
     <script type="module">
@@ -46,9 +75,11 @@
             
             onSnapshot(query(collection(db, "users", uid, "notifications"), orderBy("time", "desc")), async snap => {
                 if(snap.empty) {
-                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-32 text-gray-400">
-                        <i class="fa-solid fa-bell-slash text-5xl mb-4 opacity-20"></i>
-                        <p class="font-bold">এখনও কোনো নোটিফিকেশন নেই</p>
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-32 text-gray-300">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-bell-slash text-3xl opacity-20"></i>
+                        </div>
+                        <p class="font-bold text-sm">No Notifications Yet</p>
                     </div>`;
                     return;
                 }
@@ -59,7 +90,6 @@
                     const nid = ds.id;
                     let fromUser = { name: "Admin", pic: "https://via.placeholder.com/100" };
 
-                    // যদি ইউজার থেকে নোটিফিকেশন আসে (লাইক/কমেন্ট)
                     if(n.from !== 'admin') {
                         const uD = (await getDoc(doc(db, "users", n.from))).data();
                         if(uD) { fromUser.name = uD.name; fromUser.pic = uD.profilePic; }
@@ -67,30 +97,35 @@
 
                     let msg = "";
                     let icon = "";
-                    let iconBg = "";
+                    let iconColor = "";
 
-                    if(n.type === 'like') { msg = "আপনার পোস্টে লাইক দিয়েছেন"; icon = "fa-heart"; iconBg = "bg-red-100 text-red-500"; }
-                    else if(n.type === 'comment') { msg = "আপনার পোস্টে কমেন্ট করেছেন"; icon = "fa-comment"; iconBg = "bg-blue-100 text-blue-500"; }
-                    else if(n.type === 'admin') { msg = n.message || "অ্যাডমিন থেকে একটি বার্তা এসেছে"; icon = "fa-star"; iconBg = "bg-yellow-100 text-yellow-600"; }
+                    if(n.type === 'like') { msg = "liked your post"; icon = "fa-heart"; iconColor = "text-red-500"; }
+                    else if(n.type === 'comment') { msg = "commented on your post"; icon = "fa-comment"; iconColor = "text-blue-500"; }
+                    else if(n.type === 'admin') { msg = n.message || "sent you an admin message"; icon = "fa-shield-halved"; iconColor = "text-amber-500"; }
 
-                    const time = n.time ? new Date(n.time.seconds*1000).toLocaleString('bn-BD', {hour:'numeric', minute:'numeric', day:'numeric', month:'short'}) : 'সবেমাত্র';
+                    const time = n.time ? new Date(n.time.seconds*1000).toLocaleString('en-US', {hour:'numeric', minute:'numeric', day:'numeric', month:'short'}) : 'Just now';
 
                     const card = document.createElement('div');
-                    card.className = `notif-card p-4 flex gap-4 items-start cursor-pointer hover:bg-gray-50`;
+                    card.className = `notif-card p-4 flex gap-4 items-center rounded-2xl mx-1`;
                     card.innerHTML = `
-                        <div class="relative">
-                            <img src="${fromUser.pic}" class="w-12 h-12 rounded-2xl object-cover border border-gray-100 shadow-sm">
-                            <div class="absolute -bottom-1 -right-1 w-6 h-6 ${iconBg} rounded-full flex items-center justify-center border-2 border-white text-[10px]">
+                        <div class="relative flex-shrink-0">
+                            <img src="${fromUser.pic}" class="w-14 h-14 rounded-[1.2rem] object-cover border border-gray-100">
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm text-[10px] ${iconColor}">
                                 <i class="fa-solid ${icon}"></i>
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-[13px] text-gray-800 leading-tight">
-                                <span class="font-black text-gray-900">@${fromUser.name}</span> ${msg}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[14px] text-gray-900 leading-tight">
+                                <span class="font-bold">@${fromUser.name}</span> ${msg}
                             </p>
-                            <p class="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-tighter">${time}</p>
+                            <p class="text-[11px] font-medium text-gray-400 mt-0.5">${time}</p>
                         </div>
-                        <button onclick="deleteNotif('${uid}', '${nid}')" class="text-gray-300 hover:text-red-400 p-2"><i class="fa-solid fa-xmark text-sm"></i></button>
+                        <div class="flex items-center gap-2">
+                             <div class="new-badge"></div>
+                             <button onclick="deleteNotif('${uid}', '${nid}')" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                             </button>
+                        </div>
                     `;
                     list.appendChild(card);
                 }
@@ -98,7 +133,9 @@
         }
 
         window.deleteNotif = async (uid, nid) => {
-            await deleteDoc(doc(db, "users", uid, "notifications", nid));
+            if(confirm('Delete this notification?')) {
+                await deleteDoc(doc(db, "users", uid, "notifications", nid));
+            }
         };
     </script>
 </body>
