@@ -20,6 +20,7 @@
                 <i class="fas fa-phone-alt"></i>
             </div>
             <h2 class="text-xs font-black uppercase tracking-[0.3em] opacity-70">Securing Connection...</h2>
+            <p class="text-[10px] mt-4 opacity-50">Waiting for friend to join</p>
         </div>
     </div>
 
@@ -29,17 +30,36 @@
         <button id="camBtn" class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-lg active:bg-white/20"><i class="fas fa-video"></i></button>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
         const APP_ID = "fe0a5bc2049d480695ca993ee4050d65";
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
         const callType = urlParams.get('type');
+        let myId = null;
 
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
 
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                myId = user.uid;
+                startCall();
+            }
+        });
+
         async function startCall() {
-            const channel = "seen_call_" + targetId; // সহজ আইডি (প্রোডাকশনে টোকেন দরকার)
+            // চ্যানেল নাম ফিক্স করা: দুজনের আইডির মধ্যে যেটি ছোট সেটি আগে থাকবে। 
+            // এতে করে caller এবং receiver উভয়ের জন্য চ্যানেল নাম একই হবে।
+            const channel = [myId, targetId].sort().join("_");
             
             client.on("user-published", async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
@@ -48,7 +68,9 @@
                 if (mediaType === "audio") user.audioTrack.play();
             });
 
+            // অ্যাপ আইডি অনলি মোড (টোকেন নাল)
             await client.join(APP_ID, channel, null, null);
+            
             localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
             
             if (callType === 'video') {
@@ -61,13 +83,31 @@
             }
         }
 
-        startCall();
-
         document.getElementById('hangupBtn').onclick = async () => {
+            // কল কাটলে ডাটাবেস থেকে রিকোয়েস্ট ডিলিট করা
+            if(myId) await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
+            if(targetId) await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
+
             if(localTracks.audio) { localTracks.audio.stop(); localTracks.audio.close(); }
             if(localTracks.video) { localTracks.video.stop(); localTracks.video.close(); }
             await client.leave();
             window.location.href = `chat.html?id=${targetId}`;
+        };
+
+        // মিউট এবং ভিডিও অফ কন্ট্রোল
+        let isMicOn = true;
+        document.getElementById('micBtn').onclick = async () => {
+            isMicOn = !isMicOn;
+            await localTracks.audio.setEnabled(isMicOn);
+            document.getElementById('micBtn').classList.toggle('bg-red-500', !isMicOn);
+        };
+
+        let isCamOn = true;
+        document.getElementById('camBtn').onclick = async () => {
+            if(!localTracks.video) return;
+            isCamOn = !isCamOn;
+            await localTracks.video.setEnabled(isCamOn);
+            document.getElementById('camBtn').classList.toggle('bg-red-500', !isCamOn);
         };
     </script>
 </body>
