@@ -3,70 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Book - iPhone 17 Concept</title>
+    <title>My Book - Home Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         
-        .ios-blur { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .premium-card { background: white; border-radius: 30px; margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.03); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+        .ios-blur { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+        .premium-card { background: white; border-radius: 32px; margin-bottom: 18px; border: 1px solid rgba(0,0,0,0.03); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: transform 0.3s; }
         
-        /* Dynamic Island Call Notification */
+        /* Dynamic Island Call UI */
         #incomingCallUI {
             position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-150%);
             width: 92%; max-width: 380px; background: #000; border-radius: 35px;
             padding: 12px 20px; z-index: 2000; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
             display: flex; align-items: center; justify-content: space-between; color: white;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
         #incomingCallUI.active { transform: translateX(-50%) translateY(0); }
 
-        .video-box { width: 100%; background: #000; border-radius: 10px; overflow: hidden; }
-        video { width: 100%; max-height: 70vh; }
+        .video-box { width: 100%; background: #000; border-radius: 20px; overflow: hidden; margin: 0 10px; width: calc(100% - 20px); }
+        video { width: 100%; max-height: 75vh; border-radius: 20px; }
         
-        .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; }
+        .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
         .drawer.active { transform: translateY(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); display: none; z-index: 999; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: none; z-index: 999; }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Floating Navbar iPhone Style */
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border-radius: 32px; padding: 10px 20px; display: flex; justify-content: space-around; align-items: center; z-index: 900; box-shadow: 0 10px 35px rgba(0,0,0,0.4); }
-        .nav-item { color: rgba(255,255,255,0.5); transition: color 0.3s; font-size: 1.2rem; }
-        .nav-item.active { color: white; }
+        /* Floating Navbar */
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(25px); border-radius: 35px; padding: 12px 20px; display: flex; justify-content: space-around; align-items: center; z-index: 900; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { color: rgba(255,255,255,0.5); font-size: 1.3rem; transition: all 0.3s; }
+        .nav-item.active { color: #60a5fa; transform: translateY(-2px); }
 
         .pulse-call { animation: pulse-ring 1.5s infinite; }
         @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-36">
 
     <div id="incomingCallUI">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center"><i class="fas fa-phone-alt text-white text-xs"></i></div>
+            <div class="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30"><i class="fas fa-video text-white text-sm"></i></div>
             <div class="min-w-0">
-                <h4 id="callerNameDisplay" class="text-[13px] font-extrabold truncate">Incoming...</h4>
-                <p class="text-[9px] text-gray-400 uppercase font-black">Video Call</p>
+                <h4 id="callerNameDisplay" class="text-[13px] font-black truncate">লোড হচ্ছে...</h4>
+                <p class="text-[9px] text-green-400 uppercase font-black tracking-widest animate-pulse">Incoming Call</p>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button id="declineCallBtn" class="w-10 h-10 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center pulse-call"><i class="fas fa-check"></i></button>
+        <div class="flex gap-3">
+            <button id="declineCallBtn" class="w-10 h-10 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center active:scale-90 transition"><i class="fas fa-times"></i></button>
+            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center pulse-call active:scale-90 transition"><i class="fas fa-phone"></i></button>
         </div>
     </div>
 
-    <nav class="ios-blur sticky top-0 z-50 px-6 pt-10 pb-4 border-b border-gray-50">
+    <nav class="ios-blur sticky top-0 z-50 px-6 pt-10 pb-4 border-b border-gray-100">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-black text-blue-600 italic tracking-tighter">My Book</h1>
-            <div class="flex items-center gap-5">
-                <a href="reels.html" class="text-red-500"><i class="fa-solid fa-play-circle text-2xl"></i></a>
-                <div class="relative cursor-pointer" onclick="location.href='notifications.html'">
-                    <i class="fa-solid fa-bell text-xl text-gray-800"></i>
-                    <div id="notifDot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></div>
+            <h1 class="text-2xl font-black text-indigo-600 italic tracking-tighter">My Book</h1>
+            <div class="flex items-center gap-4">
+                <a href="reels.html" class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-full active:scale-90 transition"><i class="fa-solid fa-play text-lg"></i></a>
+                <div class="relative cursor-pointer w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full" onclick="location.href='notifications.html'">
+                    <i class="fa-solid fa-bell text-lg text-gray-800"></i>
+                    <div id="notifDot" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></div>
                 </div>
-                <img id="navPic" onclick="location.href='profile.html'" src="https://via.placeholder.com/100" class="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover cursor-pointer bg-gray-200">
+                <img id="navPic" onclick="location.href='profile.html'" src="" class="w-10 h-10 rounded-full border-2 border-indigo-100 shadow-sm object-cover cursor-pointer bg-gray-200">
             </div>
         </div>
     </nav>
@@ -74,33 +74,37 @@
     <div class="max-w-md mx-auto p-4">
         <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
             <div class="flex flex-col items-center gap-2 shrink-0 cursor-pointer" onclick="location.href='upload-story.html'">
-                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white shadow-sm">
-                    <i class="fa-solid fa-plus"></i>
+                <div class="w-[72px] h-[72px] rounded-3xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white shadow-sm hover:border-indigo-400 transition">
+                    <i class="fa-solid fa-plus text-xl"></i>
                 </div>
-                <span class="text-[10px] font-bold text-gray-500">You</span>
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-tighter">You</span>
             </div>
             <div id="storyList" class="flex gap-4"></div>
         </div>
 
-        <div id="feed" class="space-y-4">
-            <div class="text-center py-20"><i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i></div>
+        <div id="feed" class="space-y-6">
+            <div class="text-center py-20 flex flex-col items-center gap-3">
+                <i class="fas fa-spinner fa-spin text-indigo-600 text-3xl"></i>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading Feed...</p>
+            </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <a href="home.html" class="nav-item active"><i class="fas fa-home-alt"></i></a>
-        <a href="search.html" class="nav-item"><i class="fas fa-search"></i></a>
-        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center shadow-xl active:scale-90 transition cursor-pointer">
+        <a href="home.html" class="nav-item active"><i class="fas fa-house-chimney"></i></a>
+        <a href="search.html" class="nav-item"><i class="fas fa-magnifying-glass"></i></a>
+        <div onclick="location.href='post.html'" class="w-13 h-13 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 active:scale-90 transition cursor-pointer">
             <i class="fas fa-plus text-xl"></i>
         </div>
-        <a href="messages.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
-        <a href="profile.html" class="nav-item"><i class="fas fa-user-circle"></i></a>
+        <a href="messages.html" class="nav-item"><i class="fas fa-message-captions"></i></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-circle-user"></i></a>
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
+    
     <div id="deleteDrawer" class="drawer p-8">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
-        <h3 class="text-lg font-black text-center mb-10">পোস্টটি মুছে ফেলবেন?</h3>
+        <h3 class="text-lg font-black text-center mb-10 text-gray-800">পোস্টটি মুছে ফেলবেন?</h3>
         <div class="flex gap-3">
             <button id="confirmDelBtn" class="flex-1 bg-red-500 text-white font-bold py-4 rounded-2xl active:scale-95 transition">হ্যাঁ, মুছুন</button>
             <button onclick="closeAll()" class="flex-1 bg-gray-100 text-gray-500 font-bold py-4 rounded-2xl">বাতিল</button>
@@ -109,10 +113,10 @@
 
     <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-6">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar"></div>
-        <div class="flex gap-3 border-t pt-4 bg-white mt-2">
-            <input id="cInput" type="text" placeholder="মন্তব্য করুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm font-bold">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-10"></div>
+        <div class="flex gap-3 border-t pt-4 bg-white mt-2 items-center">
+            <input id="cInput" type="text" placeholder="মন্তব্য করুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm font-bold border border-transparent focus:border-indigo-400 transition">
+            <button onclick="postComment()" class="bg-indigo-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -134,7 +138,6 @@
         onAuthStateChanged(auth, async u => { 
             if(u){ 
                 user = u; 
-                // ইউজার ডাটা ফেচ করা অ্যালগরিদমের জন্য
                 const userSnap = await getDoc(doc(db, "users", u.uid));
                 currentUserData = userSnap.exists() ? userSnap.data() : null;
                 
@@ -147,7 +150,7 @@
         });
 
         // ==========================================
-        // 🔥 SMART HYBRID FEED ALGORITHM (Injected)
+        // 🔥 HYBRID FEED ALGORITHM (Original Logic Preserved)
         // ==========================================
         function getSortedFeed(posts, currentUser) {
             function calculateScore(post) {
@@ -157,42 +160,24 @@
                 const shares = post.shares || 0;
                 const views = post.views || 0;
 
-                // 📈 Engagement Score (50%)
                 const engagementScore = (likes * 2) + (comments * 4) + (replies * 3) + (shares * 5) + (views * 1);
-
-                // 🎬 Content Score (20%)
+                
                 let contentScore = 10;
                 if (post.fileType === "video") {
                     const watchRatio = (post.watchTime || 0) / (post.duration || 1);
                     contentScore = 30 + (watchRatio * 50);
-                } else if (post.fileType === "image") {
-                    contentScore = 15;
-                }
+                } else if (post.fileType === "image") { contentScore = 15; }
 
-                // 🧍 User Interest (20%)
                 let userInterestScore = 10;
-                if (currentUser?.interests?.includes(post.category)) {
-                    userInterestScore = 40;
-                }
+                if (currentUser?.interests?.includes(post.category)) userInterestScore = 40;
 
-                // ⏱️ Time Boost (10%)
                 const postTime = post.createdAt ? post.createdAt.seconds * 1000 : Date.now();
                 const hours = (Date.now() - postTime) / 3600000;
-                let timeScore = 0;
-                if (hours < 1) timeScore = 40;
-                else if (hours < 6) timeScore = 25;
-                else if (hours < 24) timeScore = 10;
+                let timeScore = hours < 1 ? 40 : (hours < 6 ? 25 : 10);
 
-                // 🧠 Final Calculation
                 let score = (engagementScore * 0.5) + (contentScore * 0.2) + (userInterestScore * 0.2) + (timeScore * 0.1);
-
-                // 👥 Friend Boost
                 if (currentUser?.friends?.includes(post.userId)) score += 20;
-
-                // 🔁 Repeat Control
                 if (post.viewsByUser?.includes(currentUser?.uid)) score -= 15;
-
-                // 🔥 Viral Boost
                 if (likes > 100) score += 100;
 
                 return score;
@@ -200,22 +185,22 @@
             return posts.sort((a, b) => calculateScore(b) - calculateScore(a));
         }
 
-        // ১. ভিডিও কল লিসেনার
+        // কল লিসেনার (নতুন ভিডিও কল লজিক)
         function listenForCalls(myId) {
             onSnapshot(doc(db, "calls", myId), (snap) => {
                 const ui = document.getElementById('incomingCallUI');
                 if (snap.exists()) {
                     const data = snap.data();
-                    ui.classList.add('active');
-                    document.getElementById('callerNameDisplay').innerText = data.callerName;
-                    document.getElementById('acceptCallBtn').onclick = () => window.location.href = `call.html?id=${data.callerId}&type=${data.type}`;
-                    document.getElementById('declineCallBtn').onclick = async () => {
-                        await deleteDoc(doc(db, "calls", myId));
-                        ui.classList.remove('active');
-                    };
-                } else {
-                    ui.classList.remove('active');
-                }
+                    if(data.status === 'ringing') {
+                        ui.classList.add('active');
+                        document.getElementById('callerNameDisplay').innerText = data.callerName;
+                        document.getElementById('acceptCallBtn').onclick = () => window.location.href = `call.html?id=${data.callerId}&type=${data.type}&action=incoming`;
+                        document.getElementById('declineCallBtn').onclick = async () => {
+                            await deleteDoc(doc(db, "calls", myId));
+                            ui.classList.remove('active');
+                        };
+                    }
+                } else { ui.classList.remove('active'); }
             });
         }
 
@@ -224,24 +209,18 @@
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const globalAd = adSnap.exists() ? adSnap.data().code : "";
 
-            // ডাটাবেস থেকে পোস্ট কালেকশন নিয়ে অ্যালগরিদমে পাঠানো
             onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
                 let rawPosts = [];
                 snap.forEach(d => rawPosts.push({ id: d.id, ...d.data() }));
 
-                // 🔥 আপনার সেই অ্যালগরিদম দিয়ে সর্টিং
                 const sortedPosts = getSortedFeed(rawPosts, currentUserData);
 
                 feed.innerHTML = "";
                 sortedPosts.forEach(async (p, index) => {
                     if(p.isShadowBanned) return;
-                    
-                    // ৩ পোস্ট পর পর অ্যাড লজিক
                     const showAd = globalAd && (index > 0 && index % 3 === 0);
-                    
                     const card = await createPostCard(p.id, p, showAd ? globalAd : null);
                     feed.appendChild(card);
-                    
                     if(showAd) injectAd(p.id, globalAd);
                 });
                 setTimeout(initIntersection, 1000);
@@ -258,31 +237,30 @@
             card.innerHTML = `
                 <div class="p-4 flex justify-between items-center">
                     <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                        <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50 bg-gray-100">
+                        <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-indigo-50 bg-gray-100">
                         <div>
                             <div class="font-extrabold text-[14px]">@${p.userName}</div>
                             <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">${date}</p>
                         </div>
                     </div>
-                    ${isMine ? `<button onclick="openDeleteDrawer('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-trash-can text-sm"></i></button>` : ''}
+                    ${isMine ? `<button onclick="openDeleteDrawer('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-ellipsis-v text-sm"></i></button>` : ''}
                 </div>
-                <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
+                <p class="px-5 pb-4 text-[14px] text-gray-800 font-medium leading-relaxed">${p.text || ''}</p>
                 ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
                 
-                ${adCode ? `<div class="p-3 border-y bg-gray-50/50 text-center"><div id="ad-frame-${id}"></div></div>` : ""}
+                ${adCode ? `<div class="p-3 border-y bg-gray-50/50 text-center mx-5 rounded-2xl mt-4"><div id="ad-frame-${id}"></div></div>` : ""}
 
-                <div class="flex justify-around py-2 border-t mt-1">
-                    <button onclick="like('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}">
+                <div class="flex justify-around py-3 mt-2">
+                    <button onclick="like('${id}')" class="flex items-center gap-2 flex-1 justify-center ${hasL ? 'text-red-500':'text-gray-400'}">
                         <i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i>
-                        <span class="text-[10px] font-black">${p.likedBy?.length||0}</span>
+                        <span class="text-[12px] font-black">${p.likedBy?.length||0}</span>
                     </button>
-                    <button onclick="openComments('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400">
+                    <button onclick="openComments('${id}')" class="flex items-center gap-2 flex-1 justify-center text-gray-400">
                         <i class="fa-regular fa-comment-dots text-xl"></i>
-                        <span class="text-[10px] font-black">${p.commentCount||0}</span>
+                        <span class="text-[12px] font-black">${p.commentCount||0}</span>
                     </button>
-                    <button onclick="sharePost('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400">
+                    <button onclick="sharePost('${id}')" class="flex items-center gap-2 flex-1 justify-center text-gray-400">
                         <i class="fa-solid fa-share-nodes text-xl"></i>
-                        <span class="text-[10px] font-black uppercase tracking-tighter">Share</span>
                     </button>
                 </div>
             `;
@@ -294,7 +272,7 @@
                 const box = document.getElementById(`ad-frame-${id}`); 
                 if(box){ 
                     const frame = document.createElement('iframe'); 
-                    frame.style.width="100%"; frame.style.height="auto"; frame.style.minHeight="60px"; frame.style.border="none"; 
+                    frame.style.width="100%"; frame.style.border="none"; 
                     box.appendChild(frame); 
                     frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`); 
                 } 
@@ -320,7 +298,7 @@
                 const list = document.getElementById('commentList'); list.innerHTML = "";
                 sn.forEach(c => {
                     const d = c.data();
-                    list.innerHTML += `<div class="flex gap-3"><img src="${d.userPic}" class="w-9 h-9 rounded-full object-cover"><div class="bg-gray-100 p-3 rounded-2xl max-w-[85%]"><p class="text-[10px] font-black text-blue-600">@${d.userName}</p><p class="text-[13px] text-gray-800">${d.text}</p></div></div>`;
+                    list.innerHTML += `<div class="flex gap-3"><img src="${d.userPic}" class="w-9 h-9 rounded-full object-cover"><div class="bg-gray-100 p-3 rounded-2xl max-w-[85%]"><p class="text-[10px] font-black text-indigo-600">@${d.userName}</p><p class="text-[13px] text-gray-800 font-medium">${d.text}</p></div></div>`;
                 });
             });
         }
@@ -344,7 +322,7 @@
         async function loadStories() { 
             onSnapshot(collection(db, "stories"), snap => { 
                 const sL = document.getElementById('storyList'); sL.innerHTML = ""; 
-                snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; }); 
+                snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-2 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-[72px] h-[72px] rounded-3xl p-1 border-2 border-indigo-500 shadow-lg"><img src="${d.data().userPic}" class="w-full h-full rounded-[20px] object-cover"></div><span class="text-[9px] font-black text-gray-500 uppercase tracking-tighter">${d.data().userName?.split(' ')[0]}</span></div>`; }); 
             }); 
         }
 
@@ -353,7 +331,7 @@
             document.querySelectorAll('.post-vid').forEach(v => obs.observe(v)); 
         }
 
-        window.sharePost = (id) => navigator.share ? navigator.share({ title: 'My Book', url: window.location.href }) : alert("লিঙ্ক কপি করা হয়েছে!");
+        window.sharePost = (id) => navigator.share ? navigator.share({ title: 'My Book', url: window.location.origin + '/post.html?id=' + id }) : alert("লিঙ্ক কপি করা হয়েছে!");
     </script>
 </body>
 </html>
