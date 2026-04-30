@@ -6,6 +6,9 @@
     <title>Chat - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
 <body class="bg-[#f0f2f5] h-screen flex flex-col">
 
@@ -19,8 +22,8 @@
             </div>
         </div>
         <div class="flex gap-4">
-            <button onclick="startCall('audio')" class="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-90 transition"><i class="fas fa-phone-alt text-sm"></i></button>
-            <button onclick="startCall('video')" class="w-9 h-9 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 active:scale-90 transition"><i class="fas fa-video text-sm"></i></button>
+            <button id="audioCallBtn" class="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-90 transition"><i class="fas fa-phone-alt text-sm"></i></button>
+            <button id="videoCallBtn" class="w-9 h-9 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 active:scale-90 transition"><i class="fas fa-video text-sm"></i></button>
         </div>
     </nav>
 
@@ -35,10 +38,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -46,13 +56,39 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
         let myId = null;
+        let myName = "User";
 
-        onAuthStateChanged(auth, user => {
-            if(user) { myId = user.uid; initChat(); }
+        onAuthStateChanged(auth, async user => {
+            if(user) { 
+                myId = user.uid; 
+                // নিজের নাম গেট করা কলের জন্য
+                const mySnap = await getDoc(doc(db, "users", myId));
+                if(mySnap.exists()) myName = mySnap.data().name || "User";
+                initChat(); 
+            }
             else window.location.href = "index.html";
         });
 
-        window.startCall = (type) => window.location.href = `call.html?id=${targetId}&type=${type}`;
+        // কল লজিক ফাংশন
+        async function startCall(type) {
+            if(!myId || !targetId) return;
+
+            // ১. ডাটাবেসে কল রিকোয়েস্ট পাঠানো (এটি বন্ধুর home.html এ পপ-আপ দেখাবে)
+            await setDoc(doc(db, "calls", targetId), {
+                callerId: myId,
+                callerName: myName,
+                status: "dialing",
+                type: type,
+                timestamp: serverTimestamp()
+            });
+
+            // ২. কল পেজে নিয়ে যাওয়া
+            window.location.href = `call.html?id=${targetId}&type=${type}`;
+        }
+
+        // বাটন ইভেন্ট লিসেনার
+        document.getElementById('audioCallBtn').onclick = () => startCall('audio');
+        document.getElementById('videoCallBtn').onclick = () => startCall('video');
 
         async function initChat() {
             const uSnap = await getDoc(doc(db, "users", targetId));
