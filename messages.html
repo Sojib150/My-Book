@@ -7,22 +7,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen pb-20">
+<body class="bg-gray-50 min-h-screen pb-24">
 
-    <nav class="bg-white p-4 border-b sticky top-0 z-50 shadow-sm">
+    <nav class="bg-white/80 backdrop-blur-md p-4 border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <h1 class="text-xl font-black text-gray-800 italic uppercase">Messages</h1>
-            <a href="search.html" class="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-blue-600 transition"><i class="fas fa-edit"></i></a>
+            <h1 class="text-xl font-black text-gray-800 italic tracking-tighter">MESSAGES</h1>
+            <div class="flex gap-3">
+                <a href="search.html" class="text-gray-500 bg-gray-100 w-9 h-9 rounded-full flex items-center justify-center"><i class="fas fa-search text-sm"></i></a>
+                <a href="profile.html" class="text-gray-500 bg-gray-100 w-9 h-9 rounded-full flex items-center justify-center"><i class="fas fa-user text-sm"></i></a>
+            </div>
         </div>
     </nav>
 
-    <div id="chatList" class="max-w-md mx-auto p-4 space-y-4">
-        <p id="loader" class="text-center text-xs text-gray-400 mt-10">আপনার ইনবক্স চেক করা হচ্ছে...</p>
+    <div class="max-w-md mx-auto p-4">
+        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Suggested Friends</h3>
+        <div id="userSuggestions" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+            </div>
+
+        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-6 mb-3">Recent Conversations</h3>
+        <div id="chatList" class="space-y-3">
+            <p class="text-center text-[10px] text-gray-400 py-10">লোডিং হচ্ছে...</p>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -31,34 +41,53 @@
         const auth = getAuth(app);
 
         onAuthStateChanged(auth, user => {
-            if(user) loadRecentChats(user.uid);
-            else window.location.href = "index.html";
+            if(user) {
+                loadAllUsers(user.uid);
+                loadRecentChats(user.uid);
+            } else { window.location.href = "index.html"; }
         });
 
-        function loadRecentChats(myUid) {
-            // আপনার সকল চ্যাট রুম খুঁজে বের করা
-            onSnapshot(collection(db, "chats"), (snapshot) => {
+        async function loadAllUsers(myId) {
+            const snap = await getDocs(collection(db, "users"));
+            const container = document.getElementById('userSuggestions');
+            container.innerHTML = "";
+            snap.forEach(d => {
+                if(d.id !== myId) {
+                    const u = d.data();
+                    container.innerHTML += `
+                        <a href="chat.html?id=${d.id}" class="flex-shrink-0 text-center w-16">
+                            <div class="w-14 h-14 rounded-full border-2 border-indigo-500 p-0.5 mx-auto">
+                                <div class="w-full h-full bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
+                                </div>
+                            </div>
+                            <p class="text-[9px] font-bold text-gray-700 mt-1 truncate">${u.name || 'User'}</p>
+                        </a>`;
+                }
+            });
+        }
+
+        function loadRecentChats(myId) {
+            onSnapshot(collection(db, "chats"), async (snapshot) => {
                 const list = document.getElementById('chatList');
                 list.innerHTML = "";
-                document.getElementById('loader').classList.add('hidden');
-
                 snapshot.forEach(async (chatDoc) => {
                     const ids = chatDoc.id.split('_');
-                    if (ids.includes(myUid)) {
-                        const targetId = ids.find(id => id !== myUid);
-                        const userSnap = await getDoc(doc(db, "users", targetId));
-                        if(userSnap.exists()){
-                            const u = userSnap.data();
+                    if(ids.includes(myId)) {
+                        const targetId = ids.find(id => id !== myId);
+                        const uSnap = await getDoc(doc(db, "users", targetId));
+                        if(uSnap.exists()) {
+                            const u = uSnap.data();
                             list.innerHTML += `
-                                <a href="chat.html?id=${targetId}" class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-50 active:scale-95 transition">
-                                    <div class="w-14 h-14 bg-indigo-500 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-xl overflow-hidden shadow-md">
-                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
+                                <a href="chat.html?id=${targetId}" class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                                    <div class="w-12 h-12 bg-indigo-600 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0]}
                                     </div>
                                     <div class="flex-1">
-                                        <h3 class="font-bold text-gray-800 text-sm">${u.name || 'User'}</h3>
-                                        <p class="text-[11px] text-gray-400 truncate">চ্যাট করতে এখানে ক্লিক করুন...</p>
+                                        <h4 class="font-bold text-gray-800 text-xs">${u.name || 'User'}</h4>
+                                        <p class="text-[10px] text-gray-400">মেসেজ দেখতে ক্লিক করুন</p>
                                     </div>
-                                    <div class="text-[10px] text-indigo-500 font-bold uppercase italic">Open</div>
+                                    <i class="fas fa-chevron-right text-gray-300 text-[10px]"></i>
                                 </a>`;
                         }
                     }
