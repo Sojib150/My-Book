@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In Call - My Book</title>
+    <title>Call - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
 </head>
-<body class="bg-gray-900 h-screen flex flex-col items-center justify-between text-white pb-10">
+<body class="bg-[#0f172a] h-screen flex flex-col items-center justify-between text-white overflow-hidden">
 
-    <div class="w-full flex-1 relative flex items-center justify-center">
-        <div id="remote-player" class="w-full h-full bg-black"></div>
+    <div class="w-full flex-1 relative">
+        <div id="remote-player" class="w-full h-full bg-slate-900"></div>
         
-        <div id="local-player" class="absolute bottom-6 right-6 w-32 h-44 bg-gray-800 rounded-2xl border-2 border-white/20 overflow-hidden shadow-2xl z-10"></div>
+        <div id="local-player" class="absolute top-6 right-6 w-28 h-40 bg-slate-800 rounded-2xl border-2 border-white/20 shadow-2xl overflow-hidden z-20"></div>
 
-        <div id="callingUI" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-0">
-            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-3xl animate-pulse shadow-3xl mb-6">
-                <i class="fas fa-user"></i>
+        <div id="statusOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md z-10">
+            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-3xl shadow-[0_0_50px_rgba(79,70,229,0.5)] animate-pulse mb-8">
+                <i class="fas fa-phone-alt"></i>
             </div>
-            <p class="text-xs font-black tracking-widest uppercase opacity-50">Connecting Securely...</p>
+            <h2 class="text-xs font-black uppercase tracking-[0.3em] opacity-70">Securing Connection...</h2>
         </div>
     </div>
 
-    <div class="flex items-center gap-8 z-20">
-        <button id="micBtn" class="w-14 h-14 bg-white/10 rounded-full hover:bg-white/20 transition"><i class="fas fa-microphone"></i></button>
-        <button id="hangupBtn" class="w-20 h-20 bg-red-500 rounded-full text-2xl shadow-2xl active:scale-90 transition"><i class="fas fa-phone-slash"></i></button>
-        <button id="camBtn" class="w-14 h-14 bg-white/10 rounded-full hover:bg-white/20 transition"><i class="fas fa-video"></i></button>
+    <div class="bg-slate-800/50 backdrop-blur-xl w-full max-w-md p-8 flex justify-around items-center rounded-t-[40px] border-t border-white/10">
+        <button id="micBtn" class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-lg active:bg-white/20"><i class="fas fa-microphone"></i></button>
+        <button id="hangupBtn" class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-xl active:scale-90 transition"><i class="fas fa-phone-slash"></i></button>
+        <button id="camBtn" class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-lg active:bg-white/20"><i class="fas fa-video"></i></button>
     </div>
 
     <script>
@@ -39,12 +39,11 @@
         let localTracks = { audio: null, video: null };
 
         async function startCall() {
-            // সিম্পল রুম আইডি (প্রোডাকশনে টোকেন সার্ভার লাগে)
-            const channel = "test_channel_" + targetId; 
+            const channel = "seen_call_" + targetId; // সহজ আইডি (প্রোডাকশনে টোকেন দরকার)
             
             client.on("user-published", async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
-                document.getElementById('callingUI').style.display = 'none';
+                document.getElementById('statusOverlay').style.display = 'none';
                 if (mediaType === "video") user.videoTrack.play("remote-player");
                 if (mediaType === "audio") user.audioTrack.play();
             });
@@ -57,7 +56,7 @@
                 localTracks.video.play("local-player");
                 await client.publish([localTracks.audio, localTracks.video]);
             } else {
-                document.getElementById('local-player').classList.add('hidden');
+                document.getElementById('local-player').style.display = 'none';
                 await client.publish([localTracks.audio]);
             }
         }
