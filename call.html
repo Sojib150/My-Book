@@ -3,36 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call - My Book</title>
+    <title>Calling... - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
-</head>
-<body class="bg-[#0f172a] h-screen flex flex-col items-center justify-between text-white overflow-hidden">
-
-    <div class="w-full flex-1 relative">
-        <div id="remote-player" class="w-full h-full bg-slate-900"></div>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; overflow: hidden; }
         
-        <div id="local-player" class="absolute top-6 right-6 w-28 h-40 bg-slate-800 rounded-2xl border-2 border-white/20 shadow-2xl overflow-hidden z-20"></div>
+        /* Premium Background Animation */
+        .bg-animate { position: absolute; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #020617 100%); z-index: -1; }
+        .glow { position: absolute; width: 300px; height: 300px; background: rgba(79, 70, 229, 0.15); filter: blur(100px); border-radius: 50%; animation: float 6s infinite alternate; }
+        
+        @keyframes float { from { transform: translate(-10%, -10%); } to { transform: translate(10%, 10%); } }
 
-        <div id="statusOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md z-10">
-            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-3xl shadow-[0_0_50px_rgba(79,70,229,0.5)] animate-pulse mb-8">
-                <i class="fas fa-phone-alt"></i>
+        .incoming-call-anim { animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite; }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { box-shadow: 0 0 0 40px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
+    </style>
+</head>
+<body class="h-screen flex flex-col items-center justify-between py-20 px-10">
+
+    <div class="bg-animate"><div class="glow"></div></div>
+
+    <div class="text-center z-10">
+        <div class="relative inline-block mb-6">
+            <div id="uAvatar" class="w-32 h-32 rounded-[45px] bg-slate-800 border-4 border-white/10 overflow-hidden shadow-2xl flex items-center justify-center text-5xl font-black incoming-call-anim">
+                ?
             </div>
-            <h2 class="text-xs font-black uppercase tracking-[0.3em] opacity-70">Securing Connection...</h2>
-            <p class="text-[10px] mt-4 opacity-50">Waiting for friend to join</p>
+            <div id="callTypeBadge" class="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center border-4 border-[#0f172a]">
+                <i class="fas fa-video text-sm"></i>
+            </div>
         </div>
+        <h1 id="uName" class="text-2xl font-black tracking-tight mb-2 uppercase italic">লোড হচ্ছে...</h1>
+        <p id="callStatus" class="text-xs font-bold text-indigo-400 tracking-[0.4em] uppercase opacity-70">Ringing...</p>
     </div>
 
-    <div class="bg-slate-800/50 backdrop-blur-xl w-full max-w-md p-8 flex justify-around items-center rounded-t-[40px] border-t border-white/10">
-        <button id="micBtn" class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-lg active:bg-white/20"><i class="fas fa-microphone"></i></button>
-        <button id="hangupBtn" class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-xl active:scale-90 transition"><i class="fas fa-phone-slash"></i></button>
-        <button id="camBtn" class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-lg active:bg-white/20"><i class="fas fa-video"></i></button>
+    <div id="videoContainer" class="absolute inset-0 z-0 hidden">
+        <div id="remote-player" class="w-full h-full object-cover opacity-40"></div>
+        <div id="local-player" class="absolute top-10 right-6 w-32 h-44 bg-black/40 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden"></div>
+    </div>
+
+    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" loop></audio>
+    <audio id="dialtone" src="https://www.soundjay.com/phone/outbound-call-ringback-01.mp3" loop></audio>
+
+    <div class="w-full max-w-md z-10">
+        
+        <div id="incomingActions" class="flex justify-around items-center hidden">
+            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] flex items-center justify-center text-2xl shadow-2xl active:scale-90 transition">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+            <button onclick="acceptCall()" class="w-20 h-20 bg-green-500 rounded-[30px] flex items-center justify-center text-2xl shadow-2xl active:scale-90 transition animate-bounce">
+                <i class="fas fa-phone"></i>
+            </button>
+        </div>
+
+        <div id="ongoingActions" class="flex justify-around items-center hidden">
+            <button id="micBtn" class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-microphone"></i></button>
+            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] flex items-center justify-center text-2xl shadow-2xl active:scale-90 transition">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+            <button id="camBtn" class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg"><i class="fas fa-video"></i></button>
+        </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -44,33 +81,89 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
         const callType = urlParams.get('type');
-        let myId = null;
+        const action = urlParams.get('action'); // 'calling' or 'incoming'
 
+        let myId = null;
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 myId = user.uid;
-                startCall();
+                loadUserIdentity();
+                handleInitialUI();
+                listenForCallStatus();
             }
         });
 
-        async function startCall() {
-            // চ্যানেল নাম ফিক্স করা: দুজনের আইডির মধ্যে যেটি ছোট সেটি আগে থাকবে। 
-            // এতে করে caller এবং receiver উভয়ের জন্য চ্যানেল নাম একই হবে।
-            const channel = [myId, targetId].sort().join("_");
+        async function loadUserIdentity() {
+            const uSnap = await getDoc(doc(db, "users", targetId));
+            if(uSnap.exists()) {
+                const u = uSnap.data();
+                document.getElementById('uName').innerText = u.name || "Unknown User";
+                if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
+                else document.getElementById('uAvatar').innerText = u.name?.[0] || 'U';
+            }
+            document.getElementById('callTypeBadge').innerHTML = callType === 'video' ? '<i class="fas fa-video"></i>' : '<i class="fas fa-phone"></i>';
+        }
+
+        function handleInitialUI() {
+            if(action === 'calling') {
+                document.getElementById('ongoingActions').classList.remove('hidden');
+                document.getElementById('dialtone').play();
+                // কলার অটোমেটিক চ্যানেল জয়েন করবে কিন্তু রিসিভার রিসিভ না করা পর্যন্ত ওয়েট করবে
+            } else {
+                document.getElementById('incomingActions').classList.remove('hidden');
+                document.getElementById('ringtone').play();
+                document.getElementById('callStatus').innerText = "Incoming Call";
+            }
+        }
+
+        // কল রিসিভ হওয়া বা কাটার লাইভ লিসেনার
+        function listenForCallStatus() {
+            const callRef = doc(db, "calls", action === 'calling' ? targetId : myId);
+            onSnapshot(callRef, (snapshot) => {
+                if (!snapshot.exists()) {
+                    window.location.href = "messages.html"; // কল কেটে দিলে ব্যাক
+                } else {
+                    const data = snapshot.data();
+                    if (data.status === 'accepted') {
+                        startAgoraSession();
+                    }
+                }
+            });
+        }
+
+        window.acceptCall = async () => {
+            document.getElementById('ringtone').pause();
+            const callRef = doc(db, "calls", myId);
+            await updateDoc(callRef, { status: 'accepted' });
             
+            document.getElementById('incomingActions').classList.add('hidden');
+            document.getElementById('ongoingActions').classList.remove('hidden');
+            startAgoraSession();
+        };
+
+        window.endCall = async () => {
+            if(myId) await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
+            if(targetId) await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
+            location.href = "messages.html";
+        };
+
+        async function startAgoraSession() {
+            document.getElementById('dialtone').pause();
+            document.getElementById('callStatus').innerText = "Connected";
+            
+            if(callType === 'video') document.getElementById('videoContainer').classList.remove('hidden');
+
+            const channel = [myId, targetId].sort().join("_");
             client.on("user-published", async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
-                document.getElementById('statusOverlay').style.display = 'none';
                 if (mediaType === "video") user.videoTrack.play("remote-player");
                 if (mediaType === "audio") user.audioTrack.play();
             });
 
-            // অ্যাপ আইডি অনলি মোড (টোকেন নাল)
             await client.join(APP_ID, channel, null, null);
-            
             localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
             
             if (callType === 'video') {
@@ -78,36 +171,22 @@
                 localTracks.video.play("local-player");
                 await client.publish([localTracks.audio, localTracks.video]);
             } else {
-                document.getElementById('local-player').style.display = 'none';
                 await client.publish([localTracks.audio]);
             }
         }
 
-        document.getElementById('hangupBtn').onclick = async () => {
-            // কল কাটলে ডাটাবেস থেকে রিকোয়েস্ট ডিলিট করা
-            if(myId) await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
-            if(targetId) await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
-
-            if(localTracks.audio) { localTracks.audio.stop(); localTracks.audio.close(); }
-            if(localTracks.video) { localTracks.video.stop(); localTracks.video.close(); }
-            await client.leave();
-            window.location.href = `chat.html?id=${targetId}`;
-        };
-
-        // মিউট এবং ভিডিও অফ কন্ট্রোল
-        let isMicOn = true;
+        // মিউট/ক্যামেরা অফ লজিক
         document.getElementById('micBtn').onclick = async () => {
-            isMicOn = !isMicOn;
-            await localTracks.audio.setEnabled(isMicOn);
-            document.getElementById('micBtn').classList.toggle('bg-red-500', !isMicOn);
+            const enabled = localTracks.audio.enabled;
+            await localTracks.audio.setEnabled(!enabled);
+            document.getElementById('micBtn').classList.toggle('bg-red-500', enabled);
         };
-
-        let isCamOn = true;
+        
         document.getElementById('camBtn').onclick = async () => {
             if(!localTracks.video) return;
-            isCamOn = !isCamOn;
-            await localTracks.video.setEnabled(isCamOn);
-            document.getElementById('camBtn').classList.toggle('bg-red-500', !isCamOn);
+            const enabled = localTracks.video.enabled;
+            await localTracks.video.setEnabled(!enabled);
+            document.getElementById('camBtn').classList.toggle('bg-red-500', enabled);
         };
     </script>
 </body>
