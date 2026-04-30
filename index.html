@@ -29,7 +29,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // deleteDoc এবং doc ইম্পোর্ট করা হয়েছে কল ক্লিনআপের জন্য
+        import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
@@ -44,7 +45,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- ১২ দফা: মেইনটেন্যান্স চেক শুরু ---
         const checkStatus = async () => {
             const mSnap = await getDoc(doc(db, "appSettings", "adminConfig"));
             if (mSnap.exists() && mSnap.data().maintenanceMode) {
@@ -53,7 +53,6 @@
             }
         };
         checkStatus();
-        // --- শেষ ---
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -69,7 +68,6 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // --- ১২ দফা: হার্ড ব্যান ও এপ্রুভাল চেক ---
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
@@ -78,17 +76,22 @@
                         await signOut(auth);
                         msg.innerText = "দুঃখিত! এই ডিভাইসটি চিরস্থায়ীভাবে ব্যান করা হয়েছে।";
                         msg.style.color = "red";
+                        btn.disabled = false;
+                        btn.innerText = "লগইন";
                     } 
                     else if (userData.accountStatus === "waiting_approval") {
                         await signOut(auth);
                         msg.innerText = "আপনার একাউন্টটি এখনো অ্যাডমিন এপ্রুভ করেনি।";
                         msg.style.color = "orange";
+                        btn.disabled = false;
+                        btn.innerText = "লগইন";
                     } 
                     else {
+                        // কল ক্লিনআপ: লগইন করার সময় পুরনো কোনো কল রিকোয়েস্ট থাকলে তা মুছে ফেলবে
+                        await deleteDoc(doc(db, "calls", user.uid)).catch(()=>{});
                         window.location.href = "home.html";
                     }
                 }
-                // --- শেষ ---
 
             } catch (error) {
                 msg.innerText = "ভুল ইমেইল বা পাসওয়ার্ড!";
