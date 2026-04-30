@@ -3,147 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search - My Book</title>
+    <title>Explore - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .search-input { background: #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; }
+        .search-input:focus { background: white; border-color: #3b82f6; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1); }
+        
+        .filter-btn { transition: all 0.3s; white-space: nowrap; }
+        .filter-btn.active { background: #1e293b; color: white; transform: scale(1.05); shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .user-card { transition: all 0.3s; border: 1.5px solid #f1f5f9; }
+        .user-card:active { transform: scale(0.97); }
+        
+        .media-item { aspect-ratio: 1/1; border-radius: 20px; overflow: hidden; position: relative; }
+        .video-icon { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); padding: 5px; border-radius: 8px; color: white; font-size: 10px; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Bottom Nav shadow */
+        .nav-shadow { box-shadow: 0 -10px 40px rgba(0,0,0,0.03); }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-20">
+<body class="pb-28">
 
-    <div class="bg-white sticky top-0 z-50 p-4 shadow-sm">
+    <div class="glass-header sticky top-0 z-50 px-5 pt-6 pb-4 border-b border-gray-100">
         <div class="max-w-md mx-auto">
-            <div class="relative flex items-center">
-                <i class="fas fa-search absolute left-4 text-gray-400 text-sm"></i>
+            <div class="relative flex items-center mb-5">
+                <i class="fas fa-search absolute left-5 text-gray-400"></i>
                 <input type="text" id="searchInput" placeholder="মানুষ, পোস্ট বা ভিডিও খুঁজুন..." 
-                    class="w-full bg-gray-100 border-none rounded-full py-2.5 pl-11 pr-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all">
+                    class="search-input w-full rounded-[22px] py-4 pl-14 pr-6 text-[14px] font-bold outline-none text-gray-700">
             </div>
             
-            <div class="flex gap-4 mt-4 overflow-x-auto no-scrollbar">
-                <button onclick="setFilter('all')" class="filter-btn active-tab px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all">সব</button>
-                <button onclick="setFilter('users')" class="filter-btn px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all">মানুষ</button>
-                <button onclick="setFilter('images')" class="filter-btn px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all">ছবি</button>
-                <button onclick="setFilter('videos')" class="filter-btn px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all">ভিডিও</button>
+            <div class="flex gap-3 overflow-x-auto no-scrollbar">
+                <button onclick="setFilter('all')" class="filter-btn active px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">Explore</button>
+                <button onclick="setFilter('users')" class="filter-btn bg-gray-100 text-gray-400 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">People</button>
+                <button onclick="setFilter('images')" class="filter-btn bg-gray-100 text-gray-400 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">Images</button>
+                <button onclick="setFilter('videos')" class="filter-btn bg-gray-100 text-gray-400 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">Videos</button>
             </div>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-4 px-2">
-        <div id="resultsGrid" class="grid grid-cols-3 gap-1"></div>
-        <div id="userResults" class="space-y-3 hidden"></div>
+    <div class="max-w-md mx-auto mt-6 px-5">
+        <div id="suggestedBox" class="mb-8">
+            <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-[3px] mb-4 ml-1">Suggested for you</h3>
+            <div id="suggestionList" class="flex gap-4 overflow-x-auto no-scrollbar py-2">
+                <div class="w-20 shrink-0 animate-pulse">
+                    <div class="w-20 h-20 bg-gray-200 rounded-[28px] mb-2"></div>
+                    <div class="h-2 bg-gray-200 rounded w-12 mx-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="userResults" class="space-y-4 mb-6 hidden">
+            <h3 class="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1">People Found</h3>
+            </div>
+
+        <div id="mediaResults" class="grid grid-cols-2 gap-4">
+            </div>
         
-        <div id="emptyState" class="text-center py-20 text-gray-400">
-            <i class="fas fa-search text-4xl mb-4 opacity-20"></i>
-            <p class="text-xs font-bold uppercase tracking-widest">কিছু লিখে সার্চ করুন</p>
+        <div id="emptyState" class="text-center py-24 hidden">
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-search text-blue-200 text-3xl"></i>
+            </div>
+            <p class="text-[11px] font-black uppercase tracking-[4px] text-gray-300">কোনো ফলাফল পাওয়া যায়নি</p>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around items-center z-50 max-w-md mx-auto shadow-2xl">
-        <a href="home.html" class="text-gray-400"><i class="fas fa-home text-xl"></i></a>
-        <a href="search.html" class="text-blue-600"><i class="fas fa-search text-xl"></i></a>
-        <a href="messages.html" class="text-gray-400"><i class="fab fa-facebook-messenger text-xl"></i></a>
-        <a href="profile.html" class="text-gray-400"><i class="fas fa-user text-xl"></i></a>
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] bg-slate-900/90 backdrop-blur-xl rounded-[35px] p-3 flex justify-around items-center shadow-2xl z-50">
+        <a href="home.html" class="text-gray-500 w-12 h-12 flex items-center justify-center rounded-2xl"><i class="fas fa-home text-lg"></i></a>
+        <a href="search.html" class="text-white w-12 h-12 flex items-center justify-center bg-white/10 rounded-2xl"><i class="fas fa-search text-lg"></i></a>
+        <a href="post.html" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center -mt-10 border-4 border-slate-900 shadow-xl"><i class="fas fa-plus"></i></a>
+        <a href="messages.html" class="text-gray-500 w-12 h-12 flex items-center justify-center rounded-2xl"><i class="fas fa-comment-dots text-lg"></i></a>
+        <a href="profile.html" class="text-gray-500 w-12 h-12 flex items-center justify-center rounded-2xl"><i class="fas fa-user-circle text-lg"></i></a>
     </nav>
-
-    <style>
-        .active-tab { background: #2563eb; color: white; }
-        .filter-btn:not(.active-tab) { background: #f3f4f6; color: #9ca3af; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         let currentFilter = 'all';
         let allUsers = [];
         let allPosts = [];
+        let currentUserData = null;
+
+        onAuthStateChanged(auth, async user => {
+            if(user) {
+                const uSnap = await getDoc(doc(db, "users", user.uid));
+                currentUserData = uSnap.data();
+                loadInitialData();
+            }
+        });
 
         async function loadInitialData() {
+            // ১. ইউজার লোড
             const uSnap = await getDocs(collection(db, "users"));
-            uSnap.forEach(doc => allUsers.push({id: doc.id, ...doc.data()}));
+            allUsers = uSnap.docs.map(d => ({id: d.id, ...d.data()}));
             
-            const pSnap = await getDocs(query(collection(db, "posts"), orderBy("timestamp", "desc")));
-            pSnap.forEach(doc => allPosts.push({id: doc.id, ...doc.data()}));
+            // ২. পোস্ট লোড
+            const pSnap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50)));
+            allPosts = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            
+            renderSuggestions();
+            renderInitialExplore();
         }
-        loadInitialData();
+
+        // ৩. অ্যালগরিদম সাজেস্টন লজিক
+        function renderSuggestions() {
+            const list = document.getElementById('suggestionList');
+            list.innerHTML = "";
+            
+            // ফিল্টার: ইউজার যাদের পছন্দ আপনার ইন্টারেস্টের সাথে মেলে
+            const suggested = allUsers.filter(u => u.id !== auth.currentUser?.uid).slice(0, 8);
+            
+            suggested.forEach(u => {
+                list.innerHTML += `
+                    <div onclick="location.href='user.html?id=${u.id}'" class="w-20 shrink-0 text-center cursor-pointer group">
+                        <div class="w-20 h-20 bg-indigo-100 rounded-[28px] overflow-hidden mb-2 group-active:scale-90 transition border-2 border-white shadow-sm">
+                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-indigo-500 font-black">${u.name?.[0] || 'U'}</div>`}
+                        </div>
+                        <p class="text-[9px] font-black text-gray-700 truncate px-1 uppercase">${u.name?.split(' ')[0] || 'User'}</p>
+                    </div>`;
+            });
+        }
+
+        function renderInitialExplore() {
+            performSearch(""); // শুরুর দিকে র্যান্ডম বা ট্রেন্ডিং পোস্ট দেখাবে
+        }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            if(!term) { showEmpty(true); return; }
-            showEmpty(false);
+            const suggestBox = document.getElementById('suggestedBox');
+            
+            if(!term) {
+                suggestBox.classList.remove('hidden');
+                performSearch("");
+                return;
+            }
+            
+            suggestBox.classList.add('hidden');
             performSearch(term);
         });
 
         function performSearch(term) {
-            const grid = document.getElementById('resultsGrid');
-            const list = document.getElementById('userResults');
-            grid.innerHTML = "";
-            list.innerHTML = "";
+            const userBox = document.getElementById('userResults');
+            const mediaGrid = document.getElementById('mediaResults');
+            const empty = document.getElementById('emptyState');
+            
+            userBox.innerHTML = term ? '<h3 class="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1">People Found</h3>' : '';
+            mediaGrid.innerHTML = "";
+            
+            // ইউজার সার্চ
+            if(term && (currentFilter === 'users' || currentFilter === 'all')) {
+                const foundUsers = allUsers.filter(u => u.name?.toLowerCase().includes(term)).slice(0, 5);
+                if(foundUsers.length > 0) {
+                    userBox.classList.remove('hidden');
+                    foundUsers.forEach(u => {
+                        userBox.innerHTML += `
+                            <div class="user-card flex items-center justify-between p-4 bg-white rounded-[25px] shadow-sm">
+                                <div onclick="location.href='user.html?id=${u.id}'" class="flex items-center gap-4 cursor-pointer">
+                                    <div class="w-12 h-12 bg-indigo-500 rounded-2xl overflow-hidden flex items-center justify-center text-white font-bold shadow-inner">
+                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : (u.name?.[0] || 'U')}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-gray-800 text-[13px] tracking-tight uppercase">${u.name || 'Anonymous'}</h4>
+                                        <p class="text-[9px] text-gray-400 font-bold tracking-widest uppercase">Member Since 2026</p>
+                                    </div>
+                                </div>
+                                <button onclick="location.href='chat.html?id=${u.id}'" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                                    <i class="fab fa-facebook-messenger"></i>
+                                </button>
+                            </div>`;
+                    });
+                } else { userBox.classList.add('hidden'); }
+            } else { userBox.classList.add('hidden'); }
 
-            if(currentFilter === 'users' || currentFilter === 'all') {
-                list.classList.remove('hidden');
-                const filteredUsers = allUsers.filter(u => 
-                    (u.name && u.name.toLowerCase().includes(term)) || 
-                    (u.email && u.email.toLowerCase().includes(term))
-                );
-                filteredUsers.forEach(u => {
-                    // ইউজার কার্ডের সাথে সরাসরি চ্যাট বাটন যোগ করা হয়েছে
-                    list.innerHTML += `
-                        <div class="flex items-center justify-between p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
-                            <a href="user.html?id=${u.id}" class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-blue-500 rounded-full overflow-hidden flex items-center justify-center text-white font-bold">
-                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : u.name?.[0] || 'U'}
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-sm">${u.name || 'User'}</h4>
-                                    <p class="text-[10px] text-gray-400">View Profile</p>
-                                </div>
-                            </a>
-                            <a href="chat.html?id=${u.id}" class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 active:scale-90 transition">
-                                <i class="fab fa-facebook-messenger text-lg"></i>
-                            </a>
-                        </div>`;
-                });
+            // মিডিয়া সার্চ (অ্যালগরিদম স্কোরিং যুক্ত করা যেতে পারে এখানে)
+            let filteredPosts = allPosts;
+            if(term) {
+                filteredPosts = allPosts.filter(p => p.text?.toLowerCase().includes(term) || p.category?.toLowerCase().includes(term));
             }
+            
+            if(currentFilter === 'images') filteredPosts = filteredPosts.filter(p => p.fileType === 'image');
+            if(currentFilter === 'videos') filteredPosts = filteredPosts.filter(p => p.fileType === 'video');
 
-            if(currentFilter !== 'users') {
-                // পোস্ট রেজাল্ট আগের মতোই থাকবে
-                let filteredPosts = allPosts.filter(p => p.text && p.text.toLowerCase().includes(term));
-                if(currentFilter === 'images') filteredPosts = allPosts.filter(p => p.fileType === 'image');
-                if(currentFilter === 'videos') filteredPosts = allPosts.filter(p => p.fileType === 'video');
-
+            if(filteredPosts.length > 0) {
+                empty.classList.add('hidden');
                 filteredPosts.forEach(p => {
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-200 relative overflow-hidden group";
-                    div.innerHTML = p.fileUrl ? 
-                        (p.fileType === 'video' ? 
-                            `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><i class="fas fa-play absolute inset-0 m-auto w-fit h-fit text-white opacity-70"></i>` : 
-                            `<img src="${p.fileUrl}" class="w-full h-full object-cover transition group-hover:scale-110">`) : 
-                        `<div class="p-3 text-[9px] text-gray-500 h-full flex items-center justify-center text-center bg-blue-50">${p.text?.slice(0,40)}...</div>`;
-                    grid.appendChild(div);
+                    div.className = "media-item bg-white shadow-sm group active:scale-95 transition cursor-pointer";
+                    div.onclick = () => location.href = `post-view.html?id=${p.id}`;
+                    
+                    let inner = "";
+                    if(p.fileUrl) {
+                        if(p.fileType === 'video') {
+                            inner = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
+                                     <div class="video-icon"><i class="fas fa-play"></i></div>`;
+                        } else {
+                            inner = `<img src="${p.fileUrl}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">`;
+                        }
+                    } else {
+                        inner = `<div class="p-4 h-full flex items-center justify-center text-center text-[10px] font-bold text-gray-400 uppercase leading-relaxed bg-indigo-50/50">${p.text?.slice(0,50)}...</div>`;
+                    }
+                    div.innerHTML = inner;
+                    mediaGrid.appendChild(div);
                 });
+            } else {
+                if(term) empty.classList.remove('hidden');
             }
         }
 
         window.setFilter = (f) => {
             currentFilter = f;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active-tab'));
-            // ইভেন্ট টার্গেট হ্যান্ডলিং ঠিক করা হয়েছে
-            const btns = document.querySelectorAll('.filter-btn');
-            btns.forEach(b => { if(b.innerText.toLowerCase().includes(f) || (f==='all' && b.innerText==='সব')) b.classList.add('active-tab'); });
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-gray-900', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-400');
+            });
+            const activeBtn = event.currentTarget;
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('bg-gray-100', 'text-gray-400');
+            
             performSearch(document.getElementById('searchInput').value);
         };
-
-        function showEmpty(show) {
-            document.getElementById('emptyState').style.display = show ? 'block' : 'none';
-            if(show) {
-                document.getElementById('resultsGrid').innerHTML = "";
-                document.getElementById('userResults').innerHTML = "";
-            }
-        }
     </script>
 </body>
 </html>
