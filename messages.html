@@ -3,74 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages - My Book</title>
+    <title>Messages - Elite Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f9fafb; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1c1c1e; overflow-x: hidden; }
         
-        .ios-blur { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .ios-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .ios-card:active { transform: scale(0.96); opacity: 0.8; }
+        .ios-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-bottom: 0.5px solid rgba(0,0,0,0.1); }
+        .search-box { background: rgba(118, 118, 128, 0.12); border-radius: 14px; transition: all 0.3s; }
+        .search-box:focus-within { background: rgba(118, 118, 128, 0.2); }
         
-        /* Story Ring */
+        /* Message Card Logic */
+        .msg-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .msg-card:active { background-color: #f2f2f7; transform: scale(0.98); }
+        
+        .unread-dot { width: 10px; height: 10px; background: #007aff; border-radius: 50%; }
+        
         .story-ring {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            background: linear-gradient(45deg, #007aff, #5856d6);
             padding: 2.5px;
+            box-shadow: 0 4px 15px rgba(88, 86, 214, 0.2);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .search-box { background: rgba(118, 118, 128, 0.12); border-radius: 12px; }
+        /* Shimmer Loading Effect */
+        .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     </style>
 </head>
-<body class="min-h-screen pb-28 text-[#1c1c1e]">
+<body class="pb-32">
 
-    <nav class="ios-blur sticky top-0 z-50 px-5 pt-8 pb-4">
+    <nav class="ios-header sticky top-0 z-50 px-6 pt-10 pb-4">
         <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-end mb-4">
-                <h1 class="text-3xl font-extrabold tracking-tight">Messages</h1>
-                <div class="flex gap-4">
-                    <a href="search.html" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-800"><i class="fas fa-camera text-sm"></i></a>
-                    <a href="profile.html" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-800"><i class="fas fa-pen-to-square text-sm"></i></a>
-                </div>
+            <div class="flex justify-between items-center mb-5">
+                <span class="text-blue-600 font-semibold text-sm">Edit</span>
+                <h1 class="text-2xl font-extrabold tracking-tight">Messages</h1>
+                <a href="new-chat.html" class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-blue-600">
+                    <i class="fas fa-edit text-sm"></i>
+                </a>
             </div>
-            <div class="search-box flex items-center px-3 py-2 text-gray-500">
-                <i class="fas fa-search text-xs mr-2 opacity-50"></i>
-                <input type="text" placeholder="Search" class="bg-transparent border-none outline-none text-sm w-full placeholder-gray-500">
+            <div class="search-box flex items-center px-4 py-3 text-gray-500">
+                <i class="fas fa-search text-sm mr-3 opacity-40"></i>
+                <input type="text" id="chatSearch" placeholder="Search for people or groups" class="bg-transparent border-none outline-none text-[15px] w-full placeholder-gray-400 font-medium">
             </div>
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto px-5">
-        
-        <div class="mt-6">
-            <div id="userSuggestions" class="flex gap-5 overflow-x-auto pb-2 no-scrollbar">
+    <div class="max-w-md mx-auto">
+        <div class="mt-6 px-6">
+            <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-[2px] mb-4">Active Now</h3>
+            <div id="userSuggestions" class="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
                 </div>
         </div>
 
-        <div class="mt-8">
-            <h3 class="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-4 px-1">Chats</h3>
-            <div id="chatList" class="space-y-1">
-                <div class="flex justify-center py-10">
-                    <div class="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="mt-4">
+            <div id="chatList" class="divide-y divide-gray-100">
+                <div class="px-6 py-4 flex gap-4 animate-pulse">
+                    <div class="w-14 h-14 bg-gray-200 rounded-full"></div>
+                    <div class="flex-1 space-y-3 py-1">
+                        <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                        <div class="h-2 bg-gray-200 rounded w-full"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-black/90 backdrop-blur-2xl rounded-[32px] p-3 shadow-2xl flex justify-around items-center z-[100]">
-        <a href="home.html" class="p-3 text-gray-500"><i class="fas fa-house-chimney text-lg"></i></a>
-        <a href="messages.html" class="p-3 text-white"><i class="fas fa-comment-nodes text-lg"></i></a>
-        <div onclick="location.href='post.html'" class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-500/40 active:scale-90 transition"><i class="fas fa-plus"></i></div>
-        <a href="notifications.html" class="p-3 text-gray-500"><i class="fas fa-bell text-lg"></i></a>
-        <a href="profile.html" class="p-3 text-gray-500"><i class="fas fa-user text-lg"></i></a>
-    </div>
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-[35px] p-4 flex justify-around items-center shadow-2xl z-[100] border border-white/10">
+        <a href="home.html" class="text-gray-500 text-lg"><i class="fas fa-th-large"></i></a>
+        <a href="search.html" class="text-gray-500 text-lg"><i class="fas fa-compass"></i></a>
+        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black shadow-lg active:scale-90 transition"><i class="fas fa-plus"></i></div>
+        <a href="messages.html" class="text-blue-400 text-lg"><i class="fas fa-comment-alt"></i></a>
+        <a href="profile.html" class="text-gray-500 text-lg"><i class="fas fa-user-circle"></i></a>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -85,60 +96,98 @@
             } else { window.location.href = "index.html"; }
         });
 
+        // ১. সাজেস্টেড ইউজার (অ্যালগরিদম অনুযায়ী অনলাইন স্ট্যাটাস দেখানো যায় এখানে)
         async function loadAllUsers(myId) {
-            const snap = await getDocs(collection(db, "users"));
-            const container = document.getElementById('userSuggestions');
-            container.innerHTML = "";
-            snap.forEach(d => {
-                if(d.id !== myId) {
-                    const u = d.data();
-                    container.innerHTML += `
-                        <a href="chat.html?id=${d.id}" class="flex-shrink-0 text-center w-16 ios-card">
-                            <div class="w-16 h-16 rounded-full story-ring mx-auto mb-2 shadow-lg">
-                                <div class="w-full h-full bg-white rounded-full p-0.5">
-                                    <div class="w-full h-full bg-gray-100 rounded-full overflow-hidden flex items-center justify-center">
-                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<span class="text-xs font-bold text-gray-400">${u.name?.[0]}</span>`}
+            onSnapshot(collection(db, "users"), (snap) => {
+                const container = document.getElementById('userSuggestions');
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    if(d.id !== myId) {
+                        const u = d.data();
+                        container.innerHTML += `
+                            <a href="chat.html?id=${d.id}" class="flex-shrink-0 text-center w-16 group active:scale-90 transition">
+                                <div class="w-16 h-16 rounded-[24px] story-ring mx-auto mb-2">
+                                    <div class="w-full h-full bg-white rounded-[22px] p-1">
+                                        <div class="w-full h-full bg-gray-100 rounded-[18px] overflow-hidden">
+                                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-300 text-lg">${u.name?.[0]}</div>`}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <p class="text-[10px] font-bold text-gray-800 truncate px-1">${u.name || 'User'}</p>
-                        </a>`;
-                }
-            });
-        }
-
-        function loadRecentChats(myId) {
-            onSnapshot(collection(db, "chats"), async (snapshot) => {
-                const list = document.getElementById('chatList');
-                list.innerHTML = "";
-                snapshot.forEach(async (chatDoc) => {
-                    const ids = chatDoc.id.split('_');
-                    if(ids.includes(myId)) {
-                        const targetId = ids.find(id => id !== myId);
-                        const uSnap = await getDoc(doc(db, "users", targetId));
-                        if(uSnap.exists()) {
-                            const u = uSnap.data();
-                            list.innerHTML += `
-                                <a href="chat.html?id=${targetId}" class="flex items-center gap-4 py-3 border-b border-gray-50 ios-card active:bg-gray-50 rounded-xl px-2">
-                                    <div class="relative flex-shrink-0">
-                                        <div class="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border border-gray-100">
-                                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-400">${u.name?.[0]}</div>`}
-                                        </div>
-                                        <div class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex justify-between items-baseline mb-0.5">
-                                            <h4 class="font-bold text-[14px] text-gray-900 truncate">${u.name || 'User'}</h4>
-                                            <span class="text-[10px] text-gray-400 font-medium">Just now</span>
-                                        </div>
-                                        <p class="text-[12px] text-gray-500 truncate font-medium">Tap to open conversation</p>
-                                    </div>
-                                </a>`;
-                        }
+                                <p class="text-[10px] font-bold text-gray-800 truncate">${u.name?.split(' ')[0] || 'User'}</p>
+                            </a>`;
                     }
                 });
             });
         }
+
+        // ২. মেইন চ্যাট লিস্ট (টাইমস্ট্যাম্প অনুযায়ী সর্টিং লজিক)
+        function loadRecentChats(myId) {
+            // "chats" কালেকশন থেকে ডাটা নিচ্ছি যেখানে আপনি চ্যাট করছেন
+            onSnapshot(collection(db, "chats"), async (snapshot) => {
+                const list = document.getElementById('chatList');
+                let chatData = [];
+
+                // সব চ্যাট ডাটা প্রসেস করা
+                const promises = snapshot.docs.map(async (chatDoc) => {
+                    const ids = chatDoc.id.split('_');
+                    if(ids.includes(myId)) {
+                        const targetId = ids.find(id => id !== myId);
+                        const lastMsg = chatDoc.data()?.lastMessage || "Tap to start conversation";
+                        const lastTime = chatDoc.data()?.lastMessageTimestamp || 0;
+                        const uSnap = await getDoc(doc(db, "users", targetId));
+                        
+                        if(uSnap.exists()) {
+                            return { id: targetId, ...uSnap.data(), lastMsg, lastTime };
+                        }
+                    }
+                    return null;
+                });
+
+                const results = await Promise.all(promises);
+                chatData = results.filter(c => c !== null);
+
+                // 🔥 CRITICAL LOGIC: লেটেস্ট মেসেজ অনুযায়ী সর্টিং (যাতে যার সাথে কথা হয়েছে সে উপরে থাকে)
+                chatData.sort((a, b) => b.lastTime - a.lastTime);
+
+                list.innerHTML = "";
+                if(chatData.length === 0) {
+                    list.innerHTML = `<div class="text-center py-20 text-gray-300 font-bold uppercase tracking-widest text-[10px]">No messages yet</div>`;
+                }
+
+                chatData.forEach(u => {
+                    const timeString = u.lastTime ? new Date(u.lastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    
+                    list.innerHTML += `
+                        <a href="chat.html?id=${u.id}" class="msg-card flex items-center gap-4 px-6 py-4">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-[60px] h-[60px] rounded-[22px] overflow-hidden bg-gray-100 border border-gray-100 shadow-sm">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-300 text-xl">${u.name?.[0]}</div>`}
+                                </div>
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h4 class="font-extrabold text-[15px] text-gray-900 truncate">${u.name || 'User'}</h4>
+                                    <span class="text-[11px] text-gray-400 font-semibold uppercase tracking-tighter">${timeString}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-[13px] text-gray-500 truncate font-medium max-w-[180px]">${u.lastMsg}</p>
+                                    <div class="unread-dot"></div>
+                                </div>
+                            </div>
+                        </a>`;
+                });
+            });
+        }
+
+        // সার্চ ফাংশনালিটি
+        document.getElementById('chatSearch').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.msg-card').forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        });
     </script>
 </body>
 </html>
