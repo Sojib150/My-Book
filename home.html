@@ -98,7 +98,6 @@
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
-
     <div id="deleteDrawer" class="drawer p-8">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
         <h3 class="text-lg font-black text-center mb-10">পোস্টটি মুছে ফেলবেন?</h3>
@@ -127,11 +126,18 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let user = null; let activePostId = null; let postToDelete = null;
+        let user = null; 
+        let currentUserData = null;
+        let activePostId = null; 
+        let postToDelete = null;
 
-        onAuthStateChanged(auth, u => { 
+        onAuthStateChanged(auth, async u => { 
             if(u){ 
-                user=u; 
+                user = u; 
+                // ইউজার ডাটা ফেচ করা অ্যালগরিদমের জন্য
+                const userSnap = await getDoc(doc(db, "users", u.uid));
+                currentUserData = userSnap.exists() ? userSnap.data() : null;
+                
                 renderFeed(); 
                 loadProfile(); 
                 checkNotif(); 
@@ -140,7 +146,61 @@
             } else location.href="index.html"; 
         });
 
-        // ১. ভিডিও কল লিসেনার (নতুন লজিক)
+        // ==========================================
+        // 🔥 SMART HYBRID FEED ALGORITHM (Injected)
+        // ==========================================
+        function getSortedFeed(posts, currentUser) {
+            function calculateScore(post) {
+                const likes = post.likedBy?.length || 0;
+                const comments = post.commentCount || 0;
+                const replies = post.replies?.length || 0;
+                const shares = post.shares || 0;
+                const views = post.views || 0;
+
+                // 📈 Engagement Score (50%)
+                const engagementScore = (likes * 2) + (comments * 4) + (replies * 3) + (shares * 5) + (views * 1);
+
+                // 🎬 Content Score (20%)
+                let contentScore = 10;
+                if (post.fileType === "video") {
+                    const watchRatio = (post.watchTime || 0) / (post.duration || 1);
+                    contentScore = 30 + (watchRatio * 50);
+                } else if (post.fileType === "image") {
+                    contentScore = 15;
+                }
+
+                // 🧍 User Interest (20%)
+                let userInterestScore = 10;
+                if (currentUser?.interests?.includes(post.category)) {
+                    userInterestScore = 40;
+                }
+
+                // ⏱️ Time Boost (10%)
+                const postTime = post.createdAt ? post.createdAt.seconds * 1000 : Date.now();
+                const hours = (Date.now() - postTime) / 3600000;
+                let timeScore = 0;
+                if (hours < 1) timeScore = 40;
+                else if (hours < 6) timeScore = 25;
+                else if (hours < 24) timeScore = 10;
+
+                // 🧠 Final Calculation
+                let score = (engagementScore * 0.5) + (contentScore * 0.2) + (userInterestScore * 0.2) + (timeScore * 0.1);
+
+                // 👥 Friend Boost
+                if (currentUser?.friends?.includes(post.userId)) score += 20;
+
+                // 🔁 Repeat Control
+                if (post.viewsByUser?.includes(currentUser?.uid)) score -= 15;
+
+                // 🔥 Viral Boost
+                if (likes > 100) score += 100;
+
+                return score;
+            }
+            return posts.sort((a, b) => calculateScore(b) - calculateScore(a));
+        }
+
+        // ১. ভিডিও কল লিসেনার
         function listenForCalls(myId) {
             onSnapshot(doc(db, "calls", myId), (snap) => {
                 const ui = document.getElementById('incomingCallUI');
@@ -148,11 +208,7 @@
                     const data = snap.data();
                     ui.classList.add('active');
                     document.getElementById('callerNameDisplay').innerText = data.callerName;
-                    
-                    document.getElementById('acceptCallBtn').onclick = () => {
-                        window.location.href = `call.html?id=${data.callerId}&type=${data.type}`;
-                    };
-
+                    document.getElementById('acceptCallBtn').onclick = () => window.location.href = `call.html?id=${data.callerId}&type=${data.type}`;
                     document.getElementById('declineCallBtn').onclick = async () => {
                         await deleteDoc(doc(db, "calls", myId));
                         ui.classList.remove('active');
@@ -168,19 +224,31 @@
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const globalAd = adSnap.exists() ? adSnap.data().code : "";
 
-            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50)), async snap => {
+            // ডাটাবেস থেকে পোস্ট কালেকশন নিয়ে অ্যালগরিদমে পাঠানো
+            onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
+                let rawPosts = [];
+                snap.forEach(d => rawPosts.push({ id: d.id, ...d.data() }));
+
+                // 🔥 আপনার সেই অ্যালগরিদম দিয়ে সর্টিং
+                const sortedPosts = getSortedFeed(rawPosts, currentUserData);
+
                 feed.innerHTML = "";
-                snap.forEach(async docRef => {
-                    const p = docRef.data();
+                sortedPosts.forEach(async (p, index) => {
                     if(p.isShadowBanned) return;
-                    const card = await createPostCard(docRef.id, p, globalAd);
+                    
+                    // ৩ পোস্ট পর পর অ্যাড লজিক
+                    const showAd = globalAd && (index > 0 && index % 3 === 0);
+                    
+                    const card = await createPostCard(p.id, p, showAd ? globalAd : null);
                     feed.appendChild(card);
+                    
+                    if(showAd) injectAd(p.id, globalAd);
                 });
                 setTimeout(initIntersection, 1000);
             });
         }
 
-        async function createPostCard(id, p, globalAd) {
+        async function createPostCard(id, p, adCode) {
             const isMine = p.userId === user.uid;
             const hasL = p.likedBy?.includes(user.uid);
             const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'Just Now';
@@ -201,12 +269,12 @@
                 <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
                 ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
                 
-                ${globalAd ? `<div class="p-3 border-y bg-gray-50/50 text-center"><div id="ad-frame-${id}"></div></div>` : ""}
+                ${adCode ? `<div class="p-3 border-y bg-gray-50/50 text-center"><div id="ad-frame-${id}"></div></div>` : ""}
 
                 <div class="flex justify-around py-2 border-t mt-1">
                     <button onclick="like('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}">
                         <i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i>
-                        <span class="text-[10px] font-black">${p.likes||0}</span>
+                        <span class="text-[10px] font-black">${p.likedBy?.length||0}</span>
                     </button>
                     <button onclick="openComments('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400">
                         <i class="fa-regular fa-comment-dots text-xl"></i>
@@ -218,11 +286,9 @@
                     </button>
                 </div>
             `;
-            if(globalAd) injectAd(id, globalAd);
             return card;
         }
 
-        // --- Ad Inject Function ---
         function injectAd(id, code) { 
             setTimeout(() => { 
                 const box = document.getElementById(`ad-frame-${id}`); 
@@ -230,19 +296,24 @@
                     const frame = document.createElement('iframe'); 
                     frame.style.width="100%"; frame.style.height="auto"; frame.style.minHeight="60px"; frame.style.border="none"; 
                     box.appendChild(frame); 
-                    frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;font-family:sans-serif;">${code}</body>`); 
+                    frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`); 
                 } 
             }, 2000); 
         }
 
-        // --- Basic Utilities ---
         window.like = async (id) => {
-            const ref = doc(db, "posts", id); const d = (await getDoc(ref)).data();
+            const ref = doc(db, "posts", id); 
+            const d = (await getDoc(ref)).data();
             const hasL = d.likedBy?.includes(user.uid);
-            await updateDoc(ref, { likes: increment(hasL?-1:1), likedBy: hasL?arrayRemove(user.uid):arrayUnion(user.uid) });
+            await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
         };
 
-        window.openComments = (id) => { activePostId = id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadComments(id); };
+        window.openComments = (id) => { 
+            activePostId = id; 
+            document.getElementById('commentSheet').classList.add('active'); 
+            document.getElementById('overlay').style.display='block'; 
+            loadComments(id); 
+        };
         
         async function loadComments(id) {
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
