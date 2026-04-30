@@ -18,6 +18,14 @@
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: none; z-index: 999; }
         .floating-btn { position: fixed; bottom: 85px; right: 20px; width: 56px; height: 56px; background: #2563eb; color: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 8px 20px rgba(37,99,235,0.4); z-index: 900; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Incoming Call Styles */
+        @keyframes shake {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(15deg); }
+          75% { transform: rotate(-15deg); }
+        }
+        .animate-shake { animation: shake 0.5s infinite; }
     </style>
 </head>
 <body class="pb-24 bg-gray-50">
@@ -52,6 +60,20 @@
     </div>
 
     <button class="floating-btn" onclick="location.href='post.html'"><i class="fa-solid fa-plus"></i></button>
+
+    <div id="incomingCallUI" class="hidden fixed inset-0 z-[2000] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center text-white">
+        <div class="relative">
+            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-3xl shadow-[0_0_50px_rgba(79,70,229,0.5)]">
+                <i class="fas fa-phone-alt animate-shake"></i>
+            </div>
+            <div class="absolute -inset-4 border-2 border-indigo-500 rounded-full animate-ping"></div>
+        </div>
+        <h2 id="callerNameDisplay" class="mt-8 text-xl font-black italic uppercase tracking-tighter text-center px-4">Incoming Call...</h2>
+        <div class="mt-12 flex gap-12">
+            <button id="declineCallBtn" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-xl shadow-lg active:scale-90 transition"><i class="fas fa-times"></i></button>
+            <button id="acceptCallBtn" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-xl shadow-lg active:scale-90 transition"><i class="fas fa-check"></i></button>
+        </div>
+    </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
 
@@ -92,16 +114,47 @@
 
         let user = null; let activePostId = null; let postToDelete = null;
 
-        onAuthStateChanged(auth, u => { if(u){ user=u; renderFeed(); loadProfile(); checkNotif(); loadStories(); } else location.href="index.html"; });
+        onAuthStateChanged(auth, u => { 
+            if(u){ 
+                user=u; 
+                renderFeed(); 
+                loadProfile(); 
+                checkNotif(); 
+                loadStories(); 
+                listenForCalls(u.uid); // কল রিসিভ সিস্টেম শুরু
+            } else location.href="index.html"; 
+        });
+
+        // কল লিসেনার ফাংশন
+        function listenForCalls(myId) {
+            onSnapshot(doc(db, "calls", myId), (snap) => {
+                const ui = document.getElementById('incomingCallUI');
+                if (snap.exists()) {
+                    const data = snap.data();
+                    ui.classList.remove('hidden');
+                    document.getElementById('callerNameDisplay').innerText = `${data.callerName} কল দিচ্ছে...`;
+
+                    document.getElementById('acceptCallBtn').onclick = () => {
+                        window.location.href = `call.html?id=${data.callerId}&type=${data.type}`;
+                    };
+
+                    document.getElementById('declineCallBtn').onclick = async () => {
+                        await deleteDoc(doc(db, "calls", myId));
+                        ui.classList.add('hidden');
+                    };
+                } else {
+                    ui.classList.add('hidden');
+                }
+            });
+        }
 
         async function renderFeed() {
             const feed = document.getElementById('feed');
-            // ১. বিজ্ঞাপন কোড গেট করা
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const globalAd = adSnap.exists() ? adSnap.data().code : "";
 
             onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
-                feed.innerHTML = ""; // ফ্রেশ লোডের জন্য
+                feed.innerHTML = "";
                 snap.forEach(async docRef => {
                     const p = docRef.data();
                     const id = docRef.id;
@@ -126,7 +179,7 @@
             card.innerHTML = `
                 <div class="p-4 flex justify-between items-center">
                     <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                        <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50">
+                        <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-100">
                         <div>
                             <div class="font-extrabold text-[14px]">@${p.userName}</div>
                             <p class="text-[9px] text-gray-400 font-bold uppercase">${date}</p>
@@ -158,7 +211,6 @@
             return card;
         }
 
-        // ২. রিপ্লাই সিস্টেমসহ কমেন্ট লোড
         window.openComments = (id) => { 
             activePostId = id; 
             document.getElementById('commentSheet').classList.add('active'); 
@@ -170,7 +222,7 @@
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
                 const list = document.getElementById('commentList'); list.innerHTML = "";
                 sn.forEach(c => {
-                    const d = c.data(); const cid = c.id;
+                    const d = c.data();
                     list.innerHTML += `
                         <div class="flex gap-4">
                             <img src="${d.userPic}" class="w-10 h-10 rounded-full object-cover border">
@@ -208,14 +260,12 @@
             cancelReply();
         };
 
-        // লাইক ফাংশন
         window.like = async (id) => {
             const ref = doc(db, "posts", id); const d = (await getDoc(ref)).data();
             const hasL = d.likedBy?.includes(user.uid);
             await updateDoc(ref, { likes: increment(hasL?-1:1), likedBy: hasL?arrayRemove(user.uid):arrayUnion(user.uid) });
         };
 
-        // বিজ্ঞাপন ইনজেকশন
         function injectAd(id, code) { 
             setTimeout(() => { 
                 const box = document.getElementById(`ad-frame-${id}`); 
@@ -228,7 +278,6 @@
             }, 1000); 
         }
 
-        // বাকি সিস্টেম
         window.openDeleteDrawer = (id) => { postToDelete = id; document.getElementById('deleteDrawer').classList.add('active'); document.getElementById('overlay').style.display='block'; };
         document.getElementById('confirmDelBtn').onclick = async () => { if(postToDelete){ await deleteDoc(doc(db, "posts", postToDelete)); closeAll(); } };
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; cancelReply(); };
