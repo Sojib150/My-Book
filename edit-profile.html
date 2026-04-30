@@ -3,65 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - My Book</title>
+    <title>Edit Profile - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .input-box { background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.3s; }
-        .input-box:focus-within { border-color: #4f46e5; background: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .input-box { background: #f8fafc; border: 1.5px solid #f1f5f9; transition: all 0.3s; }
+        .input-box:focus-within { border-color: #4f46e5; background: white; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.05); }
+        
+        /* Interest Chip Logic */
+        .interest-chip { transition: all 0.2s; cursor: pointer; border: 1.5px solid #f1f5f9; background: white; }
+        .interest-chip.selected { background: #4f46e5; color: white; border-color: #4f46e5; transform: scale(1.05); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen pb-10">
 
-    <nav class="bg-white border-b sticky top-0 z-50 p-4">
+    <nav class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 p-4">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="profile.html" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></a>
-                <h1 class="font-black text-gray-800 text-sm uppercase tracking-tighter">এডিট প্রোফাইল</h1>
+                <a href="profile.html" class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-red-500 transition"><i class="fas fa-times text-sm"></i></a>
+                <h1 class="font-black text-gray-800 text-[11px] uppercase tracking-[2px]">এডিট প্রোফাইল</h1>
             </div>
-            <button id="saveBtn" class="bg-indigo-600 text-white px-5 py-1.5 rounded-full font-bold text-xs shadow-md active:scale-90 transition">Save</button>
+            <button id="saveBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-2xl font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-90 transition">Save Changes</button>
         </div>
     </nav>
 
     <div class="max-w-md mx-auto p-6">
-        <div class="relative mb-20">
-            <div class="h-32 w-full bg-indigo-100 rounded-2xl overflow-hidden relative group">
+        <div class="relative mb-24">
+            <div class="h-40 w-full bg-indigo-50 rounded-[30px] overflow-hidden relative group border-4 border-white shadow-sm">
                 <img id="coverPreview" src="" class="w-full h-full object-cover hidden">
                 <label for="coverInput" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition cursor-pointer">
-                    <i class="fas fa-camera text-white"></i>
+                    <i class="fas fa-camera text-white text-xl"></i>
                 </label>
                 <input type="file" id="coverInput" class="hidden" accept="image/*">
             </div>
 
-            <div class="absolute -bottom-12 left-6">
+            <div class="absolute -bottom-14 left-8">
                 <div class="relative group">
-                    <div id="avatarWrap" class="w-24 h-24 bg-indigo-500 rounded-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-center text-3xl font-bold text-white">
+                    <div id="avatarWrap" class="w-28 h-28 bg-indigo-600 rounded-[35px] border-[6px] border-white shadow-xl overflow-hidden flex items-center justify-center text-4xl font-black text-white">
                         <img id="profilePreview" src="" class="w-full h-full object-cover hidden">
                         <span id="initialText">?</span>
                     </div>
-                    <label for="profileInput" class="absolute bottom-0 right-0 bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-md">
-                        <i class="fas fa-pencil-alt text-[10px]"></i>
+                    <label for="profileInput" class="absolute bottom-1 -right-1 bg-gray-900 text-white w-9 h-9 rounded-2xl flex items-center justify-center border-[3px] border-white cursor-pointer shadow-lg active:scale-90 transition">
+                        <i class="fas fa-camera text-[12px]"></i>
                     </label>
                     <input type="file" id="profileInput" class="hidden" accept="image/*">
                 </div>
             </div>
         </div>
 
-        <div class="space-y-6 pt-4">
-            <div class="input-box p-4 rounded-2xl">
-                <label class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Full Name</label>
-                <input type="text" id="nameInput" placeholder="আপনার নাম লিখুন" class="w-full bg-transparent border-none outline-none text-sm font-bold text-gray-800 mt-1">
+        <div class="space-y-5">
+            <div class="input-box p-4 rounded-[25px]">
+                <label class="text-[9px] font-black text-indigo-500 uppercase tracking-widest ml-1">Full Name</label>
+                <input type="text" id="nameInput" placeholder="আপনার নাম লিখুন" class="w-full bg-transparent border-none outline-none text-[15px] font-bold text-gray-800 mt-1 px-1">
             </div>
 
-            <div class="input-box p-4 rounded-2xl">
-                <label class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bio / Description</label>
-                <textarea id="bioInput" rows="3" placeholder="নিজের সম্পর্কে কিছু লিখুন..." class="w-full bg-transparent border-none outline-none text-sm font-medium text-gray-600 mt-1 resize-none"></textarea>
+            <div class="input-box p-4 rounded-[25px]">
+                <label class="text-[9px] font-black text-indigo-500 uppercase tracking-widest ml-1">Bio / Description</label>
+                <textarea id="bioInput" rows="3" placeholder="নিজের সম্পর্কে কিছু লিখুন..." class="w-full bg-transparent border-none outline-none text-[14px] font-medium text-gray-600 mt-1 px-1 resize-none leading-relaxed"></textarea>
+            </div>
+
+            <div class="mt-8">
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">আপনার পছন্দের ক্যাটাগরি</h3>
+                    <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold">Algorithm Data</span>
+                </div>
+                <div id="interestsGrid" class="flex flex-wrap gap-2">
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Technology">Technology</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Entertainment">Entertainment</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Sports">Sports</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Fashion">Fashion</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Lifestyle">Lifestyle</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Gaming">Gaming</div>
+                    <div class="interest-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold" data-val="Food">Food</div>
+                </div>
             </div>
         </div>
 
-        <div id="loader" class="hidden mt-8 text-center">
-            <div class="inline-block animate-spin rounded-full h-6 w-6 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="text-[10px] font-bold text-indigo-600 mt-2 uppercase tracking-widest">Updating Database...</p>
+        <div id="loader" class="hidden mt-10 text-center animate-bounce">
+            <div class="inline-block p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
+                <i class="fas fa-sync-alt fa-spin text-white"></i>
+            </div>
+            <p class="text-[9px] font-black text-indigo-600 mt-3 uppercase tracking-[3px]">Syncing with Core AI...</p>
         </div>
     </div>
 
@@ -69,16 +94,29 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
 
         let currentUser = null;
-        let pFile = null; let cFile = null;
+        let selectedInterests = [];
+
+        // ১. ইন্টারেস্ট হ্যান্ডলিং (অ্যালগরিদমের জন্য)
+        document.querySelectorAll('.interest-chip').forEach(chip => {
+            chip.onclick = () => {
+                const val = chip.dataset.val;
+                if(selectedInterests.includes(val)) {
+                    selectedInterests = selectedInterests.filter(i => i !== val);
+                    chip.classList.remove('selected');
+                } else {
+                    selectedInterests.push(val);
+                    chip.selected = true;
+                    chip.classList.add('selected');
+                }
+            };
+        });
 
         onAuthStateChanged(auth, async user => {
             if (user) {
@@ -88,42 +126,46 @@
                     const d = snap.data();
                     document.getElementById('nameInput').value = d.name || "";
                     document.getElementById('bioInput').value = d.bio || "";
+                    
+                    // ২. এক্সিস্টিং ইন্টারেস্ট লোড করা
+                    if(d.interests) {
+                        selectedInterests = d.interests;
+                        document.querySelectorAll('.interest-chip').forEach(chip => {
+                            if(selectedInterests.includes(chip.dataset.val)) chip.classList.add('selected');
+                        });
+                    }
+
                     if (d.profilePic) {
-                        document.getElementById('profilePreview').src = d.profilePic;
-                        document.getElementById('profilePreview').classList.remove('hidden');
+                        const img = document.getElementById('profilePreview');
+                        img.src = d.profilePic;
+                        img.classList.remove('hidden');
                         document.getElementById('initialText').classList.add('hidden');
                     }
                     if (d.coverPic) {
-                        document.getElementById('coverPreview').src = d.coverPic;
-                        document.getElementById('coverPreview').classList.remove('hidden');
+                        const img = document.getElementById('coverPreview');
+                        img.src = d.coverPic;
+                        img.classList.remove('hidden');
                     }
                 }
             } else { window.location.href = "index.html"; }
         });
 
-        // Image Previews
-        document.getElementById('profileInput').onchange = e => {
-            pFile = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
-                document.getElementById('profilePreview').src = ev.target.result;
-                document.getElementById('profilePreview').classList.remove('hidden');
-                document.getElementById('initialText').classList.add('hidden');
-            };
-            reader.readAsDataURL(pFile);
-        };
+        // ৩. ক্লাউডিনারি আপলোড ফাংশন (যেহেতু আপনি স্টোরেজ বদলে ক্লাউডিনারি ইউজ করছেন)
+        async function uploadToCloudinary(file, folder) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "Video_upload"); 
+            const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/image/upload`, { method: "POST", body: formData });
+            const data = await res.json();
+            return data.secure_url;
+        }
 
-        document.getElementById('coverInput').onchange = e => {
-            cFile = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
-                document.getElementById('coverPreview').src = ev.target.result;
-                document.getElementById('coverPreview').classList.remove('hidden');
-            };
-            reader.readAsDataURL(cFile);
-        };
+        // ইমেজ প্রিভিউ
+        let pFile = null, cFile = null;
+        document.getElementById('profileInput').onchange = e => { pFile = e.target.files[0]; document.getElementById('profilePreview').src = URL.createObjectURL(pFile); document.getElementById('profilePreview').classList.remove('hidden'); document.getElementById('initialText').classList.add('hidden'); };
+        document.getElementById('coverInput').onchange = e => { cFile = e.target.files[0]; document.getElementById('coverPreview').src = URL.createObjectURL(cFile); document.getElementById('coverPreview').classList.remove('hidden'); };
 
-        // Update Logic
+        // সেভ লজিক
         document.getElementById('saveBtn').onclick = async () => {
             const loader = document.getElementById('loader');
             loader.classList.remove('hidden');
@@ -131,19 +173,12 @@
             try {
                 let upData = {
                     name: document.getElementById('nameInput').value.trim(),
-                    bio: document.getElementById('bioInput').value.trim()
+                    bio: document.getElementById('bioInput').value.trim(),
+                    interests: selectedInterests // 🔥 অ্যালগরিদমের জন্য ডাটা সেভ
                 };
 
-                if (pFile) {
-                    const sRef = ref(storage, `profiles/${currentUser.uid}`);
-                    await uploadBytes(sRef, pFile);
-                    upData.profilePic = await getDownloadURL(sRef);
-                }
-                if (cFile) {
-                    const sRef = ref(storage, `covers/${currentUser.uid}`);
-                    await uploadBytes(sRef, cFile);
-                    upData.coverPic = await getDownloadURL(sRef);
-                }
+                if (pFile) upData.profilePic = await uploadToCloudinary(pFile);
+                if (cFile) upData.coverPic = await uploadToCloudinary(cFile);
 
                 await updateDoc(doc(db, "users", currentUser.uid), upData);
                 window.location.href = "profile.html";
