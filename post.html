@@ -154,7 +154,7 @@
                 if(file) {
                     const formData = new FormData(); 
                     formData.append("file", file); 
-                    formData.append("upload_preset", "Video_upload");
+                    formData.append("upload_preset", "sojida_videos");
                     
                     const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/${file.type.startsWith('video')?'video':'image'}/upload`, {
                         method:"POST", 
