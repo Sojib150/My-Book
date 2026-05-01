@@ -82,7 +82,7 @@
             <div class="inline-block p-3 bg-indigo-600 rounded-2xl shadow-lg">
                 <i class="fas fa-sync-alt fa-spin text-white"></i>
             </div>
-            <p class="text-[9px] font-black text-indigo-600 mt-3 uppercase tracking-[3px]">Updating Profile...</p>
+            <p class="text-[9px] font-black text-indigo-600 mt-3 uppercase tracking-[3px]">Syncing with Core AI...</p>
         </div>
     </div>
 
@@ -99,7 +99,7 @@
         let currentUser = null;
         let selectedInterests = [];
 
-        // ১. ইন্টারেস্ট সিলেকশন
+        // ১. ইন্টারেস্ট সিলেকশন লজিক
         document.querySelectorAll('.interest-chip').forEach(chip => {
             chip.onclick = () => {
                 const val = chip.dataset.val;
@@ -113,6 +113,7 @@
             };
         });
 
+        // ২. ইউজার ডাটা লোড করা
         onAuthStateChanged(auth, async user => {
             if (user) {
                 currentUser = user;
@@ -121,30 +122,34 @@
                     const d = snap.data();
                     document.getElementById('nameInput').value = d.name || "";
                     document.getElementById('bioInput').value = d.bio || "";
+                    
                     if(d.interests) {
                         selectedInterests = d.interests;
                         document.querySelectorAll('.interest-chip').forEach(chip => {
                             if(selectedInterests.includes(chip.dataset.val)) chip.classList.add('selected');
                         });
                     }
+
                     if (d.profilePic) {
-                        document.getElementById('profilePreview').src = d.profilePic;
-                        document.getElementById('profilePreview').classList.remove('hidden');
+                        const img = document.getElementById('profilePreview');
+                        img.src = d.profilePic;
+                        img.classList.remove('hidden');
                         document.getElementById('initialText').classList.add('hidden');
                     }
                     if (d.coverPic) {
-                        document.getElementById('coverPreview').src = d.coverPic;
-                        document.getElementById('coverPreview').classList.remove('hidden');
+                        const img = document.getElementById('coverPreview');
+                        img.src = d.coverPic;
+                        img.classList.remove('hidden');
                     }
                 }
             } else { window.location.href = "index.html"; }
         });
 
-        // ২. ক্লাউডিনারি আপলোড (ফিক্সড)
+        // ৩. ক্লাউডিনারি আপলোড ফাংশন (Updated with 'sojida_videos')
         async function uploadToCloudinary(file) {
             const formData = new FormData();
             formData.append("file", file);
-            formData.append("upload_preset", "sojida_videos"); // আপনার প্রিসেট নাম ঠিক আছে
+            formData.append("upload_preset", "sojida_videos"); // ✅ আপনার নতুন প্রিসেট নাম
             
             try {
                 const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/image/upload`, {
@@ -152,14 +157,19 @@
                     body: formData
                 });
                 const data = await res.json();
-                return data.secure_url;
+                if (data.secure_url) {
+                    return data.secure_url;
+                } else {
+                    console.error("Cloudinary Response Error:", data);
+                    return null;
+                }
             } catch (err) {
-                console.error("Cloudinary Error:", err);
+                console.error("Cloudinary Fetch Error:", err);
                 return null;
             }
         }
 
-        // প্রিভিউ লজিক
+        // ৪. প্রিভিউ হ্যান্ডলিং
         let pFile = null, cFile = null;
         document.getElementById('profileInput').onchange = e => { 
             pFile = e.target.files[0]; 
@@ -177,7 +187,7 @@
             }
         };
 
-        // ৩. সেভ বাটন লজিক (ফিক্সড)
+        // ৫. সেভ বাটন লজিক (নিশ্চিত করে ডাটাবেস আপডেট)
         document.getElementById('saveBtn').onclick = async () => {
             if (!currentUser) return;
             const loader = document.getElementById('loader');
@@ -193,21 +203,32 @@
                     interests: selectedInterests
                 };
 
-                // ছবি থাকলে আপলোড হবে
+                // ছবি আপলোড এবং লিঙ্ক অবজেক্টে সেট করা
                 if (pFile) {
                     const pUrl = await uploadToCloudinary(pFile);
-                    if (pUrl) upData.profilePic = pUrl;
+                    if (pUrl) {
+                        upData.profilePic = pUrl;
+                        console.log("Profile URL generated:", pUrl);
+                    }
                 }
+                
                 if (cFile) {
                     const cUrl = await uploadToCloudinary(cFile);
-                    if (cUrl) upData.coverPic = cUrl;
+                    if (cUrl) {
+                        upData.coverPic = cUrl;
+                        console.log("Cover URL generated:", cUrl);
+                    }
                 }
 
+                // Firestore আপডেট
                 await updateDoc(doc(db, "users", currentUser.uid), upData);
+                console.log("Firestore updated successfully!");
+                
+                // সাকসেস হলে প্রোফাইল পেজে ব্যাক করবে
                 window.location.href = "profile.html";
             } catch (err) {
-                console.error("Firebase Error:", err);
-                alert("Error updating profile! Please check console.");
+                console.error("Detailed Error:", err);
+                alert("প্রোফাইল আপডেট করতে সমস্যা হয়েছে! কনসোল চেক করুন।");
             } finally {
                 loader.classList.add('hidden');
                 saveBtn.disabled = false;
