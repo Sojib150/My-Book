@@ -8,47 +8,137 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
-        #chatBox { background-size: cover; background-position: center; transition: 0.5s; background-attachment: fixed; }
-        .chat-blur { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .msg-me { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border-radius: 20px 20px 4px 20px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
-        .msg-them { background: rgba(255,255,255,0.9); color: #1f2937; border-radius: 20px 20px 20px 4px; border: 1px solid #f1f5f9; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #000000; 
+            color: white; 
+            overflow: hidden; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        /* এলিট ব্যাকগ্রাউন্ড */
+        #chatBox { 
+            background-color: #000;
+            background-image: radial-gradient(circle at top right, #1a1a1a, #000);
+            background-size: cover; 
+            background-position: center; 
+            transition: 0.5s; 
+        }
+
+        /* গ্লাস হেডার */
+        .chat-blur { 
+            background: rgba(10, 10, 10, 0.8); 
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px); 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2); 
+        }
+
+        /* গোল্ডেন চ্যাট বাবল - আমার জন্য */
+        .msg-me { 
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
+            color: #000; 
+            border-radius: 22px 22px 4px 22px; 
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
+        }
+
+        /* ডার্ক বাবল - অন্যদের জন্য */
+        .msg-them { 
+            background: rgba(255, 255, 255, 0.08); 
+            color: #fff; 
+            border-radius: 22px 22px 22px 4px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px);
+        }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .input-wrapper { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; z-index: 1000; }
-        .input-area { background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 6px; }
 
-        #menuPanel { position: absolute; top: 70px; right: 20px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; z-index: 100; border: 1px solid #f1f5f9; min-width: 180px; }
-        .menu-item { padding: 12px 20px; font-size: 13px; font-weight: 600; color: #4b5563; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        /* প্রিমিয়াম ইনপুট এরিয়া */
+        .input-wrapper { 
+            position: fixed; 
+            bottom: 25px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 92%; 
+            max-width: 500px; 
+            z-index: 1000; 
+        }
+        .input-area { 
+            background: rgba(25, 25, 25, 0.9); 
+            border-radius: 28px; 
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
+            padding: 8px; 
+            backdrop-filter: blur(20px);
+        }
+
+        #menuPanel { 
+            position: absolute; 
+            top: 75px; 
+            right: 20px; 
+            background: #111; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,1); 
+            display: none; 
+            z-index: 100; 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+            min-width: 200px; 
+            overflow: hidden;
+        }
+        .menu-item { 
+            padding: 14px 20px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: #ccc; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            transition: 0.3s;
+        }
+        .menu-item:hover { background: rgba(212, 175, 55, 0.1); color: #D4AF37; }
+
+        /* গোল্ডেন আইকন ও বাটন */
+        .btn-icon { color: #D4AF37; opacity: 0.9; transition: 0.3s; }
+        .btn-icon:active { transform: scale(0.85); }
+        
+        #sendBtn { 
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
+            color: #000; 
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .status-online { background: #D4AF37; box-shadow: 0 0 10px #D4AF37; }
     </style>
 </head>
 <body>
 
     <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <a href="messages.html" class="w-10 h-10 flex items-center justify-center text-gray-500 rounded-full transition"><i class="fas fa-chevron-left"></i></a>
+            <a href="messages.html" class="w-10 h-10 flex items-center justify-center text-[#D4AF37] rounded-full transition hover:bg-white/5"><i class="fas fa-chevron-left text-lg"></i></a>
             <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-3 cursor-pointer">
                 <div class="relative">
-                    <div id="uAvatar" class="w-11 h-11 bg-indigo-100 rounded-2xl overflow-hidden border-2 border-white flex items-center justify-center font-bold text-indigo-500">?</div>
-                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-gray-300 border-2 border-white rounded-full"></div>
+                    <div id="uAvatar" class="w-11 h-11 bg-neutral-900 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
+                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-neutral-600 border-2 border-black rounded-full transition-all duration-500"></div>
                 </div>
                 <div>
-                    <h2 id="uName" class="font-bold text-[13px] text-gray-900 tracking-tight uppercase">Loading...</h2>
-                    <p id="uStatusText" class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Offline</p>
+                    <h2 id="uName" class="font-bold text-[14px] text-white tracking-wide">LOADING...</h2>
+                    <p id="uStatusText" class="text-[9px] text-[#D4AF37] font-bold uppercase tracking-[2px]">Waiting...</p>
                 </div>
             </div>
         </div>
         
-        <div class="flex items-center gap-1">
-            <button onclick="startCall('audio')" class="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center"><i class="fas fa-phone-alt text-xs text-gray-600"></i></button>
-            <button onclick="startCall('video')" class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center"><i class="fas fa-video text-xs text-indigo-600"></i></button>
-            <button onclick="toggleMenu()" class="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center"><i class="fas fa-ellipsis-v text-xs text-gray-600"></i></button>
+        <div class="flex items-center gap-2">
+            <button onclick="startCall('audio')" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-phone-alt text-sm"></i></button>
+            <button onclick="startCall('video')" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-video text-sm"></i></button>
+            <button onclick="toggleMenu()" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-ellipsis-v text-sm"></i></button>
         </div>
 
         <div id="menuPanel">
-            <div class="menu-item" onclick="document.getElementById('wallpaperInput').click()"><i class="fas fa-image"></i> Change Wallpaper</div>
-            <div class="menu-item text-red-500" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat</div>
+            <div class="menu-item border-b border-white/5" onclick="document.getElementById('wallpaperInput').click()"><i class="fas fa-image"></i> Change Elite Wallpaper</div>
+            <div class="menu-item text-red-500" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat History</div>
         </div>
         <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="changeWallpaper(event)">
     </nav>
@@ -56,13 +146,13 @@
     <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-6 pb-40 no-scrollbar"></div>
 
     <div class="input-wrapper">
-        <div class="flex items-center gap-1 input-area">
-            <button onclick="document.getElementById('imageInput').click()" class="w-11 h-11 text-gray-400 hover:text-indigo-600"><i class="fas fa-camera text-xl"></i></button>
+        <div class="flex items-center gap-2 input-area">
+            <button onclick="document.getElementById('imageInput').click()" class="w-11 h-11 text-[#D4AF37] opacity-80 hover:opacity-100 transition"><i class="fas fa-camera text-xl"></i></button>
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="uploadImage(event)">
             
-            <input type="text" id="msgInput" placeholder="Type a message..." class="flex-1 bg-transparent border-none py-3 px-2 text-[15px] outline-none">
+            <input type="text" id="msgInput" placeholder="Write a message..." class="flex-1 bg-transparent border-none py-3 px-2 text-[15px] outline-none text-white placeholder-gray-500">
             
-            <button id="sendBtn" class="w-11 h-11 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg"><i class="fas fa-paper-plane text-sm"></i></button>
+            <button id="sendBtn" class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 transition"><i class="fas fa-paper-plane text-sm"></i></button>
         </div>
     </div>
 
@@ -71,7 +161,11 @@
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            projectId: "seen-a1d92",
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -87,17 +181,15 @@
                 chatID = [myId, targetId].sort().join("_");
                 loadWallpaper();
                 initChat(); 
+            } else {
+                window.location.href = "index.html";
             }
         });
 
-        // ✅ আপডেট করা সম্পন্ন কলিং ফাংশন
         window.startCall = async (type) => {
             if(!myId || !targetId) return;
             const mySnap = await getDoc(doc(db, "users", myId));
-            const targetSnap = await getDoc(doc(db, "users", targetId));
-            
-            const myName = mySnap.exists() ? mySnap.data().name : "Someone";
-            const targetToken = targetSnap.exists() ? targetSnap.data().fcmToken : null;
+            const myName = mySnap.exists() ? mySnap.data().name : "Elite Member";
             
             await setDoc(doc(db, "calls", targetId), {
                 callerId: myId,
@@ -106,17 +198,6 @@
                 type: type,
                 timestamp: Date.now()
             });
-
-            // নোটিফিকেশন কিউ তে পাঠানো (SW হ্যান্ডেল করার জন্য)
-            if (targetToken) {
-                await addDoc(collection(db, "notifications"), {
-                    to: targetToken,
-                    title: "Incoming " + type + " Call",
-                    body: myName + " is calling you...",
-                    url: `call.html?id=${myId}&type=${type}&action=ringing`,
-                    timestamp: serverTimestamp()
-                });
-            }
 
             window.location.href = `call.html?id=${targetId}&type=${type}&action=calling`;
         };
@@ -144,7 +225,7 @@
         }
 
         window.clearChat = async () => {
-            if(!confirm("Are you sure you want to clear this chat?")) return;
+            if(!confirm("Clear all elite messages from this chat?")) return;
             const q = query(collection(db, "chats", chatID, "messages"));
             const snap = await getDocs(q);
             snap.forEach(async (d) => {
@@ -159,7 +240,7 @@
             const formData = new FormData();
             formData.append("file", file);
             formData.append("upload_preset", "sojida_videos");
-            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner animate-spin text-black"></i>';
             try {
                 const res = await fetch("https://api.cloudinary.com/v1_1/seen-a1d92/image/upload", { method: "POST", body: formData });
                 const data = await res.json();
@@ -179,10 +260,12 @@
             onSnapshot(doc(db, "users", targetId), (snap) => {
                 if(snap.exists()) {
                     const u = snap.data();
-                    document.getElementById('uName').innerText = u.name;
+                    document.getElementById('uName').innerText = u.name.toUpperCase();
                     if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
-                    document.getElementById('statusDot').style.background = u.online ? "#22c55e" : "#cbd5e1";
-                    document.getElementById('uStatusText').innerText = u.online ? "Active Now" : "Offline";
+                    
+                    const isOnline = u.isOnline || u.online;
+                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-black rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
+                    document.getElementById('uStatusText').innerText = isOnline ? "Active Now" : "Offline";
                 }
             });
 
@@ -194,10 +277,10 @@
                     const m = d.data();
                     const isMe = m.senderId === myId;
                     const div = document.createElement('div');
-                    div.className = `flex w-full mb-3 ${isMe ? 'justify-end' : 'justify-start'}`;
+                    div.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
                     let content = m.text;
-                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/20">`;
-                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[75%] text-[14px] font-medium">${content}</div>`;
+                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/10">`;
+                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-5 py-3'} max-w-[80%] text-[14px] shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">${content}</div>`;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
@@ -218,17 +301,21 @@
                 timestamp: serverTimestamp() 
             });
 
-            // লাস্ট মেসেজ আপডেট করা যাতে Messages.html এ উপরে দেখায়
-            await updateDoc(doc(db, "chats", chatID), {
+            const chatRef = doc(db, "chats", chatID);
+            const chatUpdate = {
                 lastMessage: text,
                 lastMessageTimestamp: serverTimestamp()
-            }).catch(async () => {
-                await setDoc(doc(db, "chats", chatID), {
-                    lastMessage: text,
-                    lastMessageTimestamp: serverTimestamp()
-                });
+            };
+
+            await updateDoc(chatRef, chatUpdate).catch(async () => {
+                await setDoc(chatRef, chatUpdate);
             });
         }
+
+        // Enter to send
+        document.getElementById('msgInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>
