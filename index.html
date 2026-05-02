@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - My Book</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
@@ -29,8 +30,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // deleteDoc এবং doc ইম্পোর্ট করা হয়েছে কল ক্লিনআপের জন্য
-        import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // ✅ FCM Messaging ইম্পোর্ট করা হয়েছে
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
@@ -44,6 +46,22 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const messaging = getMessaging(app);
+
+        // ✅ টোকেন জেনারেট এবং ডাটাবেসে সেভ করার ফাংশন
+        async function setupNotifications(userId) {
+            try {
+                const token = await getToken(messaging, {
+                    vapidKey: 'BN-grjGNFoN-TIiiEvRUYqAjDE_Sq21ZAEvB_7q-fT2nIMHsAkyrV0cIST4Q__PHMDc4xTdhI6g6V9Iua4T7Bdo'
+                });
+                if (token) {
+                    await updateDoc(doc(db, "users", userId), { fcmToken: token });
+                    console.log("FCM Token Updated!");
+                }
+            } catch (err) {
+                console.error("Token generation failed:", err);
+            }
+        }
 
         const checkStatus = async () => {
             const mSnap = await getDoc(doc(db, "appSettings", "adminConfig"));
@@ -87,7 +105,8 @@
                         btn.innerText = "লগইন";
                     } 
                     else {
-                        // কল ক্লিনআপ: লগইন করার সময় পুরনো কোনো কল রিকোয়েস্ট থাকলে তা মুছে ফেলবে
+                        // ✅ লগইন সফল হলে নোটিফিকেশন টোকেন সেটআপ হবে
+                        await setupNotifications(user.uid);
                         await deleteDoc(doc(db, "calls", user.uid)).catch(()=>{});
                         window.location.href = "home.html";
                     }
@@ -100,6 +119,15 @@
                 btn.innerText = "লগইন";
             }
         });
+
+        // ✅ সার্ভিস ওয়ার্কার রেজিস্ট্রেশন (PWA এর জন্য বাধ্যতামূলক)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('firebase-messaging-sw.js')
+                .then(reg => console.log('SW Registered'))
+                .catch(err => console.log('SW Failed', err));
+            });
+        }
     </script>
 </body>
 </html>
