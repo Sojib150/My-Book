@@ -12,10 +12,8 @@
         
         .ios-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-bottom: 0.5px solid rgba(0,0,0,0.1); }
         .search-box { background: rgba(118, 118, 128, 0.12); border-radius: 14px; transition: all 0.3s; }
-        .search-box:focus-within { background: rgba(118, 118, 128, 0.2); }
         
-        /* Message Card Logic */
-        .msg-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .msg-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
         .msg-card:active { background-color: #f2f2f7; transform: scale(0.98); }
         
         .unread-dot { width: 10px; height: 10px; background: #007aff; border-radius: 50%; }
@@ -27,10 +25,6 @@
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Shimmer Loading Effect */
-        .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     </style>
 </head>
 <body class="pb-32">
@@ -46,7 +40,7 @@
             </div>
             <div class="search-box flex items-center px-4 py-3 text-gray-500">
                 <i class="fas fa-search text-sm mr-3 opacity-40"></i>
-                <input type="text" id="chatSearch" placeholder="Search for people or groups" class="bg-transparent border-none outline-none text-[15px] w-full placeholder-gray-400 font-medium">
+                <input type="text" id="chatSearch" placeholder="Search for people" class="bg-transparent border-none outline-none text-[15px] w-full placeholder-gray-400 font-medium">
             </div>
         </div>
     </nav>
@@ -74,17 +68,24 @@
     <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-[35px] p-4 flex justify-around items-center shadow-2xl z-[100] border border-white/10">
         <a href="home.html" class="text-gray-500 text-lg"><i class="fas fa-th-large"></i></a>
         <a href="search.html" class="text-gray-500 text-lg"><i class="fas fa-compass"></i></a>
-        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black shadow-lg active:scale-90 transition"><i class="fas fa-plus"></i></div>
+        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black shadow-lg active:scale-90 transition cursor-pointer"><i class="fas fa-plus"></i></div>
         <a href="messages.html" class="text-blue-400 text-lg"><i class="fas fa-comment-alt"></i></a>
         <a href="profile.html" class="text-gray-500 text-lg"><i class="fas fa-user-circle"></i></a>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -96,7 +97,6 @@
             } else { window.location.href = "index.html"; }
         });
 
-        // ১. সাজেস্টেড ইউজার (অ্যালগরিদম অনুযায়ী অনলাইন স্ট্যাটাস দেখানো যায় এখানে)
         async function loadAllUsers(myId) {
             onSnapshot(collection(db, "users"), (snap) => {
                 const container = document.getElementById('userSuggestions');
@@ -120,20 +120,18 @@
             });
         }
 
-        // ২. মেইন চ্যাট লিস্ট (টাইমস্ট্যাম্প অনুযায়ী সর্টিং লজিক)
         function loadRecentChats(myId) {
-            // "chats" কালেকশন থেকে ডাটা নিচ্ছি যেখানে আপনি চ্যাট করছেন
             onSnapshot(collection(db, "chats"), async (snapshot) => {
                 const list = document.getElementById('chatList');
                 let chatData = [];
 
-                // সব চ্যাট ডাটা প্রসেস করা
                 const promises = snapshot.docs.map(async (chatDoc) => {
                     const ids = chatDoc.id.split('_');
                     if(ids.includes(myId)) {
                         const targetId = ids.find(id => id !== myId);
-                        const lastMsg = chatDoc.data()?.lastMessage || "Tap to start conversation";
-                        const lastTime = chatDoc.data()?.lastMessageTimestamp || 0;
+                        const data = chatDoc.data();
+                        const lastMsg = data.lastMessage || "Tap to start conversation";
+                        const lastTime = data.lastMessageTimestamp?.toMillis() || data.lastTime || 0;
                         const uSnap = await getDoc(doc(db, "users", targetId));
                         
                         if(uSnap.exists()) {
@@ -145,8 +143,6 @@
 
                 const results = await Promise.all(promises);
                 chatData = results.filter(c => c !== null);
-
-                // 🔥 CRITICAL LOGIC: লেটেস্ট মেসেজ অনুযায়ী সর্টিং (যাতে যার সাথে কথা হয়েছে সে উপরে থাকে)
                 chatData.sort((a, b) => b.lastTime - a.lastTime);
 
                 list.innerHTML = "";
@@ -156,6 +152,7 @@
 
                 chatData.forEach(u => {
                     const timeString = u.lastTime ? new Date(u.lastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    const statusColor = u.isOnline ? 'bg-green-500' : 'bg-gray-400';
                     
                     list.innerHTML += `
                         <a href="chat.html?id=${u.id}" class="msg-card flex items-center gap-4 px-6 py-4">
@@ -163,7 +160,7 @@
                                 <div class="w-[60px] h-[60px] rounded-[22px] overflow-hidden bg-gray-100 border border-gray-100 shadow-sm">
                                     ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-300 text-xl">${u.name?.[0]}</div>`}
                                 </div>
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></div>
+                                <div class="absolute -bottom-1 -right-1 w-5 h-5 ${statusColor} border-4 border-white rounded-full"></div>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-baseline mb-1">
@@ -172,7 +169,7 @@
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <p class="text-[13px] text-gray-500 truncate font-medium max-w-[180px]">${u.lastMsg}</p>
-                                    <div class="unread-dot"></div>
+                                    ${u.unreadCount > 0 ? `<div class="unread-dot"></div>` : ''}
                                 </div>
                             </div>
                         </a>`;
@@ -180,7 +177,7 @@
             });
         }
 
-        // সার্চ ফাংশনালিটি
+        // Search logic
         document.getElementById('chatSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             document.querySelectorAll('.msg-card').forEach(card => {
