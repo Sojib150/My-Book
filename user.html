@@ -7,11 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen pb-10">
 
     <nav class="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto flex items-center gap-4">
-            <button onclick="history.back()" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full transition"><i class="fas fa-chevron-left text-xl"></i></button>
+            <button onclick="history.back()" class="text-blue-600 w-8 h-8 flex items-center justify-center rounded-full transition hover:bg-blue-50 active:scale-90">
+                <i class="fas fa-chevron-left text-xl"></i>
+            </button>
             <h1 class="font-bold text-gray-800 text-sm uppercase tracking-wider">বন্ধু প্রোফাইল</h1>
         </div>
     </nav>
@@ -33,60 +35,89 @@
             <p id="uEmail" class="text-gray-400 text-[10px] mt-1 font-bold"></p>
             
             <div class="mt-5 flex justify-center gap-2">
-                <button id="followBtn" class="hidden bg-blue-600 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-90 transition-all">Follow</button>
-                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-90 transition-all">Unfollow</button>
+                <button id="followBtn" class="hidden bg-blue-600 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-lg active:scale-95 transition-all">Follow</button>
+                <button id="unfollowBtn" class="hidden bg-gray-100 text-gray-500 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter active:scale-95 transition-all">Unfollow</button>
                 
-                <button id="msgBtn" class="bg-white text-blue-600 border border-blue-600 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-sm active:scale-90 transition-all">
+                <button id="msgBtn" class="bg-white text-blue-600 border border-blue-600 px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-tighter shadow-sm active:scale-95 transition-all">
                     <i class="fas fa-comment-dots mr-1"></i> Message
                 </button>
             </div>
 
             <div class="flex justify-around mt-8 border-t pt-6">
-                <div class="text-center cursor-pointer"><p id="pCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Posts</p></div>
-                <div onclick="location.href='followers.html?id='+targetId" class="text-center cursor-pointer"><p id="followerCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Followers</p></div>
-                <div onclick="location.href='following.html?id='+targetId" class="text-center cursor-pointer"><p id="followingCount" class="font-black text-lg text-gray-800">0</p><p class="text-[9px] text-gray-400 font-bold uppercase">Following</p></div>
+                <div class="text-center cursor-pointer">
+                    <p id="pCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Posts</p>
+                </div>
+                <div onclick="location.href='followers.html?id='+targetId" class="text-center cursor-pointer">
+                    <p id="followerCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Followers</p>
+                </div>
+                <div onclick="location.href='following.html?id='+targetId" class="text-center cursor-pointer">
+                    <p id="followingCount" class="font-black text-lg text-gray-800">0</p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Following</p>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="max-w-md mx-auto mt-2 bg-white pb-20">
         <div class="flex border-b">
-            <button id="tabAll" class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600"><i class="fas fa-th"></i></button>
-            <button id="tabVideos" class="flex-1 py-3 text-gray-300"><i class="fas fa-video"></i></button>
+            <button class="flex-1 py-3 text-blue-600 border-b-2 border-blue-600 transition"><i class="fas fa-th"></i></button>
+            <button class="flex-1 py-3 text-gray-300 hover:text-gray-400 transition"><i class="fas fa-video"></i></button>
         </div>
-        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5"></div>
+        <div id="uPosts" class="grid grid-cols-3 gap-0.5 p-0.5">
+            </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
-        window.targetId = targetId; // Global access for links
+        window.targetId = targetId; 
+        
         let currentUser = null;
+        let myData = null;
 
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async user => {
             if(user) {
                 currentUser = user;
-                if(currentUser.uid === targetId) window.location.href = "profile.html";
+                if(currentUser.uid === targetId) {
+                    window.location.href = "profile.html";
+                    return;
+                }
+                // Fetch my data once for notification sending
+                const mySnap = await getDoc(doc(db, "users", currentUser.uid));
+                myData = mySnap.exists() ? mySnap.data() : null;
+                
                 init();
-            } else { window.location.href = "index.html"; }
+            } else { 
+                window.location.href = "index.html"; 
+            }
         });
 
-        // চ্যাট বাটনে ক্লিক করলে আইডি নিয়ে যাওয়া
+        // Message Button Navigation
         document.getElementById('msgBtn').onclick = () => {
             if(targetId) location.href = `chat.html?id=${targetId}`;
         };
 
         async function init() {
-            // ১. টার্গেট ইউজারের ডাটা লোড করা
+            // 1. Target User Profile Listener
             onSnapshot(doc(db, "users", targetId), (docSnap) => {
                 if(docSnap.exists()) {
                     const data = docSnap.data();
@@ -104,11 +135,10 @@
                         document.getElementById('coverImg').classList.remove('hidden');
                     }
 
-                    // ফলোয়ার এবং ফলোইং কাউন্ট (Array length থেকে)
                     document.getElementById('followerCount').innerText = data.followers ? data.followers.length : 0;
                     document.getElementById('followingCount').innerText = data.following ? data.following.length : 0;
 
-                    // ফলো বাটন চেক করা
+                    // Toggle Follow/Unfollow UI
                     if (data.followers && data.followers.includes(currentUser.uid)) {
                         document.getElementById('unfollowBtn').classList.remove('hidden');
                         document.getElementById('followBtn').classList.add('hidden');
@@ -119,31 +149,64 @@
                 }
             });
 
-            // ২. পোস্ট লোড করা
+            // 2. Load Target User Posts
             const q = query(collection(db, "posts"), where("userId", "==", targetId));
             onSnapshot(q, s => {
                 const container = document.getElementById('uPosts');
                 container.innerHTML = "";
                 document.getElementById('pCount').innerText = s.size;
-                s.forEach(d => {
-                    const p = d.data();
+                
+                let postsArray = [];
+                s.forEach(d => postsArray.push({id: d.id, ...d.data()}));
+                
+                // Manual Sort (Newest First)
+                postsArray.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                postsArray.forEach(p => {
                     const div = document.createElement('div');
-                    div.className = "aspect-square bg-gray-100 relative overflow-hidden";
-                    div.innerHTML = p.fileUrl ? (p.fileType==='video'?`<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>`:`<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px] text-gray-400">${p.text?.slice(0,30)}</div>`;
+                    div.className = "aspect-square bg-gray-100 relative overflow-hidden cursor-pointer active:opacity-80";
+                    div.onclick = () => location.href = `post-view.html?id=${p.id}`;
+                    
+                    div.innerHTML = p.fileUrl ? 
+                        (p.fileType === 'video' ? 
+                            `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video><i class="fas fa-play absolute top-2 right-2 text-white/70 text-[10px]"></i>` : 
+                            `<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : 
+                        `<div class="p-3 text-[10px] text-gray-500 font-medium italic break-words">${p.text?.slice(0,50)}...</div>`;
+                    
                     container.appendChild(div);
                 });
             });
         }
 
-        // ৩. ফলো/আনফলো লজিক (Array Update)
+        // 3. Notification Logic
+        async function sendNotif(targetId, type, message) {
+            try {
+                await addDoc(collection(db, "notifications"), {
+                    targetUserId: targetId,
+                    senderId: currentUser.uid,
+                    senderName: myData?.name || "Someone",
+                    senderPic: myData?.profilePic || "",
+                    type: type, // 'follow'
+                    message: message,
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+            } catch (err) { console.error("Notif Error:", err); }
+        }
+
+        // 4. Follow Action
         document.getElementById('followBtn').onclick = async () => {
             const myRef = doc(db, "users", currentUser.uid);
             const targetRef = doc(db, "users", targetId);
             
             await updateDoc(myRef, { following: arrayUnion(targetId) });
             await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
+            
+            // Send Notification
+            sendNotif(targetId, "follow", "আপনাকে ফলো করা শুরু করেছেন।");
         };
 
+        // 5. Unfollow Action
         document.getElementById('unfollowBtn').onclick = async () => {
             const myRef = doc(db, "users", currentUser.uid);
             const targetRef = doc(db, "users", targetId);
