@@ -11,25 +11,22 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: white; overflow: hidden; }
         
-        /* Premium Background Animation */
         .bg-animate { position: absolute; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #020617 100%); z-index: -1; }
         .glow { position: absolute; width: 350px; height: 350px; background: rgba(99, 102, 241, 0.2); filter: blur(120px); border-radius: 50%; animation: float 8s infinite alternate; }
         
         @keyframes float { from { transform: translate(-20%, -20%); } to { transform: translate(20%, 20%); } }
 
-        /* Audio Wave Animation for Audio Calls */
         .wave-container { display: flex; align-items: center; justify-content: center; gap: 4px; height: 40px; }
         .wave { width: 4px; height: 10px; background: #6366f1; border-radius: 10px; animation: wave-anim 1s infinite ease-in-out; }
-        .wave:nth-child(2) { animation-delay: 0.2s; }
-        .wave:nth-child(3) { animation-delay: 0.4s; }
-        .wave:nth-child(4) { animation-delay: 0.6s; }
         @keyframes wave-anim { 0%, 100% { height: 10px; } 50% { height: 40px; } }
 
         .incoming-call-anim { animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite; }
         @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); } 70% { box-shadow: 0 0 0 50px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
 
-        /* Local Video Preview Styling */
-        #local-player { position: absolute; top: 30px; right: 20px; width: 110px; height: 160px; background: #000; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); z-index: 50; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        /* Video Players */
+        #videoContainer { position: absolute; inset: 0; background: #000; display: none; z-index: 10; }
+        #remote-player { width: 100%; height: 100%; object-fit: cover; }
+        #local-player { position: absolute; top: 30px; right: 20px; width: 110px; height: 160px; background: #222; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); z-index: 50; overflow: hidden; }
     </style>
 </head>
 <body class="h-screen flex flex-col items-center justify-between py-16 px-8">
@@ -42,28 +39,27 @@
                 ?
             </div>
             <div id="callTypeBadge" class="absolute -bottom-2 -right-2 w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center border-4 border-[#020617] shadow-xl">
-                <i class="fas fa-video text-sm"></i>
+                <i class="fas fa-video"></i>
             </div>
         </div>
-        <h1 id="uName" class="text-3xl font-black tracking-tighter mb-3 uppercase italic">লোড হচ্ছে...</h1>
+        <h1 id="uName" class="text-3xl font-black tracking-tighter mb-3 uppercase italic">Loading...</h1>
         <div class="flex flex-col items-center gap-3">
-            <p id="callStatus" class="text-[10px] font-bold text-indigo-400 tracking-[0.5em] uppercase opacity-80">Ringing...</p>
+            <p id="callStatus" class="text-[10px] font-bold text-indigo-400 tracking-[0.5em] uppercase opacity-80">Connecting...</p>
             <div id="audioWaves" class="wave-container hidden">
                 <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
             </div>
         </div>
     </div>
 
-    <div id="videoContainer" class="absolute inset-0 z-0 hidden">
-        <div id="remote-player" class="w-full h-full object-cover"></div>
-        <div id="local-player" class="hidden"></div>
+    <div id="videoContainer">
+        <div id="remote-player"></div>
+        <div id="local-player"></div>
     </div>
 
     <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" loop></audio>
     <audio id="dialtone" src="https://www.soundjay.com/phone/outbound-call-ringback-01.mp3" loop></audio>
 
-    <div class="w-full max-w-md z-10">
-        
+    <div class="w-full max-w-md z-20">
         <div id="incomingActions" class="flex justify-around items-center hidden">
             <button onclick="endCall()" class="w-20 h-20 bg-red-500/20 border-2 border-red-500 text-red-500 rounded-[35px] flex items-center justify-center text-3xl active:scale-90 transition">
                 <i class="fas fa-phone-slash"></i>
@@ -74,13 +70,12 @@
         </div>
 
         <div id="ongoingActions" class="flex justify-between items-center bg-white/5 backdrop-blur-2xl p-6 rounded-[40px] border border-white/10 hidden">
-            <button id="micBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl hover:bg-white/20 transition"><i class="fas fa-microphone"></i></button>
-            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] flex items-center justify-center text-3xl shadow-xl active:scale-90 transition">
+            <button id="micBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-microphone"></i></button>
+            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] flex items-center justify-center text-3xl active:scale-90 transition">
                 <i class="fas fa-phone-slash"></i>
             </button>
-            <button id="camBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl hover:bg-white/20 transition"><i class="fas fa-video"></i></button>
+            <button id="camBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-video"></i></button>
         </div>
-
     </div>
 
     <script type="module">
@@ -93,7 +88,9 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const APP_ID = "fe0a5bc2049d480695ca993ee4050d65";
+        // ✅ Updated App ID
+        const APP_ID = "b73c0ab95ca94cb0a11b4216f3e9b616"; 
+        
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
         const callType = urlParams.get('type');
@@ -103,28 +100,12 @@
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
 
-        // ১. শুরুতে পারমিশন চেক করা
-        async function checkPermissions() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callType === 'video' });
-                stream.getTracks().forEach(t => t.stop()); // জাস্ট চেক করে বন্ধ করে দেওয়া
-                return true;
-            } catch (err) {
-                alert("ক্যামেরা/মাইক্রোফোন পারমিশন ছাড়া কল সম্ভব নয়!");
-                window.location.href = "messages.html";
-                return false;
-            }
-        }
-
         onAuthStateChanged(auth, async user => {
             if(user) {
                 myId = user.uid;
-                const hasPerm = await checkPermissions();
-                if(hasPerm) {
-                    loadUserIdentity();
-                    handleInitialUI();
-                    listenForCallStatus();
-                }
+                loadUserIdentity();
+                handleInitialUI();
+                listenForCallStatus();
             }
         });
 
@@ -135,13 +116,13 @@
                 document.getElementById('uName').innerText = u.name || "User";
                 if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
             }
-            document.getElementById('callTypeBadge').innerHTML = callType === 'video' ? '<i class="fas fa-video"></i>' : '<i class="fas fa-phone"></i>';
         }
 
         function handleInitialUI() {
             if(action === 'calling') {
                 document.getElementById('ongoingActions').classList.remove('hidden');
                 document.getElementById('dialtone').play();
+                document.getElementById('callStatus').innerText = "Ringing...";
             } else {
                 document.getElementById('incomingActions').classList.remove('hidden');
                 document.getElementById('ringtone').play();
@@ -169,6 +150,9 @@
         };
 
         window.endCall = async () => {
+            if(localTracks.audio) localTracks.audio.close();
+            if(localTracks.video) localTracks.video.close();
+            await client.leave();
             if(myId) await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
             if(targetId) await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
             location.href = "messages.html";
@@ -178,16 +162,15 @@
             document.getElementById('dialtone').pause();
             document.getElementById('callStatus').innerText = "On Call";
             
-            // ভিডিও কলের স্পেশাল ডিজাইন
             if(callType === 'video') {
-                document.getElementById('videoContainer').classList.remove('hidden');
-                document.getElementById('local-player').classList.remove('hidden');
-                document.getElementById('userInfo').classList.add('opacity-0', 'scale-50'); // ইনফো হাইড করা
+                document.getElementById('videoContainer').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
             } else {
                 document.getElementById('audioWaves').classList.remove('hidden');
             }
 
             const channel = [myId, targetId].sort().join("_");
+
             client.on("user-published", async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
                 if (mediaType === "video") user.videoTrack.play("remote-player");
@@ -199,27 +182,27 @@
             
             if (callType === 'video') {
                 localTracks.video = await AgoraRTC.createCameraVideoTrack();
-                localTracks.video.play("local-player");
+                await localTracks.video.play("local-player");
                 await client.publish([localTracks.audio, localTracks.video]);
             } else {
                 await client.publish([localTracks.audio]);
             }
         }
 
-        // বাটন কন্ট্রোল
+        // Mute/Unmute
         document.getElementById('micBtn').onclick = async () => {
-            const enabled = localTracks.audio.enabled;
-            await localTracks.audio.setEnabled(!enabled);
-            document.getElementById('micBtn').innerHTML = enabled ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
-            document.getElementById('micBtn').classList.toggle('bg-red-500', enabled);
+            const enabled = !localTracks.audio.enabled;
+            await localTracks.audio.setEnabled(enabled);
+            document.getElementById('micBtn').innerHTML = enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            document.getElementById('micBtn').classList.toggle('bg-red-500', !enabled);
         };
         
         document.getElementById('camBtn').onclick = async () => {
             if(!localTracks.video) return;
-            const enabled = localTracks.video.enabled;
-            await localTracks.video.setEnabled(!enabled);
-            document.getElementById('camBtn').innerHTML = enabled ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
-            document.getElementById('camBtn').classList.toggle('bg-red-500', enabled);
+            const enabled = !localTracks.video.enabled;
+            await localTracks.video.setEnabled(enabled);
+            document.getElementById('camBtn').innerHTML = enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            document.getElementById('camBtn').classList.toggle('bg-red-500', !enabled);
         };
     </script>
 </body>
