@@ -107,7 +107,7 @@
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
     
     <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-6">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onclick="closeAll()"></div>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-6"></div>
         <div class="flex gap-3 border-t pt-4 bg-white mt-2">
             <input id="cInput" type="text" placeholder="মন্তব্য করুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm font-bold">
@@ -117,7 +117,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -143,6 +143,25 @@
             } else location.href="index.html"; 
         });
 
+        // ✅ Notification Sender Logic
+        async function sendNotification(targetId, type, message, postImg = "", postId = "") {
+            if(!targetId || targetId === user.uid) return;
+            try {
+                await addDoc(collection(db, "notifications"), {
+                    targetUserId: targetId,
+                    senderId: user.uid,
+                    senderName: currentUserData?.name || "Someone",
+                    senderPic: currentUserData?.profilePic || "",
+                    type: type,
+                    message: message,
+                    postImg: postImg,
+                    postId: postId,
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+            } catch(e) { console.error("Notification Error:", e); }
+        }
+
         function listenForCalls(myId) {
             onSnapshot(doc(db, "calls", myId), (snap) => {
                 const ui = document.getElementById('incomingCallUI');
@@ -163,14 +182,14 @@
 
         async function renderFeed() {
             const feed = document.getElementById('feed');
-            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const globalAd = adSnap.exists() ? adSnap.data().code : "";
+            const adSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+            const globalAdSnap = await getDoc(doc(db, "appSettings", "ads"));
+            const globalAd = globalAdSnap.exists() ? globalAdSnap.data().code : "";
 
             onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
                 let rawPosts = [];
                 snap.forEach(d => rawPosts.push({ id: d.id, ...d.data() }));
                 
-                // Sort feed (Using logic provided)
                 rawPosts.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 feed.innerHTML = "";
@@ -179,7 +198,6 @@
                     const showAd = globalAd && (index > 0 && index % 3 === 0);
                     const card = await createPostCard(p.id, p, showAd ? globalAd : null);
                     feed.appendChild(card);
-                    if(showAd) injectAd(p.id, globalAd);
                 });
                 setTimeout(initIntersection, 1000);
             });
@@ -205,7 +223,6 @@
                 </div>
                 <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
                 ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
-                ${adCode ? `<div class="p-3 border-y bg-gray-50/50 text-center"><div id="ad-frame-${id}"></div></div>` : ""}
                 <div class="flex justify-around py-2 border-t mt-1">
                     <button onclick="like('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}"><i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i><span class="text-[10px] font-black">${p.likedBy?.length||0}</span></button>
                     <button onclick="openComments('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400"><i class="fa-regular fa-comment-dots text-xl"></i><span class="text-[10px] font-black">${p.commentCount||0}</span></button>
@@ -215,68 +232,20 @@
             return card;
         }
 
-        // ✅ Updated Delete Post with Elite SweetAlert
-        window.confirmDeletePost = (id) => {
-            Swal.fire({
-                title: 'পোস্ট মুছে ফেলবেন?',
-                text: "একবার মুছলে এটি আর ফিরে পাওয়া যাবে না!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'হ্যাঁ, মুছুন',
-                cancelButtonText: 'বাতিল',
-                customClass: {
-                    popup: 'elite-popup',
-                    confirmButton: 'elite-confirm',
-                    cancelButton: 'elite-cancel'
-                }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    await deleteDoc(doc(db, "posts", id));
-                    Swal.fire({
-                        title: 'Deleted!',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        customClass: { popup: 'elite-popup' }
-                    });
-                }
-            });
-        };
-
-        // ✅ Updated Share with Elite Feedback
-        window.sharePost = (id) => {
-            const shareData = { title: 'My Book', url: window.location.href };
-            if (navigator.share) {
-                navigator.share(shareData);
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                Swal.fire({
-                    title: 'লিঙ্ক কপি করা হয়েছে!',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false,
-                    customClass: { popup: 'elite-popup' }
-                });
-            }
-        };
-
-        function injectAd(id, code) { 
-            setTimeout(() => { 
-                const box = document.getElementById(`ad-frame-${id}`); 
-                if(box){ 
-                    const frame = document.createElement('iframe'); 
-                    frame.style.width="100%"; frame.style.border="none"; 
-                    box.appendChild(frame); 
-                    frame.contentWindow.document.write(`<body style="margin:0;display:flex;justify-content:center;align-items:center;">${code}</body>`); 
-                } 
-            }, 2000); 
-        }
-
         window.like = async (id) => {
             const ref = doc(db, "posts", id); 
-            const d = (await getDoc(ref)).data();
+            const snap = await getDoc(ref);
+            const d = snap.data();
             const hasL = d.likedBy?.includes(user.uid);
-            await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+            
+            await updateDoc(ref, { 
+                likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) 
+            });
+
+            // ✅ Send Like Notification
+            if(!hasL) {
+                sendNotification(d.userId, "like", "আপনার পোস্টে লাইক দিয়েছেন।", d.fileUrl || "", id);
+            }
         };
 
         window.openComments = (id) => { 
@@ -298,9 +267,23 @@
 
         window.postComment = async () => {
             const v = document.getElementById('cInput').value; if(!v) return;
-            const userData = (await getDoc(doc(db, "users", user.uid))).data();
-            await addDoc(collection(db, "posts", activePostId, "comments"), { text: v, userId: user.uid, userName: userData.name, userPic: userData.profilePic, time: serverTimestamp() });
-            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
+            const postRef = doc(db, "posts", activePostId);
+            const postSnap = await getDoc(postRef);
+            const postData = postSnap.data();
+
+            await addDoc(collection(db, "posts", activePostId, "comments"), { 
+                text: v, 
+                userId: user.uid, 
+                userName: currentUserData.name, 
+                userPic: currentUserData.profilePic, 
+                time: serverTimestamp() 
+            });
+            
+            await updateDoc(postRef, { commentCount: increment(1) });
+
+            // ✅ Send Comment Notification
+            sendNotification(postData.userId, "comment", `মন্তব্য করেছেন: "${v}"`, postData.fileUrl || "", activePostId);
+            
             document.getElementById('cInput').value = "";
         };
 
@@ -311,13 +294,25 @@
 
         window.handleVideo = (v) => { v.muted = !v.muted; if(v.paused) v.play(); };
         
-        async function loadProfile() { const d = await getDoc(doc(db, "users", user.uid)); if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; }
-        async function checkNotif() { onSnapshot(query(collection(db, "users", user.uid, "notifications")), snap => { document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; }); }
+        async function loadProfile() { 
+            const d = await getDoc(doc(db, "users", user.uid)); 
+            if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; 
+        }
+
+        // ✅ Improved Notification Check
+        async function checkNotif() { 
+            const q = query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false));
+            onSnapshot(q, snap => { 
+                document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; 
+            }); 
+        }
         
         async function loadStories() { 
             onSnapshot(collection(db, "stories"), snap => { 
                 const sL = document.getElementById('storyList'); sL.innerHTML = ""; 
-                snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; }); 
+                snap.forEach(d => { 
+                    sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; 
+                }); 
             }); 
         }
 
@@ -325,6 +320,34 @@
             const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause(); }); }, { threshold: 0.6 }); 
             document.querySelectorAll('.post-vid').forEach(v => obs.observe(v)); 
         }
+
+        // Share & Delete logic (unchanged but integrated)
+        window.confirmDeletePost = (id) => {
+            Swal.fire({
+                title: 'পোস্ট মুছে ফেলবেন?',
+                text: "একবার মুছলে এটি আর ফিরে পাওয়া যাবে না!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'হ্যাঁ, মুছুন',
+                cancelButtonText: 'বাতিল',
+                customClass: { popup: 'elite-popup', confirmButton: 'elite-confirm', cancelButton: 'elite-cancel' }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await deleteDoc(doc(db, "posts", id));
+                    Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false, customClass: { popup: 'elite-popup' } });
+                }
+            });
+        };
+
+        window.sharePost = (id) => {
+            const url = `${window.location.origin}/post-view.html?id=${id}`;
+            if (navigator.share) {
+                navigator.share({ title: 'My Book', url: url });
+            } else {
+                navigator.clipboard.writeText(url);
+                Swal.fire({ title: 'লিঙ্ক কপি করা হয়েছে!', icon: 'success', timer: 1500, showConfirmButton: false, customClass: { popup: 'elite-popup' } });
+            }
+        };
     </script>
 </body>
 </html>
