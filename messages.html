@@ -3,28 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages - Elite Edition</title>
+    <title>Messages - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; color: #1c1c1e; overflow-x: hidden; }
         
-        .ios-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-bottom: 0.5px solid rgba(0,0,0,0.1); }
-        .search-box { background: rgba(118, 118, 128, 0.12); border-radius: 14px; transition: all 0.3s; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #000000; 
+            color: #ffffff; 
+            overflow-x: hidden; 
+        }
         
-        .msg-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-        .msg-card:active { background-color: #f2f2f7; transform: scale(0.98); }
+        /* এলিট হেডার */
+        .ios-header { 
+            background: rgba(0, 0, 0, 0.8); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2); 
+        }
         
-        .unread-dot { width: 10px; height: 10px; background: #007aff; border-radius: 50%; }
+        /* গোল্ডেন সার্চ বক্স */
+        .search-box { 
+            background: rgba(255, 255, 255, 0.05); 
+            border-radius: 16px; 
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            transition: all 0.3s; 
+        }
+        .search-box:focus-within {
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.05);
+        }
         
+        .msg-card { 
+            transition: all 0.3s ease; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .msg-card:active { background-color: rgba(212, 175, 55, 0.05); transform: scale(0.98); }
+        
+        /* গোল্ডেন স্টোরি রিং */
         .story-ring {
-            background: linear-gradient(45deg, #007aff, #5856d6);
-            padding: 2.5px;
-            box-shadow: 0 4px 15px rgba(88, 86, 214, 0.2);
+            background: linear-gradient(45deg, #D4AF37, #F9E498, #AA8A3A);
+            padding: 2px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            border-radius: 22px;
+        }
+
+        .unread-dot { 
+            width: 8px; 
+            height: 8px; 
+            background: #D4AF37; 
+            border-radius: 50%; 
+            box-shadow: 0 0 10px #D4AF37;
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* নিচের নেভিগেশন বার */
+        .nav-elite {
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .plus-btn {
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F);
+            color: #000;
+        }
     </style>
 </head>
 <body class="pb-32">
@@ -32,58 +78,58 @@
     <nav class="ios-header sticky top-0 z-50 px-6 pt-10 pb-4">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-5">
-                <span class="text-blue-600 font-semibold text-sm">Edit</span>
-                <h1 class="text-2xl font-extrabold tracking-tight">Messages</h1>
-                <a href="new-chat.html" class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-blue-600">
+                <span class="text-[#D4AF37] font-semibold text-sm">Edit</span>
+                <h1 class="text-2xl font-extrabold tracking-tight text-white">My Book <span class="text-[#D4AF37]">Elite</span></h1>
+                <a href="new-chat.html" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center text-[#D4AF37] border border-white/10">
                     <i class="fas fa-edit text-sm"></i>
                 </a>
             </div>
-            <div class="search-box flex items-center px-4 py-3 text-gray-500">
-                <i class="fas fa-search text-sm mr-3 opacity-40"></i>
-                <input type="text" id="chatSearch" placeholder="Search for people" class="bg-transparent border-none outline-none text-[15px] w-full placeholder-gray-400 font-medium">
+            <div class="search-box flex items-center px-4 py-3">
+                <i class="fas fa-search text-sm mr-3 text-[#D4AF37] opacity-60"></i>
+                <input type="text" id="chatSearch" placeholder="Search elite members..." class="bg-transparent border-none outline-none text-[15px] w-full text-white placeholder-gray-500 font-medium">
             </div>
         </div>
     </nav>
 
     <div class="max-w-md mx-auto">
         <div class="mt-6 px-6">
-            <h3 class="text-[11px] font-black text-gray-400 uppercase tracking-[2px] mb-4">Active Now</h3>
+            <h3 class="text-[10px] font-black text-[#D4AF37] uppercase tracking-[3px] mb-4 opacity-80">Active Now</h3>
             <div id="userSuggestions" class="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
                 </div>
         </div>
 
         <div class="mt-4">
-            <div id="chatList" class="divide-y divide-gray-100">
+            <div id="chatList">
                 <div class="px-6 py-4 flex gap-4 animate-pulse">
-                    <div class="w-14 h-14 bg-gray-200 rounded-full"></div>
+                    <div class="w-14 h-14 bg-white/5 rounded-[20px]"></div>
                     <div class="flex-1 space-y-3 py-1">
-                        <div class="h-3 bg-gray-200 rounded w-1/3"></div>
-                        <div class="h-2 bg-gray-200 rounded w-full"></div>
+                        <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                        <div class="h-2 bg-white/5 rounded w-full"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] bg-[#1c1c1e]/95 backdrop-blur-3xl rounded-[35px] p-4 flex justify-around items-center shadow-2xl z-[100] border border-white/10">
-        <a href="home.html" class="text-gray-500 text-lg"><i class="fas fa-th-large"></i></a>
-        <a href="search.html" class="text-gray-500 text-lg"><i class="fas fa-compass"></i></a>
-        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black shadow-lg active:scale-90 transition cursor-pointer"><i class="fas fa-plus"></i></div>
-        <a href="messages.html" class="text-blue-400 text-lg"><i class="fas fa-comment-alt"></i></a>
-        <a href="profile.html" class="text-gray-500 text-lg"><i class="fas fa-user-circle"></i></a>
+    <nav class="nav-elite fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] rounded-[35px] p-4 flex justify-around items-center shadow-2xl z-[100]">
+        <a href="home.html" class="text-gray-500 text-lg hover:text-[#D4AF37]"><i class="fas fa-th-large"></i></a>
+        <a href="search.html" class="text-gray-500 text-lg hover:text-[#D4AF37]"><i class="fas fa-compass"></i></a>
+        <div onclick="location.href='post.html'" class="plus-btn w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition cursor-pointer">
+            <i class="fas fa-plus"></i>
+        </div>
+        <a href="messages.html" class="text-[#D4AF37] text-lg"><i class="fas fa-comment-alt"></i></a>
+        <a href="profile.html" class="text-gray-500 text-lg hover:text-[#D4AF37]"><i class="fas fa-user-circle"></i></a>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
             authDomain: "seen-a1d92.firebaseapp.com", 
             projectId: "seen-a1d92", 
-            storageBucket: "seen-a1d92.firebasestorage.app", 
-            messagingSenderId: "868584044532", 
             appId: "1:868584044532:web:51f07436a883f88332eba1" 
         };
         const app = initializeApp(firebaseConfig);
@@ -106,14 +152,14 @@
                         const u = d.data();
                         container.innerHTML += `
                             <a href="chat.html?id=${d.id}" class="flex-shrink-0 text-center w-16 group active:scale-90 transition">
-                                <div class="w-16 h-16 rounded-[24px] story-ring mx-auto mb-2">
-                                    <div class="w-full h-full bg-white rounded-[22px] p-1">
-                                        <div class="w-full h-full bg-gray-100 rounded-[18px] overflow-hidden">
-                                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-300 text-lg">${u.name?.[0]}</div>`}
+                                <div class="w-16 h-16 story-ring mx-auto mb-2">
+                                    <div class="w-full h-full bg-black rounded-[20px] p-[2px]">
+                                        <div class="w-full h-full bg-neutral-900 rounded-[18px] overflow-hidden border border-white/5">
+                                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-[#D4AF37] text-lg">${u.name?.[0]}</div>`}
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-[10px] font-bold text-gray-800 truncate">${u.name?.split(' ')[0] || 'User'}</p>
+                                <p class="text-[10px] font-bold text-gray-400 truncate">${u.name?.split(' ')[0] || 'User'}</p>
                             </a>`;
                     }
                 });
@@ -130,8 +176,8 @@
                     if(ids.includes(myId)) {
                         const targetId = ids.find(id => id !== myId);
                         const data = chatDoc.data();
-                        const lastMsg = data.lastMessage || "Tap to start conversation";
-                        const lastTime = data.lastMessageTimestamp?.toMillis() || data.lastTime || 0;
+                        const lastMsg = data.lastMessage || "Tap to chat";
+                        const lastTime = data.lastMessageTimestamp?.toMillis() || 0;
                         const uSnap = await getDoc(doc(db, "users", targetId));
                         
                         if(uSnap.exists()) {
@@ -142,33 +188,29 @@
                 });
 
                 const results = await Promise.all(promises);
-                chatData = results.filter(c => c !== null);
-                chatData.sort((a, b) => b.lastTime - a.lastTime);
+                chatData = results.filter(c => c !== null).sort((a, b) => b.lastTime - a.lastTime);
 
-                list.innerHTML = "";
-                if(chatData.length === 0) {
-                    list.innerHTML = `<div class="text-center py-20 text-gray-300 font-bold uppercase tracking-widest text-[10px]">No messages yet</div>`;
-                }
+                list.innerHTML = chatData.length === 0 ? `<div class="text-center py-20 text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Elite Conversations</div>` : "";
 
                 chatData.forEach(u => {
                     const timeString = u.lastTime ? new Date(u.lastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-                    const statusColor = u.isOnline ? 'bg-green-500' : 'bg-gray-400';
+                    const statusColor = u.isOnline ? 'bg-[#D4AF37]' : 'bg-neutral-600';
                     
                     list.innerHTML += `
-                        <a href="chat.html?id=${u.id}" class="msg-card flex items-center gap-4 px-6 py-4">
+                        <a href="chat.html?id=${u.id}" class="msg-card flex items-center gap-4 px-6 py-5">
                             <div class="relative flex-shrink-0">
-                                <div class="w-[60px] h-[60px] rounded-[22px] overflow-hidden bg-gray-100 border border-gray-100 shadow-sm">
-                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-gray-300 text-xl">${u.name?.[0]}</div>`}
+                                <div class="w-[62px] h-[62px] rounded-[22px] overflow-hidden bg-neutral-900 border border-white/10 shadow-lg">
+                                    ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-[#D4AF37] text-xl">${u.name?.[0]}</div>`}
                                 </div>
-                                <div class="absolute -bottom-1 -right-1 w-5 h-5 ${statusColor} border-4 border-white rounded-full"></div>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 ${statusColor} border-[3px] border-black rounded-full"></div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-baseline mb-1">
-                                    <h4 class="font-extrabold text-[15px] text-gray-900 truncate">${u.name || 'User'}</h4>
-                                    <span class="text-[11px] text-gray-400 font-semibold uppercase tracking-tighter">${timeString}</span>
+                                <div class="flex justify-between items-baseline mb-0.5">
+                                    <h4 class="font-bold text-[16px] text-white truncate">${u.name || 'User'}</h4>
+                                    <span class="text-[10px] text-[#D4AF37] font-bold uppercase tracking-wider">${timeString}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <p class="text-[13px] text-gray-500 truncate font-medium max-w-[180px]">${u.lastMsg}</p>
+                                    <p class="text-[13px] text-gray-500 truncate max-w-[180px]">${u.lastMsg}</p>
                                     ${u.unreadCount > 0 ? `<div class="unread-dot"></div>` : ''}
                                 </div>
                             </div>
@@ -177,7 +219,6 @@
             });
         }
 
-        // Search logic
         document.getElementById('chatSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             document.querySelectorAll('.msg-card').forEach(card => {
