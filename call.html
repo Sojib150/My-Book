@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calling... - My Book</title>
+    <title>Call - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
@@ -11,72 +11,64 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: white; overflow: hidden; }
         
-        .bg-animate { position: absolute; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #020617 100%); z-index: -1; }
-        .glow { position: absolute; width: 350px; height: 350px; background: rgba(99, 102, 241, 0.2); filter: blur(120px); border-radius: 50%; animation: float 8s infinite alternate; }
-        
-        @keyframes float { from { transform: translate(-20%, -20%); } to { transform: translate(20%, 20%); } }
-
-        .wave-container { display: flex; align-items: center; justify-content: center; gap: 4px; height: 40px; }
-        .wave { width: 4px; height: 10px; background: #6366f1; border-radius: 10px; animation: wave-anim 1s infinite ease-in-out; }
-        @keyframes wave-anim { 0%, 100% { height: 10px; } 50% { height: 40px; } }
-
-        .incoming-call-anim { animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite; }
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); } 70% { box-shadow: 0 0 0 50px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
-
-        /* Video Players */
-        #videoContainer { position: absolute; inset: 0; background: #000; display: none; z-index: 10; }
+        /* Video Container Layout */
+        #video-grid { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr; background: #000; }
         #remote-player { width: 100%; height: 100%; object-fit: cover; }
-        #local-player { position: absolute; top: 30px; right: 20px; width: 110px; height: 160px; background: #222; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); z-index: 50; overflow: hidden; }
+        #local-player { position: absolute; top: 40px; right: 20px; width: 120px; height: 180px; border-radius: 24px; overflow: hidden; border: 2px solid rgba(255,255,255,0.3); z-index: 50; box-shadow: 0 20px 40px rgba(0,0,0,0.5); background: #111; }
+
+        /* UI Elements */
+        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
+        .control-btn { width: 60px; height: 60px; border-radius: 20px; display: flex; items-center; justify-content: center; font-size: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .control-btn:active { transform: scale(0.9); }
+        
+        .ringing-anim { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(79, 70, 229, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
+
+        /* Audio Wave for Audio Calls */
+        .wave-bar { width: 4px; height: 10px; background: #6366f1; border-radius: 10px; animation: wave 1.2s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 50px; } }
     </style>
 </head>
-<body class="h-screen flex flex-col items-center justify-between py-16 px-8">
+<body class="h-screen flex flex-col justify-between">
 
-    <div class="bg-animate"><div class="glow"></div></div>
-
-    <div id="userInfo" class="text-center z-10 transition-all duration-700">
-        <div class="relative inline-block mb-8">
-            <div id="uAvatar" class="w-36 h-36 rounded-[50px] bg-slate-800 border-4 border-white/10 overflow-hidden shadow-2xl flex items-center justify-center text-5xl font-black incoming-call-anim">
-                ?
-            </div>
-            <div id="callTypeBadge" class="absolute -bottom-2 -right-2 w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center border-4 border-[#020617] shadow-xl">
-                <i class="fas fa-video"></i>
-            </div>
-        </div>
-        <h1 id="uName" class="text-3xl font-black tracking-tighter mb-3 uppercase italic">Loading...</h1>
-        <div class="flex flex-col items-center gap-3">
-            <p id="callStatus" class="text-[10px] font-bold text-indigo-400 tracking-[0.5em] uppercase opacity-80">Connecting...</p>
-            <div id="audioWaves" class="wave-container hidden">
-                <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="videoContainer">
+    <div id="video-grid">
         <div id="remote-player"></div>
         <div id="local-player"></div>
     </div>
 
-    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" loop></audio>
-    <audio id="dialtone" src="https://www.soundjay.com/phone/outbound-call-ringback-01.mp3" loop></audio>
-
-    <div class="w-full max-w-md z-20">
-        <div id="incomingActions" class="flex justify-around items-center hidden">
-            <button onclick="endCall()" class="w-20 h-20 bg-red-500/20 border-2 border-red-500 text-red-500 rounded-[35px] flex items-center justify-center text-3xl active:scale-90 transition">
-                <i class="fas fa-phone-slash"></i>
-            </button>
-            <button onclick="acceptCall()" class="w-20 h-20 bg-green-500 rounded-[35px] flex items-center justify-center text-3xl shadow-[0_0_30px_rgba(34,197,94,0.5)] active:scale-90 transition animate-bounce">
-                <i class="fas fa-phone"></i>
-            </button>
+    <div id="identity-ui" class="absolute inset-0 flex flex-col items-center justify-center z-20 transition-all duration-1000">
+        <div class="relative mb-8">
+            <div id="uAvatar" class="w-40 h-40 rounded-[55px] bg-slate-800 border-[6px] border-white/10 overflow-hidden shadow-2xl flex items-center justify-center text-6xl font-black ringing-anim">?</div>
+            <div id="callBadge" class="absolute -bottom-2 -right-2 w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center border-4 border-[#020617]"><i class="fas fa-video text-sm"></i></div>
         </div>
-
-        <div id="ongoingActions" class="flex justify-between items-center bg-white/5 backdrop-blur-2xl p-6 rounded-[40px] border border-white/10 hidden">
-            <button id="micBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-microphone"></i></button>
-            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] flex items-center justify-center text-3xl active:scale-90 transition">
-                <i class="fas fa-phone-slash"></i>
-            </button>
-            <button id="camBtn" class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-video"></i></button>
+        <h1 id="uName" class="text-3xl font-extrabold tracking-tighter uppercase italic">Loading...</h1>
+        <p id="callStatus" class="text-indigo-400 font-bold tracking-[4px] text-[10px] mt-4 uppercase">Connecting...</p>
+        
+        <div id="audio-visual" class="hidden flex items-center gap-2 mt-8 h-12">
+            <div class="wave-bar" style="animation-delay: 0.1s"></div>
+            <div class="wave-bar" style="animation-delay: 0.2s"></div>
+            <div class="wave-bar" style="animation-delay: 0.3s"></div>
+            <div class="wave-bar" style="animation-delay: 0.4s"></div>
         </div>
     </div>
+
+    <div class="relative z-30 p-10 flex flex-col items-center gap-8 w-full max-w-md mx-auto">
+        
+        <div id="incoming-ui" class="hidden flex gap-20">
+            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] shadow-2xl shadow-red-500/40 text-white text-3xl"><i class="fas fa-phone-slash"></i></button>
+            <button onclick="acceptCall()" class="w-20 h-20 bg-green-500 rounded-[30px] shadow-2xl shadow-green-500/40 text-white text-3xl animate-bounce"><i class="fas fa-phone"></i></button>
+        </div>
+
+        <div id="controls-ui" class="hidden glass-panel p-4 rounded-[35px] flex items-center gap-6 shadow-2xl">
+            <button id="micBtn" class="control-btn bg-white/10 hover:bg-white/20 text-white"><i class="fas fa-microphone"></i></button>
+            <button onclick="endCall()" class="w-20 h-20 bg-red-500 rounded-[30px] text-white text-3xl shadow-xl shadow-red-500/30"><i class="fas fa-phone-slash"></i></button>
+            <button id="camBtn" class="control-btn bg-white/10 hover:bg-white/20 text-white"><i class="fas fa-video"></i></button>
+        </div>
+
+    </div>
+
+    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" loop></audio>
+    <audio id="dialtone" src="https://www.soundjay.com/phone/outbound-call-ringback-01.mp3" loop></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -88,13 +80,11 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // ✅ Updated App ID
         const APP_ID = "b73c0ab95ca94cb0a11b4216f3e9b616"; 
-        
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
-        const callType = urlParams.get('type');
-        const action = urlParams.get('action');
+        const callType = urlParams.get('type'); // 'video' or 'audio'
+        const action = urlParams.get('action'); // 'calling' or 'incoming'
 
         let myId = null;
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -103,74 +93,71 @@
         onAuthStateChanged(auth, async user => {
             if(user) {
                 myId = user.uid;
-                loadUserIdentity();
-                handleInitialUI();
-                listenForCallStatus();
+                loadIdentity();
+                initUI();
+                listenCall();
             }
         });
 
-        async function loadUserIdentity() {
-            const uSnap = await getDoc(doc(db, "users", targetId));
-            if(uSnap.exists()) {
-                const u = uSnap.data();
-                document.getElementById('uName').innerText = u.name || "User";
-                if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
+        async function loadIdentity() {
+            const snap = await getDoc(doc(db, "users", targetId));
+            if(snap.exists()){
+                const d = snap.data();
+                document.getElementById('uName').innerText = d.name || "User";
+                if(d.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${d.profilePic}" class="w-full h-full object-cover">`;
             }
+            document.getElementById('callBadge').innerHTML = callType === 'video' ? '<i class="fas fa-video"></i>' : '<i class="fas fa-phone"></i>';
         }
 
-        function handleInitialUI() {
+        function initUI() {
             if(action === 'calling') {
-                document.getElementById('ongoingActions').classList.remove('hidden');
+                document.getElementById('controls-ui').classList.remove('hidden');
                 document.getElementById('dialtone').play();
                 document.getElementById('callStatus').innerText = "Ringing...";
             } else {
-                document.getElementById('incomingActions').classList.remove('hidden');
+                document.getElementById('incoming-ui').classList.remove('hidden');
                 document.getElementById('ringtone').play();
                 document.getElementById('callStatus').innerText = "Incoming Call";
             }
+            if(callType === 'audio') document.getElementById('local-player').style.display = 'none';
         }
 
-        function listenForCallStatus() {
+        function listenCall() {
             const callRef = doc(db, "calls", action === 'calling' ? targetId : myId);
-            onSnapshot(callRef, (snapshot) => {
-                if (!snapshot.exists()) location.href = "messages.html";
-                else {
-                    const data = snapshot.data();
-                    if (data.status === 'accepted') startAgoraSession();
-                }
+            onSnapshot(callRef, snap => {
+                if(!snap.exists()) location.href = "messages.html";
+                else if(snap.data().status === 'accepted') startAgora();
             });
         }
 
         window.acceptCall = async () => {
             document.getElementById('ringtone').pause();
             await updateDoc(doc(db, "calls", myId), { status: 'accepted' });
-            document.getElementById('incomingActions').classList.add('hidden');
-            document.getElementById('ongoingActions').classList.remove('hidden');
-            startAgoraSession();
+            document.getElementById('incoming-ui').classList.add('hidden');
+            document.getElementById('controls-ui').classList.remove('hidden');
+            startAgora();
         };
 
         window.endCall = async () => {
             if(localTracks.audio) localTracks.audio.close();
             if(localTracks.video) localTracks.video.close();
             await client.leave();
-            if(myId) await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
-            if(targetId) await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
+            await deleteDoc(doc(db, "calls", myId)).catch(()=>{});
+            await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
             location.href = "messages.html";
         };
 
-        async function startAgoraSession() {
+        async function startAgora() {
             document.getElementById('dialtone').pause();
             document.getElementById('callStatus').innerText = "On Call";
             
             if(callType === 'video') {
-                document.getElementById('videoContainer').style.display = 'block';
-                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('identity-ui').classList.add('opacity-0', 'scale-150', 'pointer-events-none');
             } else {
-                document.getElementById('audioWaves').classList.remove('hidden');
+                document.getElementById('audio-visual').classList.remove('hidden');
             }
 
             const channel = [myId, targetId].sort().join("_");
-
             client.on("user-published", async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
                 if (mediaType === "video") user.videoTrack.play("remote-player");
@@ -181,7 +168,15 @@
             localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
             
             if (callType === 'video') {
-                localTracks.video = await AgoraRTC.createCameraVideoTrack();
+                // ✅ High Quality Video Settings (720p HD)
+                localTracks.video = await AgoraRTC.createCameraVideoTrack({
+                    encoderConfig: {
+                        resolution: "720p_1", // High resolution
+                        frameRate: 30,         // Smooth video
+                        bitrateMin: 600,
+                        bitrateMax: 1500
+                    }
+                });
                 await localTracks.video.play("local-player");
                 await client.publish([localTracks.audio, localTracks.video]);
             } else {
@@ -189,20 +184,20 @@
             }
         }
 
-        // Mute/Unmute
+        // Controls
         document.getElementById('micBtn').onclick = async () => {
-            const enabled = !localTracks.audio.enabled;
-            await localTracks.audio.setEnabled(enabled);
-            document.getElementById('micBtn').innerHTML = enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
-            document.getElementById('micBtn').classList.toggle('bg-red-500', !enabled);
+            const state = !localTracks.audio.enabled;
+            await localTracks.audio.setEnabled(state);
+            document.getElementById('micBtn').innerHTML = state ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            document.getElementById('micBtn').classList.toggle('bg-red-500', !state);
         };
         
         document.getElementById('camBtn').onclick = async () => {
             if(!localTracks.video) return;
-            const enabled = !localTracks.video.enabled;
-            await localTracks.video.setEnabled(enabled);
-            document.getElementById('camBtn').innerHTML = enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
-            document.getElementById('camBtn').classList.toggle('bg-red-500', !enabled);
+            const state = !localTracks.video.enabled;
+            await localTracks.video.setEnabled(state);
+            document.getElementById('camBtn').innerHTML = state ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            document.getElementById('camBtn').classList.toggle('bg-red-500', !state);
         };
     </script>
 </body>
