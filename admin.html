@@ -57,7 +57,7 @@
                 <div class="glass p-5 rounded-3xl stat-card"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Users</p><h3 id="countUsers" class="text-2xl font-black mt-1">0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-indigo-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Global CPM</p><h3 id="displayCPM" class="text-2xl font-black mt-1 text-indigo-400">৳0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-red-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Withdrawals</p><h3 id="countPending" class="text-2xl font-black mt-1 text-red-500">0</h3></div>
-                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Server Speed</p><h3 class="text-2xl font-black mt-1 text-green-400">OPTIMAL</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Status</p><h3 id="systemLiveStatus" class="text-2xl font-black mt-1 text-green-400">LIVE</h3></div>
             </div>
 
             <div id="tab-economy" class="hidden tab-content space-y-6">
@@ -95,8 +95,8 @@
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-red-600">
                     <i class="fas fa-triangle-exclamation text-4xl text-red-600 mb-4"></i>
                     <h3 class="font-black text-xl mb-2">Maintenance Mode</h3>
-                    <p class="text-slate-500 text-xs mb-6">লগইন বন্ধ করতে এটি ব্যবহার করুন।</p>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition"></button>
+                    <p class="text-slate-500 text-xs mb-6">অ্যাপের মেইনটেন্যান্স অন/অফ করতে নিচের বাটনটি ব্যবহার করুন।</p>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition active:scale-95">CHECKING...</button>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-indigo-600">
                     <i class="fas fa-database text-4xl text-indigo-600 mb-4"></i>
@@ -157,9 +157,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let mStatus = false;
+
         window.unlock = () => {
             const key = document.getElementById('accessKey').value;
-            if(key === "150") { // আপনার কোড ১৫০ ই রাখা হয়েছে
+            if(key === "150") { 
                 document.getElementById('lockScreen').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('lockScreen').style.display = 'none';
@@ -177,7 +179,7 @@
         };
 
         function initSupremeSystem() {
-            // ১. ইউজার কন্ট্রোল গ্রিড
+            // Users Count and List
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 const grid = document.getElementById('userGrid'); grid.innerHTML = "";
@@ -216,13 +218,12 @@
                 });
             });
 
-            // ২. পেমেন্ট রিকোয়েস্ট লজিক
+            // Pending Withdrawals
             const q = query(collection(db, "withdrawRequests"), where("status", "==", "Pending"));
             onSnapshot(q, snap => {
                 document.getElementById('countPending').innerText = snap.size;
                 const list = document.getElementById('withdrawList');
                 list.innerHTML = snap.size === 0 ? '<p class="text-slate-500 italic text-[10px] p-10 text-center col-span-full">All clear. No pending payouts.</p>' : "";
-                
                 snap.forEach(d => {
                     const r = d.data();
                     const card = document.createElement('div');
@@ -233,7 +234,6 @@
                                 <h4 class="font-black text-[10px] uppercase text-indigo-300 tracking-wider">${r.userName}</h4>
                                 <p class="text-[8px] text-slate-500 mt-0.5">${new Date(r.time?.seconds*1000).toLocaleString()}</p>
                             </div>
-                            <span class="bg-red-500/10 text-red-500 text-[7px] px-2 py-0.5 rounded-full font-black tracking-tighter uppercase">Pending</span>
                         </div>
                         <div class="py-3 bg-white/5 rounded-xl text-center">
                             <p class="text-2xl font-black text-green-400 tracking-tighter">৳${r.amount}</p>
@@ -248,50 +248,91 @@
                 });
             });
 
-            // ৩. অ্যাপ সেটিংস রিয়েল-টাইম
+            // Real-time Settings Sync
             onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { if(d.exists()) { document.getElementById('displayCPM').innerText = "৳" + d.data().trendBoost; document.getElementById('cpmRateInput').value = d.data().trendBoost; }});
+            
+            // Maintenance Watcher
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
-                window.mStatus = d.data()?.isOn;
-                const btn = document.getElementById('mBtn');
-                btn.innerText = window.mStatus ? "DEACTIVATE MAINTENANCE" : "ACTIVATE MAINTENANCE";
-                btn.className = window.mStatus ? "bg-red-600 text-white w-full py-4 rounded-2xl font-black" : "bg-slate-800 text-red-500 w-full py-4 rounded-2xl font-black";
+                if(d.exists()){
+                    mStatus = d.data().isOn;
+                    const btn = document.getElementById('mBtn');
+                    const statusText = document.getElementById('systemLiveStatus');
+                    
+                    if(mStatus) {
+                        btn.innerText = "DEACTIVATE MAINTENANCE (LIVE NOW)";
+                        btn.className = "w-full py-4 rounded-2xl font-black bg-red-600 text-white shadow-lg shadow-red-500/20";
+                        statusText.innerText = "UNDER MAINT.";
+                        statusText.className = "text-2xl font-black mt-1 text-red-500";
+                    } else {
+                        btn.innerText = "ACTIVATE MAINTENANCE (GO OFFLINE)";
+                        btn.className = "w-full py-4 rounded-2xl font-black bg-slate-800 text-green-500 border border-green-500/20";
+                        statusText.innerText = "LIVE";
+                        statusText.className = "text-2xl font-black mt-1 text-green-400";
+                    }
+                }
             });
         }
 
-        // --- কোর অ্যাকশন ফাংশন ---
+        // Action Functions
+        window.toggleMaintenance = async () => {
+            try {
+                const newStatus = !mStatus;
+                // Force Update to Database
+                await setDoc(doc(db, "appSettings", "maintenance"), { isOn: newStatus }, { merge: true });
+                Swal.fire({
+                    icon: 'success',
+                    title: newStatus ? 'System Offline' : 'System Live',
+                    background: '#0a0f1d',
+                    color: '#fff'
+                });
+            } catch (e) { console.error(e); }
+        };
+
+        window.saveAd = async () => { 
+            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); 
+            Swal.fire('Deployed', 'Ad Engine Updated', 'success'); 
+        };
+        
+        window.updateCPM = async () => { 
+            const newRate = parseFloat(document.getElementById('cpmRateInput').value);
+            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: newRate }, { merge: true }); 
+            Swal.fire('Updated', `New Rate: ৳${newRate}`, 'success'); 
+        };
 
         window.toggleMonetize = async (uid, currentStatus) => {
-            try {
-                await updateDoc(doc(db, "users", uid), { isMonetized: !currentStatus });
-                Swal.fire({ icon: 'success', title: 'Done', text: 'Monetization Status Updated', background: '#0a0f1d', color: '#fff' });
-            } catch(e) { console.error(e); }
+            await updateDoc(doc(db, "users", uid), { isMonetized: !currentStatus });
         };
 
         window.processPayout = async (id, status, uid = null, amt = 0) => {
-            const confirm = await Swal.fire({ 
-                title: 'Confirm Payout?', 
-                text: `Action: ${status}`, 
-                icon: 'warning', 
-                showCancelButton: true,
-                background: '#0a0f1d', color: '#fff', confirmButtonColor: '#4f46e5'
-            });
-            if(!confirm.isConfirmed) return;
-
-            try {
+            const confirm = await Swal.fire({ title: 'Are you sure?', text: `Set status to ${status}`, icon: 'warning', showCancelButton: true, background: '#0a0f1d', color: '#fff' });
+            if(confirm.isConfirmed) {
                 await updateDoc(doc(db, "withdrawRequests", id), { status: status });
-                if(status === 'Rejected' && uid) {
-                    await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
-                }
-                Swal.fire('Success', `Transaction ${status}`, 'success');
-            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+                if(status === 'Rejected' && uid) await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
+                Swal.fire('Updated', status, 'success');
+            }
         };
+
+        window.openMagic = (id, name, bal, views) => {
+            document.getElementById('targetUserName').innerText = name;
+            document.getElementById('magicModal').classList.remove('hidden');
+            document.getElementById('addBalanceInput').value = bal;
+            document.getElementById('fakeViewInput').value = views;
+            document.getElementById('saveMagicBtn').onclick = async () => {
+                await updateDoc(doc(db, "users", id), { 
+                    balance: parseFloat(document.getElementById('addBalanceInput').value),
+                    fakeViews: parseInt(document.getElementById('fakeViewInput').value)
+                });
+                document.getElementById('magicModal').classList.add('hidden');
+                Swal.fire('Success', 'Citizen data updated!', 'success');
+            };
+        };
+
+        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
 
         window.sendBroadcast = async () => {
             const msg = document.getElementById('broadcastMsg').value;
             if(!msg) return;
-            const btn = document.getElementById('broadBtn');
-            btn.innerText = "PENETRATING NETWORK...";
             const users = await getDocs(collection(db, "users"));
             const batch = writeBatch(db);
             users.forEach(u => {
@@ -299,63 +340,31 @@
                 batch.set(nRef, { message: msg, type: "admin", time: serverTimestamp(), status: "unread" });
             });
             await batch.commit();
-            Swal.fire('Broadcast Successful', 'All users have been notified.', 'success');
+            Swal.fire('Broadcast Sent', '', 'success');
             document.getElementById('broadcastMsg').value = "";
-            btn.innerText = "SEND TO ALL CITIZENS";
-        };
-
-        window.saveAd = async () => { 
-            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); 
-            Swal.fire('Deployed', 'Ad Engine Updated Globally', 'success'); 
-        };
-        
-        window.updateCPM = async () => { 
-            const newRate = parseFloat(document.getElementById('cpmRateInput').value);
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: newRate }, { merge: true }); 
-            Swal.fire('Updated', `New CPM: ৳${newRate}`, 'success'); 
-        };
-
-        window.toggleMaintenance = async () => { 
-            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); 
-        };
-
-        window.openMagic = (id, name, bal, views) => { 
-            document.getElementById('targetUserName').innerText = name;
-            document.getElementById('magicModal').classList.remove('hidden'); 
-            document.getElementById('addBalanceInput').value = bal; 
-            document.getElementById('fakeViewInput').value = views; 
-            document.getElementById('saveMagicBtn').onclick = async () => { 
-                await updateDoc(doc(db, "users", id), { 
-                    balance: parseFloat(document.getElementById('addBalanceInput').value), 
-                    fakeViews: parseInt(document.getElementById('fakeViewInput').value) 
-                }); 
-                document.getElementById('magicModal').classList.add('hidden'); 
-                Swal.fire('Magic Applied!', 'User data modified.', 'success');
-            }; 
-        };
-
-        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
-        
-        window.hardBanUser = async (id) => { 
-            const confirm = await Swal.fire({ title: 'BAN USER?', text: 'This action is irreversible!', icon: 'error', showCancelButton: true });
-            if(confirm.isConfirmed) await deleteDoc(doc(db, "users", id)); 
-        };
-
-        window.searchUser = () => { 
-            const term = document.getElementById('uSearch').value.toLowerCase(); 
-            document.querySelectorAll('.admin-card').forEach(c => { 
-                c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none'; 
-            }); 
         };
 
         window.resetAllBalances = async () => {
-            const confirm = await Swal.fire({ title: 'RESET ALL?', text: 'All users balance will be 0!', icon: 'warning', showCancelButton: true });
-            if(!confirm.isConfirmed) return;
-            const users = await getDocs(collection(db, "users"));
-            const batch = writeBatch(db);
-            users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
-            await batch.commit();
-            Swal.fire('Reset!', 'All balances are now 0.', 'success');
+            const confirm = await Swal.fire({ title: 'Reset All Balances?', icon: 'warning', showCancelButton: true });
+            if(confirm.isConfirmed) {
+                const users = await getDocs(collection(db, "users"));
+                const batch = writeBatch(db);
+                users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
+                await batch.commit();
+                Swal.fire('Done', 'All balances reset to 0', 'success');
+            }
+        };
+
+        window.searchUser = () => {
+            const term = document.getElementById('uSearch').value.toLowerCase();
+            document.querySelectorAll('.admin-card').forEach(c => {
+                c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none';
+            });
+        };
+
+        window.hardBanUser = async (id) => {
+            const confirm = await Swal.fire({ title: 'Ban user?', icon: 'error', showCancelButton: true });
+            if(confirm.isConfirmed) await deleteDoc(doc(db, "users", id));
         };
     </script>
 </body>
