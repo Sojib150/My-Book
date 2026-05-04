@@ -3,115 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supreme Command - Master Diary V2</title>
+    <title>Supreme Command - Bondo AI V3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020408; color: #e2e8f0; }
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
         .tab-link { transition: all 0.3s; border-radius: 12px; padding: 12px 18px; color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
-        .tab-active { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: white; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
+        .tab-active { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        input, textarea { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; transition: 0.3s; }
-        .stat-card { border-bottom: 4px solid #6366f1; transition: 0.3s; }
-        .req-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .req-card:hover { background: rgba(255,255,255,0.05); }
+        input, textarea { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        .stat-card { border-bottom: 4px solid #6366f1; transition: 0.3s; position: relative; overflow: hidden; }
+        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.05)); }
+        .user-card { transition: 0.3s; border: 1px solid rgba(255,255,255,0.03); }
+        .user-card:hover { transform: translateY(-5px); border-color: rgba(99, 102, 241, 0.3); background: rgba(15, 23, 42, 0.8); }
+        .status-badge { font-size: 8px; font-weight: 900; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen pb-20">
 
-    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#05070a] flex items-center justify-center p-6">
-        <div class="glass p-12 rounded-[3rem] max-w-md w-full text-center">
-            <div class="w-24 h-24 bg-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/40 rotate-12">
-                <i class="fas fa-user-shield text-4xl text-white -rotate-12"></i>
+    <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#020408] flex items-center justify-center p-6">
+        <div class="glass p-10 rounded-[2.5rem] max-w-sm w-full text-center">
+            <div class="w-20 h-20 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/40 rotate-12">
+                <i class="fas fa-shield-halved text-3xl text-white -rotate-12"></i>
             </div>
-            <h2 style="font-family: 'Orbitron';" class="text-3xl font-black mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">SUPREME COMMAND</h2>
-            <input type="password" id="accessKey" placeholder="Code: 150" class="w-full text-center mb-6 text-xl">
-            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black tracking-widest">INITIALIZE SYSTEM</button>
+            <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">ENCRYPTED LOGIN</h2>
+            <input type="password" id="accessKey" placeholder="Access Code" class="w-full text-center mb-6 text-xl tracking-[10px]">
+            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black tracking-widest hover:bg-indigo-500 transition active:scale-95">INITIALIZE</button>
         </div>
     </div>
 
     <div id="mainUI" class="hidden">
         <header class="glass sticky top-0 z-50 px-6 py-4 border-b border-white/5">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 bg-indigo-600/20 rounded-lg text-indigo-400"><i class="fas fa-bolt text-xl"></i></div>
-                    <h1 style="font-family: 'Orbitron';" class="font-black text-xl tracking-tighter">Bondo <span class="text-indigo-500">AI</span></h1>
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-600 rounded-lg"><i class="fas fa-crown text-white"></i></div>
+                    <h1 style="font-family: 'Orbitron';" class="font-black text-lg tracking-tighter">ELITE <span class="text-indigo-500">ADMIN</span></h1>
                 </div>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
-                    <button onclick="showTab('citizens')" class="tab-link tab-active"><i class="fas fa-users mr-2"></i>Citizens</button>
-                    <button onclick="showTab('economy')" class="tab-link"><i class="fas fa-wallet mr-2"></i>Economy & Payout</button>
-                    <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-broadcast-tower mr-2"></i>Broadcast</button>
-                    <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-shield-alt mr-2"></i>Safety</button>
-                </div>
+                <nav class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
+                    <button onclick="showTab('citizens')" class="tab-link tab-active"><i class="fas fa-users mr-2"></i>Users</button>
+                    <button onclick="showTab('economy')" class="tab-link"><i class="fas fa-chart-line mr-2"></i>Economy</button>
+                    <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-rss mr-2"></i>Alerts</button>
+                    <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-gears mr-2"></i>Core</button>
+                </nav>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto p-6 space-y-8">
+        <main class="max-w-7xl mx-auto p-6 space-y-6">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass p-6 rounded-3xl stat-card"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Population</p><h3 id="countUsers" class="text-3xl font-black mt-2">0</h3></div>
-                <div class="glass p-6 rounded-3xl stat-card border-green-500"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">CPM Rate</p><h3 id="displayCPM" class="text-3xl font-black mt-2 text-green-400">৳0</h3></div>
-                <div class="glass p-6 rounded-3xl stat-card border-red-500"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Payouts</p><h3 id="countPending" class="text-3xl font-black mt-2 text-red-500">0</h3></div>
-                <div class="glass p-6 rounded-3xl stat-card border-yellow-500"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Status</p><h3 class="text-3xl font-black mt-2 text-yellow-400">ONLINE</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Users</p><h3 id="countUsers" class="text-2xl font-black mt-1">0</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card border-indigo-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Global CPM</p><h3 id="displayCPM" class="text-2xl font-black mt-1 text-indigo-400">৳0</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card border-red-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Withdrawals</p><h3 id="countPending" class="text-2xl font-black mt-1 text-red-500">0</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Server Speed</p><h3 class="text-2xl font-black mt-1 text-green-400">OPTIMAL</h3></div>
             </div>
 
-            <div id="tab-economy" class="hidden tab-content space-y-8">
-                <div class="glass p-8 rounded-[3rem] border-t-4 border-red-500">
-                    <h3 class="font-black text-xl mb-6 flex items-center gap-3"><i class="fas fa-hand-holding-usd text-red-500"></i> Withdrawal Requests</h3>
-                    <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <p class="text-slate-500 italic text-sm p-10 text-center col-span-full">No pending requests...</p>
-                    </div>
+            <div id="tab-economy" class="hidden tab-content space-y-6">
+                <div class="glass p-8 rounded-[2.5rem]">
+                    <h3 class="font-black text-lg mb-6 flex items-center gap-3"><i class="fas fa-money-bill-transfer text-indigo-500"></i> Payout Queue</h3>
+                    <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="glass p-8 rounded-[3rem] space-y-4">
-                        <h3 class="font-black text-indigo-400 uppercase text-xs tracking-widest">Ad Engine HTML</h3>
-                        <textarea id="adCodeInput" class="w-full h-32 text-[10px] font-mono"></textarea>
-                        <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-bold">DEPLOY ADS</button>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500">
+                        <h3 class="font-black text-indigo-400 text-[10px] uppercase tracking-widest">Adsterra Engine</h3>
+                        <textarea id="adCodeInput" class="w-full h-40 text-[11px] font-mono" placeholder="Paste your Adsterra JS here..."></textarea>
+                        <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Global Ads</button>
                     </div>
-                    <div class="glass p-8 rounded-[3rem] space-y-4">
-                        <h3 class="font-black text-green-400 uppercase text-xs tracking-widest">Revenue (CPM)</h3>
-                        <input type="number" id="cpmRateInput" step="0.001" class="w-full text-center text-2xl font-black">
-                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-bold">SAVE RATE</button>
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
+                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Adjuster</h3>
+                        <div class="p-6 bg-green-500/5 rounded-2xl text-center">
+                            <span class="text-[10px] text-slate-500 font-bold">Current Rate per View</span>
+                            <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black bg-transparent mt-2">
+                        </div>
+                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Set New Rate</button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-citizens" class="tab-content space-y-6">
-                <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search citizens..." class="w-full">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-4 text-slate-500"></i>
+                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search by name, email or UID..." class="w-full pl-12 h-14">
+                </div>
                 <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
-            <div id="tab-engine" class="hidden tab-content">
-                <div class="glass p-8 rounded-[3.5rem] max-w-2xl mx-auto text-center">
-                    <h2 class="text-2xl font-black mb-4">Emergency Broadcast</h2>
-                    <textarea id="broadcastMsg" placeholder="Type message for all users..." class="w-full h-40 mb-6"></textarea>
-                    <button id="broadBtn" onclick="sendBroadcast()" class="w-full bg-indigo-600 py-5 rounded-2xl font-black tracking-widest">SEND NOTIFICATION</button>
+            <div id="tab-safety" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-red-600">
+                    <i class="fas fa-triangle-exclamation text-4xl text-red-600 mb-4"></i>
+                    <h3 class="font-black text-xl mb-2">Maintenance Mode</h3>
+                    <p class="text-slate-500 text-xs mb-6">লগইন বন্ধ করতে এটি ব্যবহার করুন।</p>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition"></button>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-indigo-600">
+                    <i class="fas fa-database text-4xl text-indigo-600 mb-4"></i>
+                    <h3 class="font-black text-xl mb-2">Global Refresh</h3>
+                    <p class="text-slate-500 text-xs mb-6">সব ইউজারের ব্যালেন্স ০ করতে চান?</p>
+                    <button onclick="resetAllBalances()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-red-500 border border-red-500/20">RESET ALL DATA</button>
                 </div>
             </div>
 
-            <div id="tab-safety" class="hidden tab-content">
-                <div class="glass p-10 rounded-[3rem] text-center border-t-4 border-red-500">
-                    <h3 class="font-black mb-2">SYSTEM MAINTENANCE</h3>
-                    <p class="text-slate-500 mb-6">নিচে ক্লিক করলে অ্যাপ বন্ধ হয়ে যাবে।</p>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="px-10 py-4 rounded-xl font-black"></button>
+            <div id="tab-engine" class="hidden tab-content max-w-2xl mx-auto">
+                <div class="glass p-8 rounded-[3rem] text-center">
+                    <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-bullhorn text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl font-black mb-4">Global Broadcast</h2>
+                    <textarea id="broadcastMsg" placeholder="এলার্ট মেসেজ লিখুন..." class="w-full h-40 mb-6"></textarea>
+                    <button id="broadBtn" onclick="sendBroadcast()" class="w-full bg-indigo-600 py-5 rounded-2xl font-black tracking-widest hover:shadow-lg hover:shadow-indigo-500/30 transition">SEND TO ALL CITIZENS</button>
                 </div>
             </div>
-
         </main>
     </div>
 
     <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass w-full max-w-lg rounded-[3rem] p-10">
-            <h3 class="font-black text-2xl text-indigo-400 mb-6">Profile Magic 🪄</h3>
-            <div class="space-y-6">
-                <input type="number" id="addBalanceInput" placeholder="Balance" class="w-full text-xl font-black">
-                <input type="number" id="fakeViewInput" placeholder="Views" class="w-full text-xl font-black">
-                <div class="flex gap-4">
-                    <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl">CANCEL</button>
-                    <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black">APPLY</button>
+        <div class="glass w-full max-w-md rounded-[3rem] p-10 border-t-8 border-indigo-600">
+            <div class="text-center mb-8">
+                <h3 class="font-black text-2xl text-white">Citizen Editor 🪄</h3>
+                <p id="targetUserName" class="text-indigo-400 text-xs font-bold uppercase mt-1"></p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Wallet Balance (৳)</label>
+                    <input type="number" id="addBalanceInput" step="0.01" class="w-full text-xl font-black mt-1">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Fake Views</label>
+                    <input type="number" id="fakeViewInput" class="w-full text-xl font-black mt-1">
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold text-xs">CANCEL</button>
+                    <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black text-xs">UPDATE DATA</button>
                 </div>
             </div>
         </div>
@@ -119,7 +144,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc, query, where, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc, query, where, getDocs, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -133,11 +158,15 @@
         const db = getFirestore(app);
 
         window.unlock = () => {
-            if(document.getElementById('accessKey').value === "150") {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('mainUI').classList.remove('hidden');
-                initSupremeSystem();
-            } else { Swal.fire('Denied', 'Unauthorized Access', 'error'); }
+            const key = document.getElementById('accessKey').value;
+            if(key === "150") { // আপনার কোড ১৫০ ই রাখা হয়েছে
+                document.getElementById('lockScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('mainUI').classList.remove('hidden');
+                    initSupremeSystem();
+                }, 500);
+            } else { Swal.fire({ icon: 'error', title: 'Access Denied', background: '#0a0f1d', color: '#fff' }); }
         };
 
         window.showTab = (t) => {
@@ -148,78 +177,113 @@
         };
 
         function initSupremeSystem() {
-            // ১. ইউজার লিস্ট লোড
+            // ১. ইউজার কন্ট্রোল গ্রিড
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 const grid = document.getElementById('userGrid'); grid.innerHTML = "";
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
+                    const isMonetized = u.isMonetized || false;
                     const card = document.createElement('div');
-                    card.className = "glass p-6 rounded-[2rem] admin-card";
+                    card.className = "glass p-5 rounded-[2rem] user-card admin-card";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-4">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl object-cover">
-                            <div class="flex-1 truncate"><h4 class="font-black text-sm">${u.name || 'User'}</h4><p class="text-[10px] text-green-400">৳${(u.balance || 0).toFixed(4)}</p></div>
-                            <button onclick="openMagic('${id}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg"><i class="fas fa-magic"></i></button>
+                            <div class="relative">
+                                <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-14 h-14 rounded-2xl object-cover">
+                                <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#020408] rounded-full"></span>
+                            </div>
+                            <div class="flex-1 truncate">
+                                <h4 class="font-black text-sm tracking-tight">${u.name || 'Anonymous'}</h4>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="status-badge ${isMonetized ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-500/20 text-slate-500'}">
+                                        ${isMonetized ? 'Monetized' : 'Basic'}
+                                    </span>
+                                    <p class="text-[10px] font-black text-green-400">৳${(u.balance || 0).toFixed(4)}</p>
+                                </div>
+                            </div>
+                            <button onclick="openMagic('${id}', '${u.name}', ${u.balance || 0}, ${u.fakeViews || 0})" class="w-10 h-10 flex items-center justify-center bg-indigo-600/10 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition">
+                                <i class="fas fa-pen-nib text-xs"></i>
+                            </button>
                         </div>
-                        <button onclick="hardBanUser('${id}')" class="w-full py-2 bg-red-500/10 text-red-500 rounded-lg text-[10px] font-black uppercase">Terminate User</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="toggleMonetize('${id}', ${isMonetized})" class="py-2.5 rounded-xl text-[8px] font-black uppercase tracking-widest ${isMonetized ? 'bg-yellow-500/10 text-yellow-500' : 'bg-indigo-500/10 text-indigo-400'}">
+                                ${isMonetized ? 'Disable Ads' : 'Enable Ads'}
+                            </button>
+                            <button onclick="hardBanUser('${id}')" class="py-2.5 bg-red-500/10 text-red-500 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition">Ban Citizen</button>
+                        </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // ২. উইথড্র রিকোয়েস্ট লিসেনার (এটিই আপনার মেইন দরকার ছিল)
+            // ২. পেমেন্ট রিকোয়েস্ট লজিক
             const q = query(collection(db, "withdrawRequests"), where("status", "==", "Pending"));
             onSnapshot(q, snap => {
                 document.getElementById('countPending').innerText = snap.size;
                 const list = document.getElementById('withdrawList');
-                list.innerHTML = snap.size === 0 ? '<p class="text-slate-500 italic text-sm p-10 text-center col-span-full">No pending requests...</p>' : "";
+                list.innerHTML = snap.size === 0 ? '<p class="text-slate-500 italic text-[10px] p-10 text-center col-span-full">All clear. No pending payouts.</p>' : "";
                 
                 snap.forEach(d => {
                     const r = d.data();
                     const card = document.createElement('div');
-                    card.className = "req-card p-5 rounded-2xl space-y-3";
+                    card.className = "req-card p-5 rounded-2xl border border-white/5 space-y-4";
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <h4 class="font-black text-xs uppercase text-indigo-300">${r.userName}</h4>
-                            <span class="bg-red-500/20 text-red-500 text-[8px] px-2 py-1 rounded-full font-black">PENDING</span>
+                            <div>
+                                <h4 class="font-black text-[10px] uppercase text-indigo-300 tracking-wider">${r.userName}</h4>
+                                <p class="text-[8px] text-slate-500 mt-0.5">${new Date(r.time?.seconds*1000).toLocaleString()}</p>
+                            </div>
+                            <span class="bg-red-500/10 text-red-500 text-[7px] px-2 py-0.5 rounded-full font-black tracking-tighter uppercase">Pending</span>
                         </div>
-                        <div class="py-2 border-y border-white/5">
-                            <p class="text-2xl font-black text-green-400">৳${r.amount}</p>
-                            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">${r.method}: ${r.number}</p>
+                        <div class="py-3 bg-white/5 rounded-xl text-center">
+                            <p class="text-2xl font-black text-green-400 tracking-tighter">৳${r.amount}</p>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">${r.method} • ${r.number}</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[9px] font-black uppercase">Approve</button>
-                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-slate-800 rounded-lg text-[9px] font-black uppercase">Reject</button>
+                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-3 bg-green-600 rounded-xl text-[9px] font-black uppercase tracking-widest">Pay Now</button>
+                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-3 bg-slate-800 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-400">Cancel</button>
                         </div>
                     `;
                     list.appendChild(card);
                 });
             });
 
-            // ৩. সেটিংস লোড
+            // ৩. অ্যাপ সেটিংস রিয়েল-টাইম
             onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { if(d.exists()) { document.getElementById('displayCPM').innerText = "৳" + d.data().trendBoost; document.getElementById('cpmRateInput').value = d.data().trendBoost; }});
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
                 window.mStatus = d.data()?.isOn;
                 const btn = document.getElementById('mBtn');
-                btn.innerText = window.mStatus ? "OFF MAINTENANCE" : "ON MAINTENANCE";
-                btn.className = window.mStatus ? "bg-red-600" : "bg-slate-800 text-indigo-400";
+                btn.innerText = window.mStatus ? "DEACTIVATE MAINTENANCE" : "ACTIVATE MAINTENANCE";
+                btn.className = window.mStatus ? "bg-red-600 text-white w-full py-4 rounded-2xl font-black" : "bg-slate-800 text-red-500 w-full py-4 rounded-2xl font-black";
             });
         }
 
-        // --- ACTIONS ---
+        // --- কোর অ্যাকশন ফাংশন ---
+
+        window.toggleMonetize = async (uid, currentStatus) => {
+            try {
+                await updateDoc(doc(db, "users", uid), { isMonetized: !currentStatus });
+                Swal.fire({ icon: 'success', title: 'Done', text: 'Monetization Status Updated', background: '#0a0f1d', color: '#fff' });
+            } catch(e) { console.error(e); }
+        };
+
         window.processPayout = async (id, status, uid = null, amt = 0) => {
-            const confirm = await Swal.fire({ title: 'Are you sure?', text: `Action: ${status}`, icon: 'warning', showCancelButton: true });
+            const confirm = await Swal.fire({ 
+                title: 'Confirm Payout?', 
+                text: `Action: ${status}`, 
+                icon: 'warning', 
+                showCancelButton: true,
+                background: '#0a0f1d', color: '#fff', confirmButtonColor: '#4f46e5'
+            });
             if(!confirm.isConfirmed) return;
 
             try {
                 await updateDoc(doc(db, "withdrawRequests", id), { status: status });
-                // রিজেক্ট করলে টাকা ব্যাক দেওয়া
                 if(status === 'Rejected' && uid) {
                     await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
                 }
-                Swal.fire('Success', `Request ${status}`, 'success');
+                Swal.fire('Success', `Transaction ${status}`, 'success');
             } catch(e) { Swal.fire('Error', e.message, 'error'); }
         };
 
@@ -227,7 +291,7 @@
             const msg = document.getElementById('broadcastMsg').value;
             if(!msg) return;
             const btn = document.getElementById('broadBtn');
-            btn.innerText = "LAUNCHING...";
+            btn.innerText = "PENETRATING NETWORK...";
             const users = await getDocs(collection(db, "users"));
             const batch = writeBatch(db);
             users.forEach(u => {
@@ -235,18 +299,64 @@
                 batch.set(nRef, { message: msg, type: "admin", time: serverTimestamp(), status: "unread" });
             });
             await batch.commit();
-            Swal.fire('Broadcast Sent!', 'All citizens notified.', 'success');
+            Swal.fire('Broadcast Successful', 'All users have been notified.', 'success');
             document.getElementById('broadcastMsg').value = "";
-            btn.innerText = "SEND NOTIFICATION";
+            btn.innerText = "SEND TO ALL CITIZENS";
         };
 
-        window.saveAd = async () => { await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); Swal.fire('Deployed', 'Ads Updated', 'success'); };
-        window.updateCPM = async () => { await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: parseFloat(document.getElementById('cpmRateInput').value) }, { merge: true }); Swal.fire('Updated', 'CPM Saved', 'success'); };
-        window.toggleMaintenance = async () => { await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); };
-        window.openMagic = (id, bal, views) => { document.getElementById('magicModal').classList.remove('hidden'); document.getElementById('addBalanceInput').value = bal; document.getElementById('fakeViewInput').value = views; document.getElementById('saveMagicBtn').onclick = async () => { await updateDoc(doc(db, "users", id), { balance: parseFloat(document.getElementById('addBalanceInput').value), fakeViews: parseInt(document.getElementById('fakeViewInput').value) }); document.getElementById('magicModal').classList.add('hidden'); }; };
+        window.saveAd = async () => { 
+            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); 
+            Swal.fire('Deployed', 'Ad Engine Updated Globally', 'success'); 
+        };
+        
+        window.updateCPM = async () => { 
+            const newRate = parseFloat(document.getElementById('cpmRateInput').value);
+            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: newRate }, { merge: true }); 
+            Swal.fire('Updated', `New CPM: ৳${newRate}`, 'success'); 
+        };
+
+        window.toggleMaintenance = async () => { 
+            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !window.mStatus }, { merge: true }); 
+        };
+
+        window.openMagic = (id, name, bal, views) => { 
+            document.getElementById('targetUserName').innerText = name;
+            document.getElementById('magicModal').classList.remove('hidden'); 
+            document.getElementById('addBalanceInput').value = bal; 
+            document.getElementById('fakeViewInput').value = views; 
+            document.getElementById('saveMagicBtn').onclick = async () => { 
+                await updateDoc(doc(db, "users", id), { 
+                    balance: parseFloat(document.getElementById('addBalanceInput').value), 
+                    fakeViews: parseInt(document.getElementById('fakeViewInput').value) 
+                }); 
+                document.getElementById('magicModal').classList.add('hidden'); 
+                Swal.fire('Magic Applied!', 'User data modified.', 'success');
+            }; 
+        };
+
         window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
-        window.hardBanUser = async (id) => { if(confirm("Terminate?")) await deleteDoc(doc(db, "users", id)); };
-        window.searchUser = () => { const term = document.getElementById('uSearch').value.toLowerCase(); document.querySelectorAll('.admin-card').forEach(c => { c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none'; }); };
+        
+        window.hardBanUser = async (id) => { 
+            const confirm = await Swal.fire({ title: 'BAN USER?', text: 'This action is irreversible!', icon: 'error', showCancelButton: true });
+            if(confirm.isConfirmed) await deleteDoc(doc(db, "users", id)); 
+        };
+
+        window.searchUser = () => { 
+            const term = document.getElementById('uSearch').value.toLowerCase(); 
+            document.querySelectorAll('.admin-card').forEach(c => { 
+                c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none'; 
+            }); 
+        };
+
+        window.resetAllBalances = async () => {
+            const confirm = await Swal.fire({ title: 'RESET ALL?', text: 'All users balance will be 0!', icon: 'warning', showCancelButton: true });
+            if(!confirm.isConfirmed) return;
+            const users = await getDocs(collection(db, "users"));
+            const batch = writeBatch(db);
+            users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
+            await batch.commit();
+            Swal.fire('Reset!', 'All balances are now 0.', 'success');
+        };
     </script>
 </body>
 </html>
