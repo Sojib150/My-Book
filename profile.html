@@ -6,24 +6,21 @@
     <title>Premium Profile - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        
         .glass-nav { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .profile-card { border-radius: 40px 40px 0 0; margin-top: -40px; box-shadow: 0 -15px 40px rgba(0,0,0,0.04); }
-        
         .stat-card { background: #f1f5f9; border-radius: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .stat-card:active { transform: scale(0.9); background: #e2e8f0; }
-        
         .post-item { aspect-ratio: 1/1; position: relative; overflow: hidden; border-radius: 18px; }
         .video-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); color: white; padding: 4px 8px; border-radius: 8px; font-size: 8px; }
-        
         .category-badge { background: #eef2ff; color: #4f46e5; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        
         .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border-radius: 35px; padding: 12px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        /* Dashboard Extra Style */
+        .dash-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 25px; padding: 20px; margin-top: 20px; position: relative; overflow: hidden; }
+        .dash-card::after { content: ''; position: absolute; top: -50%; right: -20%; width: 150px; height: 150px; background: rgba(99, 102, 241, 0.2); border-radius: 50%; filter: blur(40px); }
     </style>
 </head>
 <body class="bg-gray-50 pb-32">
@@ -44,7 +41,6 @@
     <div class="max-w-md mx-auto relative">
         <div class="h-56 bg-gradient-to-tr from-indigo-600 to-blue-500 relative overflow-hidden">
             <img id="coverImg" src="" class="w-full h-full object-cover opacity-90 hidden">
-            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/20"></div>
         </div>
 
         <div class="bg-white profile-card relative px-6 pb-6">
@@ -57,17 +53,26 @@
 
             <div class="text-center -mt-16">
                 <div class="flex items-center justify-center gap-2">
-                    <h2 id="uName" class="text-2xl font-black text-gray-800 tracking-tight italic uppercase">লোডিং হচ্ছে...</h2>
+                    <h2 id="uName" class="text-2xl font-black text-gray-800 tracking-tight italic uppercase">লোডিং...</h2>
                     <i class="fas fa-check-circle text-blue-500 text-sm"></i>
                 </div>
                 <p id="uEmail" class="text-[10px] text-gray-400 font-black mt-1 tracking-[2px] uppercase"></p>
                 <div id="interestBadges" class="flex flex-wrap justify-center gap-2 mt-4"></div>
-                <p id="uBio" class="text-gray-500 text-[13px] mt-4 px-6 font-medium leading-relaxed italic">"আপনার প্রোফাইল সাজাতে এডিট বাটনে ক্লিক করুন।"</p>
+                <p id="uBio" class="text-gray-500 text-[13px] mt-4 px-6 font-medium leading-relaxed italic"></p>
             </div>
 
-            <div class="flex gap-3 mt-8">
-                <button onclick="location.href='edit-profile.html'" class="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-[2px] shadow-xl active:scale-95 transition">Edit Profile</button>
-                <button onclick="shareProfile()" class="w-14 h-14 bg-gray-100 text-gray-800 rounded-2xl flex items-center justify-center active:scale-95 transition"><i class="fas fa-share-alt"></i></button>
+            <div class="dash-card">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Elite Wallet</p>
+                    <i class="fas fa-shield-halved text-indigo-400"></i>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-gray-400 text-[9px] font-bold uppercase">Available Balance</p>
+                        <h3 id="uBalance" class="text-2xl font-extrabold tracking-tighter mt-1">৳0.0000</h3>
+                    </div>
+                    <button onclick="location.href='withdraw.html'" class="bg-indigo-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/30">Withdraw</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-50">
@@ -90,10 +95,6 @@
     <div class="max-w-md mx-auto bg-white mt-4 px-6 pt-6 rounded-[40px] mb-10 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <h3 class="font-black text-gray-800 text-[11px] uppercase tracking-[3px]">Media Gallery</h3>
-            <div class="flex bg-gray-100 p-1 rounded-xl">
-                <button class="w-8 h-8 rounded-lg bg-white shadow-sm text-indigo-600"><i class="fas fa-th-large text-xs"></i></button>
-                <button class="w-8 h-8 rounded-lg text-gray-400"><i class="fas fa-play text-xs"></i></button>
-            </div>
         </div>
         <div id="uPosts" class="grid grid-cols-3 gap-3 pb-10"></div>
     </div>
@@ -101,14 +102,14 @@
     <div class="bottom-nav">
         <a href="home.html" class="text-gray-500 text-lg"><i class="fas fa-home"></i></a>
         <a href="search.html" class="text-gray-500 text-lg"><i class="fas fa-search"></i></a>
-        <button onclick="location.href='post.html'" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40 active:scale-90 transition"><i class="fas fa-plus"></i></button>
+        <button onclick="location.href='post.html'" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40"><i class="fas fa-plus"></i></button>
         <a href="messages.html" class="text-gray-500 text-lg"><i class="fas fa-comment-dots"></i></a>
         <a href="profile.html" class="text-blue-400 text-lg"><i class="fas fa-user-circle"></i></a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -119,44 +120,28 @@
         onAuthStateChanged(auth, user => {
             if(user) {
                 loadProfile(user.uid);
-                loadStats(user.uid);
                 loadPosts(user.uid);
-                
-                // Set navigation for stats
                 document.getElementById('followersBtn').onclick = () => location.href = `followers.html?id=${user.uid}`;
                 document.getElementById('followingBtn').onclick = () => location.href = `following.html?id=${user.uid}`;
-            } else { 
-                window.location.href = "index.html"; 
-            }
+            } else { location.href = "index.html"; }
         });
 
-        // Logout Logic
-        window.logoutUser = () => {
-            if(confirm("Are you sure you want to logout?")) {
-                signOut(auth).then(() => {
-                    location.href = "index.html";
-                });
-            }
-        };
-
-        async function loadProfile(uid) {
+        function loadProfile(uid) {
             onSnapshot(doc(db, "users", uid), (snap) => {
                 if(snap.exists()) {
                     const d = snap.data();
-                    const name = d.name || "User";
+                    const name = d.name || "Citizen";
                     document.getElementById('uName').innerText = name;
                     document.getElementById('topUser').innerText = name;
                     document.getElementById('uEmail').innerText = d.email || auth.currentUser.email;
                     document.getElementById('uBio').innerText = d.bio || "Hello, I am using My Book!";
                     document.getElementById('initials').innerText = name[0].toUpperCase();
                     
-                    const interestBox = document.getElementById('interestBadges');
-                    interestBox.innerHTML = "";
-                    if(d.interests) {
-                        d.interests.forEach(interest => {
-                            interestBox.innerHTML += `<span class="category-badge">${interest}</span>`;
-                        });
-                    }
+                    // Dashboard Balance Update (Sync with Admin)
+                    document.getElementById('uBalance').innerText = "৳" + (d.balance || 0).toFixed(4);
+                    
+                    document.getElementById('followerCount').innerText = d.followers ? d.followers.length : 0;
+                    document.getElementById('followingCount').innerText = d.following ? d.following.length : 0;
 
                     if(d.profilePic) {
                         const img = document.getElementById('profileImg');
@@ -171,59 +156,24 @@
             });
         }
 
-        function loadStats(uid) {
-            // Stats from Array Logic
-            onSnapshot(doc(db, "users", uid), (snap) => {
-                if(snap.exists()) {
-                    const d = snap.data();
-                    document.getElementById('followerCount').innerText = d.followers ? d.followers.length : 0;
-                    document.getElementById('followingCount').innerText = d.following ? d.following.length : 0;
-                }
-            });
-        }
-
         function loadPosts(uid) {
             const q = query(collection(db, "posts"), where("userId", "==", uid), orderBy("createdAt", "desc"));
             onSnapshot(q, s => {
                 const container = document.getElementById('uPosts'); 
                 container.innerHTML = "";
                 document.getElementById('pCount').innerText = s.size;
-                
                 s.forEach(d => {
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "post-item bg-gray-100 group cursor-pointer active:scale-95 transition";
-                    
-                    let content = "";
-                    if(p.fileUrl) {
-                        if(p.fileType === 'video') {
-                            content = `<video src="${p.fileUrl}" class="w-full h-full object-cover"></video>
-                                       <div class="video-badge"><i class="fas fa-play"></i></div>`;
-                        } else {
-                            content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
-                        }
-                    } else {
-                        content = `<div class="p-3 text-[9px] font-bold text-gray-400 flex items-center justify-center h-full text-center">${p.text?.slice(0,30)}...</div>`;
-                    }
-                    
-                    div.innerHTML = content;
+                    div.className = "post-item bg-gray-100";
+                    div.innerHTML = p.fileUrl ? (p.fileType === 'video' ? `<video src="${p.fileUrl}"></video><div class="video-badge"><i class="fas fa-play"></i></div>` : `<img src="${p.fileUrl}" class="w-full h-full object-cover">`) : `<div class="p-2 text-[8px] text-center">${p.text?.slice(0,20)}...</div>`;
                     div.onclick = () => location.href = `post-view.html?id=${d.id}`;
                     container.appendChild(div);
                 });
             });
         }
 
-        window.shareProfile = () => {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'My Book Profile',
-                    text: 'Check out my profile on My Book!',
-                    url: window.location.href
-                });
-            } else {
-                alert("Profile Link Copied!");
-            }
-        };
+        window.logoutUser = () => { if(confirm("Logout?")) signOut(auth).then(() => location.href = "index.html"); };
     </script>
 </body>
 </html>
