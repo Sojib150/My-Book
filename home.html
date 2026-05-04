@@ -45,18 +45,21 @@
         .elite-cancel { background: #222 !important; color: #fff !important; border-radius: 12px !important; }
 
         /* Maintenance UI Style */
-        #maintenanceUI { position: fixed; inset: 0; z-index: 10000; background: white; display: none; flex-direction: column; align-items: center; justify-content: center; p-10 text-center; }
+        #maintenanceUI { position: fixed; inset: 0; z-index: 10000; background: white; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body class="pb-32">
 
     <div id="maintenanceUI">
-        <div class="max-w-xs mx-auto text-center">
-            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600">
-                <i class="fas fa-server text-3xl"></i>
+        <div class="max-w-xs mx-auto text-center p-6">
+            <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 shadow-inner">
+                <i class="fas fa-tools text-4xl animate-bounce"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900 mb-2">সার্ভার রক্ষণাবেক্ষণ চলছে</h2>
-            <p class="text-gray-500 text-sm leading-relaxed">আমরা অ্যাপটিকে আরও উন্নত করছি। কিছুক্ষণ পর আবার চেষ্টা করুন।</p>
+            <h2 class="text-2xl font-black text-gray-900 mb-3">সার্ভার আপডেট চলছে</h2>
+            <p class="text-gray-500 text-sm leading-relaxed mb-6">আমরা অ্যাপটিকে আরও উন্নত করার কাজ করছি। কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
+            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-blue-600 h-full w-1/2 animate-[pulse_2s_infinite]"></div>
+            </div>
         </div>
     </div>
 
@@ -129,10 +132,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            projectId: "seen-a1d92" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -140,33 +146,34 @@
         let user = null; 
         let currentUserData = null;
         let activePostId = null; 
-        let globalCPM = 0.0001; // Admin Controlled CPM
+        let globalCPM = 0.0001;
 
         onAuthStateChanged(auth, async u => { 
             if(u){ 
                 user = u; 
-                const userSnap = await getDoc(doc(db, "users", u.uid));
-                currentUserData = userSnap.exists() ? userSnap.data() : null;
                 
-                // ✅ ১. অ্যাডমিন মেইনটেন্যান্স লজিক
-                onSnapshot(doc(db, "appSettings", "maintenance"), snap => {
-                    if (snap.exists() && snap.data().isOn) {
-                        document.getElementById('maintenanceUI').style.display = 'flex';
-                    } else {
-                        document.getElementById('maintenanceUI').style.display = 'none';
+                // ১. মেইনটেন্যান্স লজিক (অ্যাডমিন প্যানেলের সাথে সিঙ্ক করা)
+                onSnapshot(doc(db, "appSettings", "maintenance"), (snap) => {
+                    if (snap.exists()) {
+                        const isMaintenanceOn = snap.data().isOn;
+                        document.getElementById('maintenanceUI').style.display = isMaintenanceOn ? 'flex' : 'none';
                     }
                 });
 
-                // ✅ ২. অ্যাডমিন CPM ও Ads লজিক
+                // ২. ইউজার ডাটা লোড
+                const userSnap = await getDoc(doc(db, "users", u.uid));
+                currentUserData = userSnap.exists() ? userSnap.data() : null;
+                
+                // ৩. অ্যাডমিন সেটিংস (CPM & Ads)
                 onSnapshot(doc(db, "appSettings", "algorithm"), snap => {
                     if (snap.exists()) globalCPM = snap.data().trendBoost || 0.0001;
                 });
 
                 onSnapshot(doc(db, "appSettings", "ads"), snap => {
                     if (snap.exists() && snap.data().code) {
-                        const adContainer = document.getElementById('global-ad-slot');
-                        adContainer.innerHTML = snap.data().code;
-                        const scripts = adContainer.getElementsByTagName("script");
+                        const adSlot = document.getElementById('global-ad-slot');
+                        adSlot.innerHTML = snap.data().code;
+                        const scripts = adSlot.getElementsByTagName("script");
                         for (let n = 0; n < scripts.length; n++) { eval(scripts[n].innerHTML); }
                     }
                 });
@@ -179,12 +186,11 @@
             } else location.href="index.html"; 
         });
 
-        // ✅ ৩. অটোমেটিক ইনকাম ফাংশন (ভিউ হলে ব্যালেন্স বাড়বে)
+        // ব্যালেন্স বাড়ানোর লজিক
         async function handleEarning(creatorId) {
             if (!creatorId || creatorId === user.uid) return;
             const creatorRef = doc(db, "users", creatorId);
             const creatorSnap = await getDoc(creatorRef);
-            
             if (creatorSnap.exists() && creatorSnap.data().isMonetized === true) {
                 await updateDoc(creatorRef, { balance: increment(globalCPM) });
             }
@@ -192,20 +198,18 @@
 
         async function sendNotification(targetId, type, message, postImg = "", postId = "") {
             if(!targetId || targetId === user.uid) return;
-            try {
-                await addDoc(collection(db, "notifications"), {
-                    targetUserId: targetId,
-                    senderId: user.uid,
-                    senderName: currentUserData?.name || "Someone",
-                    senderPic: currentUserData?.profilePic || "",
-                    type: type,
-                    message: message,
-                    postImg: postImg,
-                    postId: postId,
-                    read: false,
-                    timestamp: serverTimestamp()
-                });
-            } catch(e) { console.error("Notification Error:", e); }
+            await addDoc(collection(db, "notifications"), {
+                targetUserId: targetId,
+                senderId: user.uid,
+                senderName: currentUserData?.name || "Someone",
+                senderPic: currentUserData?.profilePic || "",
+                type: type,
+                message: message,
+                postImg: postImg,
+                postId: postId,
+                read: false,
+                timestamp: serverTimestamp()
+            });
         }
 
         function listenForCalls(myId) {
@@ -260,7 +264,7 @@
                     ${isMine ? `<button onclick="confirmDeletePost('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-trash-alt"></i></button>` : ''}
                 </div>
                 <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
-                ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" data-creator="${p.userId}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full" onmouseenter="handleEarning('${p.userId}')">`}</div>` : ''}
+                ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" data-creator="${p.userId}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full" onclick="handleEarning('${p.userId}')">`}</div>` : ''}
                 <div class="flex justify-around py-2 border-t mt-1">
                     <button onclick="like('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}"><i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i><span class="text-[10px] font-black">${p.likedBy?.length||0}</span></button>
                     <button onclick="openComments('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 text-gray-400"><i class="fa-regular fa-comment-dots text-xl"></i><span class="text-[10px] font-black">${p.commentCount||0}</span></button>
@@ -310,7 +314,7 @@
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; };
         window.handleVideo = (v) => { v.muted = !v.muted; if(v.paused) v.play(); };
         async function loadProfile() { const d = await getDoc(doc(db, "users", user.uid)); if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; }
-        async function checkNotif() { const q = query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)); onSnapshot(q, snap => { document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; }); }
+        async function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), snap => { document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; }); }
         async function loadStories() { onSnapshot(collection(db, "stories"), snap => { const sL = document.getElementById('storyList'); sL.innerHTML = ""; snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; }); }); }
 
         function initIntersection() { 
@@ -329,18 +333,16 @@
         window.confirmDeletePost = (id) => {
             Swal.fire({
                 title: 'পোস্ট মুছে ফেলবেন?',
-                text: "একবার মুছলে এটি আর ফিরে পাওয়া যাবে না!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'হ্যাঁ, মুছুন',
-                cancelButtonText: 'বাতিল',
                 customClass: { popup: 'elite-popup', confirmButton: 'elite-confirm', cancelButton: 'elite-cancel' }
-            }).then(async (result) => { if (result.isConfirmed) { await deleteDoc(doc(db, "posts", id)); Swal.fire({ title: 'Deleted!', icon: 'success', timer: 1500, showConfirmButton: false, customClass: { popup: 'elite-popup' } }); } });
+            }).then(async (result) => { if (result.isConfirmed) { await deleteDoc(doc(db, "posts", id)); } });
         };
 
         window.sharePost = (id) => {
             const url = `${window.location.origin}/post-view.html?id=${id}`;
-            if (navigator.share) { navigator.share({ title: 'My Book', url: url }); } else { navigator.clipboard.writeText(url); Swal.fire({ title: 'লিঙ্ক কপি করা হয়েছে!', icon: 'success', timer: 1500, showConfirmButton: false, customClass: { popup: 'elite-popup' } }); }
+            if (navigator.share) { navigator.share({ title: 'My Book', url: url }); } else { navigator.clipboard.writeText(url); Swal.fire({ title: 'লিঙ্ক কপি হয়েছে!', icon: 'success', timer: 1000, showConfirmButton: false }); }
         };
     </script>
 </body>
