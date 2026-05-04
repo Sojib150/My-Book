@@ -13,21 +13,18 @@
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
         .tab-link { transition: all 0.3s; border-radius: 12px; padding: 12px 18px; color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
         .tab-active { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        input, textarea { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
-        .stat-card { border-bottom: 4px solid #6366f1; transition: 0.3s; position: relative; overflow: hidden; }
-        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.05)); }
+        input, textarea { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; }
+        .stat-card { border-bottom: 4px solid #6366f1; }
         .user-card { transition: 0.3s; border: 1px solid rgba(255,255,255,0.03); }
-        .user-card:hover { transform: translateY(-5px); border-color: rgba(99, 102, 241, 0.3); background: rgba(15, 23, 42, 0.8); }
         .status-badge { font-size: 8px; font-weight: 900; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="min-h-screen pb-20">
 
     <div id="lockScreen" class="fixed inset-0 z-[9999] bg-[#020408] flex items-center justify-center p-6">
         <div class="glass p-10 rounded-[2.5rem] max-w-sm w-full text-center">
-            <div class="w-20 h-20 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/40 rotate-12">
+            <div class="w-20 h-20 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 rotate-12 shadow-2xl shadow-indigo-500/40">
                 <i class="fas fa-shield-halved text-3xl text-white -rotate-12"></i>
             </div>
             <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">ENCRYPTED LOGIN</h2>
@@ -57,63 +54,57 @@
                 <div class="glass p-5 rounded-3xl stat-card"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Users</p><h3 id="countUsers" class="text-2xl font-black mt-1">0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-indigo-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Global CPM</p><h3 id="displayCPM" class="text-2xl font-black mt-1 text-indigo-400">৳0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-red-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Withdrawals</p><h3 id="countPending" class="text-2xl font-black mt-1 text-red-500">0</h3></div>
-                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Status</p><h3 id="systemLiveStatus" class="text-2xl font-black mt-1 text-green-400">LIVE</h3></div>
-            </div>
-
-            <div id="tab-economy" class="hidden tab-content space-y-6">
-                <div class="glass p-8 rounded-[2.5rem]">
-                    <h3 class="font-black text-lg mb-6 flex items-center gap-3"><i class="fas fa-money-bill-transfer text-indigo-500"></i> Payout Queue</h3>
-                    <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500">
-                        <h3 class="font-black text-indigo-400 text-[10px] uppercase tracking-widest">Adsterra Engine</h3>
-                        <textarea id="adCodeInput" class="w-full h-40 text-[11px] font-mono" placeholder="Paste your Adsterra JS here..."></textarea>
-                        <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Global Ads</button>
-                    </div>
-                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
-                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Adjuster</h3>
-                        <div class="p-6 bg-green-500/5 rounded-2xl text-center">
-                            <span class="text-[10px] text-slate-500 font-bold">Current Rate per View</span>
-                            <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black bg-transparent mt-2">
-                        </div>
-                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Set New Rate</button>
-                    </div>
-                </div>
+                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">System</p><h3 id="systemLiveStatus" class="text-2xl font-black mt-1 text-green-400">LIVE</h3></div>
             </div>
 
             <div id="tab-citizens" class="tab-content space-y-6">
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-4 text-slate-500"></i>
-                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search by name, email or UID..." class="w-full pl-12 h-14">
+                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search by name or UID..." class="w-full pl-12 h-14">
                 </div>
-                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="col-span-full text-center py-20 text-slate-500"><i class="fas fa-spinner fa-spin mr-2"></i>Loading Citizens...</div>
+                </div>
+            </div>
+
+            <div id="tab-economy" class="hidden tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500">
+                        <h3 class="font-black text-indigo-400 text-[10px] uppercase tracking-widest">Global Ad Code</h3>
+                        <textarea id="adCodeInput" class="w-full h-40 text-[11px] font-mono" placeholder="Paste Ad Code..."></textarea>
+                        <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Ads</button>
+                    </div>
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
+                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate</h3>
+                        <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black">
+                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update CPM</button>
+                    </div>
+                </div>
+                <div class="glass p-8 rounded-[2.5rem]">
+                    <h3 class="font-black text-lg mb-6"><i class="fas fa-wallet mr-2"></i> Withdrawal Requests</h3>
+                    <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
             </div>
 
             <div id="tab-safety" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-red-600">
                     <i class="fas fa-triangle-exclamation text-4xl text-red-600 mb-4"></i>
                     <h3 class="font-black text-xl mb-2">Maintenance Mode</h3>
-                    <p class="text-slate-500 text-xs mb-6">অ্যাপের মেইনটেন্যান্স অন/অফ করতে নিচের বাটনটি ব্যবহার করুন।</p>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition active:scale-95">CHECKING...</button>
+                    <p class="text-slate-500 text-xs mb-6">মেইনটেন্যান্স মোড অন করলে ইউজাররা অ্যাপ ব্যবহার করতে পারবে না।</p>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition">INITIALIZING...</button>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-indigo-600">
                     <i class="fas fa-database text-4xl text-indigo-600 mb-4"></i>
-                    <h3 class="font-black text-xl mb-2">Global Refresh</h3>
-                    <p class="text-slate-500 text-xs mb-6">সব ইউজারের ব্যালেন্স ০ করতে চান?</p>
-                    <button onclick="resetAllBalances()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-red-500 border border-red-500/20">RESET ALL DATA</button>
+                    <h3 class="font-black text-xl mb-2">Reset System</h3>
+                    <button onclick="resetAllBalances()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-red-500 border border-red-500/20">RESET ALL BALANCES</button>
                 </div>
             </div>
 
             <div id="tab-engine" class="hidden tab-content max-w-2xl mx-auto">
                 <div class="glass p-8 rounded-[3rem] text-center">
-                    <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-bullhorn text-2xl"></i>
-                    </div>
                     <h2 class="text-xl font-black mb-4">Global Broadcast</h2>
-                    <textarea id="broadcastMsg" placeholder="এলার্ট মেসেজ লিখুন..." class="w-full h-40 mb-6"></textarea>
-                    <button id="broadBtn" onclick="sendBroadcast()" class="w-full bg-indigo-600 py-5 rounded-2xl font-black tracking-widest hover:shadow-lg hover:shadow-indigo-500/30 transition">SEND TO ALL CITIZENS</button>
+                    <textarea id="broadcastMsg" placeholder="Write message..." class="w-full h-40 mb-6"></textarea>
+                    <button onclick="sendBroadcast()" class="w-full bg-indigo-600 py-5 rounded-2xl font-black tracking-widest">SEND NOTIFICATION</button>
                 </div>
             </div>
         </main>
@@ -121,22 +112,13 @@
 
     <div id="magicModal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass w-full max-w-md rounded-[3rem] p-10 border-t-8 border-indigo-600">
-            <div class="text-center mb-8">
-                <h3 class="font-black text-2xl text-white">Citizen Editor 🪄</h3>
-                <p id="targetUserName" class="text-indigo-400 text-xs font-bold uppercase mt-1"></p>
-            </div>
+            <h3 id="targetUserName" class="font-black text-center text-xl mb-6">Edit Citizen</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Wallet Balance (৳)</label>
-                    <input type="number" id="addBalanceInput" step="0.01" class="w-full text-xl font-black mt-1">
-                </div>
-                <div>
-                    <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Fake Views</label>
-                    <input type="number" id="fakeViewInput" class="w-full text-xl font-black mt-1">
-                </div>
-                <div class="flex gap-4 pt-4">
-                    <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold text-xs">CANCEL</button>
-                    <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black text-xs">UPDATE DATA</button>
+                <input type="number" id="addBalanceInput" placeholder="Balance" class="w-full text-xl font-black">
+                <input type="number" id="fakeViewInput" placeholder="Fake Views" class="w-full text-xl font-black">
+                <div class="flex gap-4">
+                    <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold">CANCEL</button>
+                    <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black">UPDATE</button>
                 </div>
             </div>
         </div>
@@ -144,15 +126,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, deleteDoc, setDoc, query, where, getDocs, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            authDomain: "seen-a1d92.firebaseapp.com", 
-            projectId: "seen-a1d92", 
-            storageBucket: "seen-a1d92.firebasestorage.app", 
-            messagingSenderId: "868584044532", 
-            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+            projectId: "seen-a1d92" 
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -160,15 +138,11 @@
         let mStatus = false;
 
         window.unlock = () => {
-            const key = document.getElementById('accessKey').value;
-            if(key === "150") { 
-                document.getElementById('lockScreen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('lockScreen').style.display = 'none';
-                    document.getElementById('mainUI').classList.remove('hidden');
-                    initSupremeSystem();
-                }, 500);
-            } else { Swal.fire({ icon: 'error', title: 'Access Denied', background: '#0a0f1d', color: '#fff' }); }
+            if(document.getElementById('accessKey').value === "150") {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('mainUI').classList.remove('hidden');
+                initSupremeSystem();
+            } else { Swal.fire('Error', 'Wrong Key!', 'error'); }
         };
 
         window.showTab = (t) => {
@@ -179,192 +153,139 @@
         };
 
         function initSupremeSystem() {
-            // Users Count and List
+            // User Monitor
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 const grid = document.getElementById('userGrid'); grid.innerHTML = "";
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
-                    const isMonetized = u.isMonetized || false;
                     const card = document.createElement('div');
                     card.className = "glass p-5 rounded-[2rem] user-card admin-card";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-4">
-                            <div class="relative">
-                                <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-14 h-14 rounded-2xl object-cover">
-                                <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#020408] rounded-full"></span>
-                            </div>
+                            <img src="${u.profilePic || ''}" class="w-12 h-12 rounded-xl bg-gray-800 object-cover">
                             <div class="flex-1 truncate">
-                                <h4 class="font-black text-sm tracking-tight">${u.name || 'Anonymous'}</h4>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="status-badge ${isMonetized ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-500/20 text-slate-500'}">
-                                        ${isMonetized ? 'Monetized' : 'Basic'}
-                                    </span>
-                                    <p class="text-[10px] font-black text-green-400">৳${(u.balance || 0).toFixed(4)}</p>
-                                </div>
+                                <h4 class="font-bold text-sm">${u.name || 'User'}</h4>
+                                <p class="text-[10px] text-green-400 font-black">৳${(u.balance || 0).toFixed(4)}</p>
                             </div>
-                            <button onclick="openMagic('${id}', '${u.name}', ${u.balance || 0}, ${u.fakeViews || 0})" class="w-10 h-10 flex items-center justify-center bg-indigo-600/10 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition">
-                                <i class="fas fa-pen-nib text-xs"></i>
-                            </button>
+                            <button onclick="openMagic('${id}', '${u.name}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-2 text-indigo-400"><i class="fas fa-edit"></i></button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="toggleMonetize('${id}', ${isMonetized})" class="py-2.5 rounded-xl text-[8px] font-black uppercase tracking-widest ${isMonetized ? 'bg-yellow-500/10 text-yellow-500' : 'bg-indigo-500/10 text-indigo-400'}">
-                                ${isMonetized ? 'Disable Ads' : 'Enable Ads'}
-                            </button>
-                            <button onclick="hardBanUser('${id}')" class="py-2.5 bg-red-500/10 text-red-500 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition">Ban Citizen</button>
+                        <div class="flex gap-2">
+                            <button onclick="toggleMonetize('${id}', ${u.isMonetized})" class="flex-1 py-2 rounded-lg text-[8px] bg-indigo-500/10">${u.isMonetized ? 'Ads On' : 'Ads Off'}</button>
+                            <button onclick="hardBanUser('${id}')" class="flex-1 py-2 rounded-lg text-[8px] bg-red-500/10 text-red-500">Ban</button>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // Pending Withdrawals
-            const q = query(collection(db, "withdrawRequests"), where("status", "==", "Pending"));
-            onSnapshot(q, snap => {
+            // Maintenance Sync (FIXED)
+            onSnapshot(doc(db, "appSettings", "maintenance"), d => {
+                const btn = document.getElementById('mBtn');
+                const status = document.getElementById('systemLiveStatus');
+                if(d.exists()) {
+                    mStatus = d.data().isOn;
+                    btn.innerText = mStatus ? "OFFLINE: MAINTENANCE ON" : "ONLINE: MAINTENANCE OFF";
+                    btn.className = mStatus ? "w-full py-4 rounded-2xl font-black bg-red-600" : "w-full py-4 rounded-2xl font-black bg-slate-800 text-green-500 border border-green-500/20";
+                    status.innerText = mStatus ? "OFFLINE" : "LIVE";
+                    status.className = mStatus ? "text-2xl font-black mt-1 text-red-500" : "text-2xl font-black mt-1 text-green-400";
+                } else {
+                    setDoc(doc(db, "appSettings", "maintenance"), { isOn: false });
+                }
+            });
+
+            // Economy Sync
+            onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
+            onSnapshot(doc(db, "appSettings", "algorithm"), d => { 
+                if(d.exists()) {
+                    document.getElementById('displayCPM').innerText = "৳" + d.data().trendBoost;
+                    document.getElementById('cpmRateInput').value = d.data().trendBoost;
+                }
+            });
+
+            // Withdraws Monitor
+            onSnapshot(query(collection(db, "withdrawRequests"), where("status", "==", "Pending")), snap => {
                 document.getElementById('countPending').innerText = snap.size;
-                const list = document.getElementById('withdrawList');
-                list.innerHTML = snap.size === 0 ? '<p class="text-slate-500 italic text-[10px] p-10 text-center col-span-full">All clear. No pending payouts.</p>' : "";
+                const list = document.getElementById('withdrawList'); list.innerHTML = "";
                 snap.forEach(d => {
                     const r = d.data();
                     const card = document.createElement('div');
-                    card.className = "req-card p-5 rounded-2xl border border-white/5 space-y-4";
+                    card.className = "p-4 border border-white/5 rounded-2xl space-y-3";
                     card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-black text-[10px] uppercase text-indigo-300 tracking-wider">${r.userName}</h4>
-                                <p class="text-[8px] text-slate-500 mt-0.5">${new Date(r.time?.seconds*1000).toLocaleString()}</p>
-                            </div>
-                        </div>
-                        <div class="py-3 bg-white/5 rounded-xl text-center">
-                            <p class="text-2xl font-black text-green-400 tracking-tighter">৳${r.amount}</p>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">${r.method} • ${r.number}</p>
-                        </div>
+                        <p class="font-bold text-[10px]">${r.userName} (৳${r.amount})</p>
+                        <p class="text-[9px] text-slate-500">${r.method} - ${r.number}</p>
                         <div class="flex gap-2">
-                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-3 bg-green-600 rounded-xl text-[9px] font-black uppercase tracking-widest">Pay Now</button>
-                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-3 bg-slate-800 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-400">Cancel</button>
+                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[8px]">Pay</button>
+                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-500/10 text-red-500 rounded-lg text-[8px]">Cancel</button>
                         </div>
                     `;
                     list.appendChild(card);
                 });
             });
-
-            // Real-time Settings Sync
-            onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
-            onSnapshot(doc(db, "appSettings", "algorithm"), d => { if(d.exists()) { document.getElementById('displayCPM').innerText = "৳" + d.data().trendBoost; document.getElementById('cpmRateInput').value = d.data().trendBoost; }});
-            
-            // Maintenance Watcher
-            onSnapshot(doc(db, "appSettings", "maintenance"), d => {
-                if(d.exists()){
-                    mStatus = d.data().isOn;
-                    const btn = document.getElementById('mBtn');
-                    const statusText = document.getElementById('systemLiveStatus');
-                    
-                    if(mStatus) {
-                        btn.innerText = "DEACTIVATE MAINTENANCE (LIVE NOW)";
-                        btn.className = "w-full py-4 rounded-2xl font-black bg-red-600 text-white shadow-lg shadow-red-500/20";
-                        statusText.innerText = "UNDER MAINT.";
-                        statusText.className = "text-2xl font-black mt-1 text-red-500";
-                    } else {
-                        btn.innerText = "ACTIVATE MAINTENANCE (GO OFFLINE)";
-                        btn.className = "w-full py-4 rounded-2xl font-black bg-slate-800 text-green-500 border border-green-500/20";
-                        statusText.innerText = "LIVE";
-                        statusText.className = "text-2xl font-black mt-1 text-green-400";
-                    }
-                }
-            });
         }
 
-        // Action Functions
+        // Actions
         window.toggleMaintenance = async () => {
-            try {
-                const newStatus = !mStatus;
-                // Force Update to Database
-                await setDoc(doc(db, "appSettings", "maintenance"), { isOn: newStatus }, { merge: true });
-                Swal.fire({
-                    icon: 'success',
-                    title: newStatus ? 'System Offline' : 'System Live',
-                    background: '#0a0f1d',
-                    color: '#fff'
-                });
-            } catch (e) { console.error(e); }
+            const newStatus = !mStatus;
+            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: newStatus }, { merge: true });
+            Swal.fire('Updated', `System is now ${newStatus ? 'Offline' : 'Online'}`, 'success');
         };
 
-        window.saveAd = async () => { 
-            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true }); 
-            Swal.fire('Deployed', 'Ad Engine Updated', 'success'); 
-        };
-        
-        window.updateCPM = async () => { 
-            const newRate = parseFloat(document.getElementById('cpmRateInput').value);
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: newRate }, { merge: true }); 
-            Swal.fire('Updated', `New Rate: ৳${newRate}`, 'success'); 
+        window.saveAd = async () => {
+            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true });
+            Swal.fire('Success', 'Ad Code Updated', 'success');
         };
 
-        window.toggleMonetize = async (uid, currentStatus) => {
-            await updateDoc(doc(db, "users", uid), { isMonetized: !currentStatus });
-        };
-
-        window.processPayout = async (id, status, uid = null, amt = 0) => {
-            const confirm = await Swal.fire({ title: 'Are you sure?', text: `Set status to ${status}`, icon: 'warning', showCancelButton: true, background: '#0a0f1d', color: '#fff' });
-            if(confirm.isConfirmed) {
-                await updateDoc(doc(db, "withdrawRequests", id), { status: status });
-                if(status === 'Rejected' && uid) await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
-                Swal.fire('Updated', status, 'success');
-            }
+        window.updateCPM = async () => {
+            const val = parseFloat(document.getElementById('cpmRateInput').value);
+            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: val }, { merge: true });
+            Swal.fire('Success', 'CPM Updated', 'success');
         };
 
         window.openMagic = (id, name, bal, views) => {
             document.getElementById('targetUserName').innerText = name;
-            document.getElementById('magicModal').classList.remove('hidden');
             document.getElementById('addBalanceInput').value = bal;
             document.getElementById('fakeViewInput').value = views;
+            document.getElementById('magicModal').classList.remove('hidden');
             document.getElementById('saveMagicBtn').onclick = async () => {
                 await updateDoc(doc(db, "users", id), { 
                     balance: parseFloat(document.getElementById('addBalanceInput').value),
                     fakeViews: parseInt(document.getElementById('fakeViewInput').value)
                 });
-                document.getElementById('magicModal').classList.add('hidden');
-                Swal.fire('Success', 'Citizen data updated!', 'success');
+                closeMagic();
+                Swal.fire('Updated', '', 'success');
             };
         };
 
         window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
+        window.toggleMonetize = async (id, status) => await updateDoc(doc(db, "users", id), { isMonetized: !status });
+        window.hardBanUser = async (id) => { if(confirm('Ban this user?')) await deleteDoc(doc(db, "users", id)); };
+        
+        window.processPayout = async (id, status, uid = null, amt = 0) => {
+            await updateDoc(doc(db, "withdrawRequests", id), { status: status });
+            if(status === 'Rejected' && uid) await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
+            Swal.fire('Done', '', 'success');
+        };
 
         window.sendBroadcast = async () => {
             const msg = document.getElementById('broadcastMsg').value;
             if(!msg) return;
             const users = await getDocs(collection(db, "users"));
             const batch = writeBatch(db);
-            users.forEach(u => {
-                const nRef = doc(collection(db, "users", u.id, "notifications"));
-                batch.set(nRef, { message: msg, type: "admin", time: serverTimestamp(), status: "unread" });
-            });
+            users.forEach(u => batch.set(doc(collection(db, "users", u.id, "notifications")), { message: msg, type: "admin", time: serverTimestamp(), status: "unread" }));
             await batch.commit();
-            Swal.fire('Broadcast Sent', '', 'success');
+            Swal.fire('Broadcast Sent!', '', 'success');
             document.getElementById('broadcastMsg').value = "";
         };
 
         window.resetAllBalances = async () => {
-            const confirm = await Swal.fire({ title: 'Reset All Balances?', icon: 'warning', showCancelButton: true });
-            if(confirm.isConfirmed) {
+            if(confirm('সব ব্যালেন্স ০ করতে চান?')) {
                 const users = await getDocs(collection(db, "users"));
                 const batch = writeBatch(db);
                 users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
                 await batch.commit();
-                Swal.fire('Done', 'All balances reset to 0', 'success');
+                Swal.fire('Reset Done', '', 'success');
             }
-        };
-
-        window.searchUser = () => {
-            const term = document.getElementById('uSearch').value.toLowerCase();
-            document.querySelectorAll('.admin-card').forEach(c => {
-                c.style.display = c.innerText.toLowerCase().includes(term) ? 'block' : 'none';
-            });
-        };
-
-        window.hardBanUser = async (id) => {
-            const confirm = await Swal.fire({ title: 'Ban user?', icon: 'error', showCancelButton: true });
-            if(confirm.isConfirmed) await deleteDoc(doc(db, "users", id));
         };
     </script>
 </body>
