@@ -146,6 +146,7 @@
         let currentUserData = null;
         let activePostId = null; 
         let globalCPM = 0.0001;
+        let viewTimers = {}; // টাইম-বেজড ভিউ ট্র্যাকার
 
         onAuthStateChanged(auth, async u => { 
             if(u){ 
@@ -176,17 +177,39 @@
             } else location.href="index.html"; 
         });
 
-        // ভিউ ও ইনকাম আপডেট ফাংশন
+        // মাস্টার আপডেট: ভিউ, ইনকাম এবং এন্টি-চিট লজিক
         async function handlePostView(postId, creatorId) {
             if (!postId || creatorId === user.uid) return;
+            
+            const postRef = doc(db, "posts", postId);
+            const postSnap = await getDoc(postRef);
+            if (!postSnap.exists()) return;
+            
+            const postData = postSnap.data();
+            const viewedBy = postData.viewedBy || [];
+
+            // ১. এন্টি-চিট: যদি ইউজার আগে দেখে থাকে তবে ইনকাম হবে না
+            if (viewedBy.includes(user.uid)) return;
+
             try {
-                await updateDoc(doc(db, "posts", postId), { views: increment(1) });
+                // ভিউ এবং ট্রেন্ড স্কোর আপডেট
+                await updateDoc(postRef, { 
+                    views: increment(1),
+                    viewedBy: arrayUnion(user.uid),
+                    trendScore: increment(1) // ৬. অ্যালগরিদম ট্রেন্ড বুস্ট
+                });
+
                 const creatorRef = doc(db, "users", creatorId);
                 const creatorSnap = await getDoc(creatorRef);
+                
+                // মনিটাইজেশন চেক এবং ব্যালেন্স বৃদ্ধি
                 if (creatorSnap.exists() && creatorSnap.data().isMonetized === true) {
-                    await updateDoc(creatorRef, { balance: increment(globalCPM) });
+                    await updateDoc(creatorRef, { 
+                        balance: increment(globalCPM),
+                        totalImpressions: increment(1) // অ্যানালিটিক্সের জন্য
+                    });
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("View Update Error:", e); }
         }
 
         async function sendNotification(targetId, type, message, postImg = "", postId = "") {
@@ -226,6 +249,7 @@
             onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
                 let rawPosts = [];
                 snap.forEach(d => rawPosts.push({ id: d.id, ...d.data() }));
+                // ট্রেন্ড স্কোর বা টাইম অনুযায়ী সর্ট করা যেতে পারে
                 rawPosts.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 feed.innerHTML = "";
                 rawPosts.forEach(async (p) => {
@@ -256,7 +280,7 @@
                 </div>
                 <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium leading-relaxed">${p.text || ''}</p>
                 <div class="post-tracker" data-id="${id}" data-creator="${p.userId}">
-                    ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" data-creator="${p.userId}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
+                    ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
                 </div>
                 <div class="flex justify-around py-2 border-t mt-1">
                     <button onclick="like('${id}')" class="flex flex-col items-center gap-1 flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}"><i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i><span class="text-[10px] font-black">${p.likedBy?.length||0}</span></button>
@@ -313,6 +337,7 @@
         async function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), snap => { document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; }); }
         async function loadStories() { onSnapshot(collection(db, "stories"), snap => { const sL = document.getElementById('storyList'); sL.innerHTML = ""; snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; }); }); }
 
+        // ২. রিটেনশন লজিক: ৫ সেকেন্ড দেখার পর ভিউ কাউন্ট
         function initIntersection() { 
             const obs = new IntersectionObserver(es => { 
                 es.forEach(e => { 
@@ -320,13 +345,24 @@
                     const postId = target.getAttribute('data-id');
                     const creatorId = target.getAttribute('data-creator');
                     const vid = target.querySelector('video');
+
                     if (e.isIntersecting) {
                         if(vid) vid.play().catch(() => {});
-                        handlePostView(postId, creatorId);
-                        obs.unobserve(target);
-                    } else { if(vid) vid.pause(); }
+                        
+                        // ৫ সেকেন্ডের টাইমার সেট
+                        viewTimers[postId] = setTimeout(() => {
+                            handlePostView(postId, creatorId);
+                        }, 5000); 
+                    } else { 
+                        if(vid) vid.pause();
+                        // যদি ৫ সেকেন্ডের আগে সরিয়ে ফেলে তবে টাইমার বন্ধ
+                        if (viewTimers[postId]) {
+                            clearTimeout(viewTimers[postId]);
+                            delete viewTimers[postId];
+                        }
+                    }
                 }); 
-            }, { threshold: 0.6 }); 
+            }, { threshold: 0.7 }); 
             document.querySelectorAll('.post-tracker').forEach(v => obs.observe(v)); 
         }
 
