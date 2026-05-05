@@ -3,187 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdraw Earnings - My Book</title>
+    <title>Withdraw Funds - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        input { background: #0f172a !important; color: #22c55e !important; border: 1px solid #1e293b !important; border-radius: 24px; padding: 20px; outline: none; transition: 0.3s; width: 100%; text-align: center; font-size: 2rem; font-weight: 800; }
-        input:focus { border-color: #22c55e !important; box-shadow: 0 0 20px rgba(34, 197, 94, 0.1); }
-        .withdraw-btn { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); transition: 0.3s; box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.3); }
-        .withdraw-btn:active { transform: scale(0.95); }
-        .method-card { border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); transition: 0.3s; }
-        
-        /* SweetAlert Custom Style */
-        .swal2-popup { border-radius: 2rem !important; background: #0f172a !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1); }
-        .swal2-confirm { background: #22c55e !important; border-radius: 1rem !important; }
+        .input-box { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 18px; width: 100%; outline: none; transition: 0.3s; color: white; }
+        .input-box:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .btn-pay { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; }
+        .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
-<body class="pb-10">
+<body class="p-6 flex items-center justify-center min-h-screen">
 
-    <header class="p-6 flex items-center gap-4">
-        <button onclick="window.location.href='dashboard.html'" class="w-10 h-10 glass rounded-xl flex items-center justify-center">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <h1 class="text-xl font-black tracking-tight uppercase italic">Withdraw</h1>
-    </header>
-
-    <main class="px-6 space-y-6">
-        <div class="glass p-10 rounded-[3rem] text-center relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl"></div>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Available for Payout</p>
-            <h2 class="text-5xl font-black tracking-tighter text-green-400">৳<span id="currentBal">0.00</span></h2>
+    <div class="max-w-md w-full space-y-8">
+        <div class="flex items-center gap-4">
+            <button onclick="location.href='dashboard.html'" class="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-400">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="text-xl font-black italic uppercase">Withdrawal</h1>
         </div>
 
-        <div id="methodBox" class="method-card p-6 rounded-[2.5rem] flex items-center justify-between border-dashed border-slate-800">
-            <div class="flex items-center gap-4">
-                <div id="methodIcon" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-xl shadow-inner">
-                    <i class="fas fa-university text-slate-600"></i>
-                </div>
+        <div class="glass p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+            <div class="mb-8">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Available for Payout</p>
+                <h2 id="currentBalance" class="text-3xl font-black text-indigo-400 tracking-tighter">৳0.0000</h2>
+            </div>
+
+            <div class="space-y-5">
                 <div>
-                    <p id="methodName" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Method Not Set</p>
-                    <p id="methodNum" class="font-bold text-sm text-slate-300">Please update profile</p>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Method</label>
+                    <select id="method" class="input-box">
+                        <option value="bKash">bKash (Personal)</option>
+                        <option value="Nagad">Nagad (Personal)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Account Number</label>
+                    <input type="number" id="number" class="input-box" placeholder="017XXXXXXXX">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Amount (৳)</label>
+                    <input type="number" id="amount" class="input-box" placeholder="Minimum 20">
+                </div>
+
+                <div class="pt-4">
+                    <button id="withdrawBtn" onclick="submitRequest()" class="btn-pay w-full py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[3px] shadow-xl shadow-indigo-500/20">
+                        Confirm Payout
+                    </button>
                 </div>
             </div>
-            <button onclick="window.location.href='edit-profile.html'" class="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <i class="fas fa-pen-nib text-[10px]"></i>
-            </button>
         </div>
-
-        <div class="glass p-8 rounded-[3rem] space-y-6 shadow-2xl">
-            <div>
-                <label class="block text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Enter Amount to Withdraw</label>
-                <input type="number" id="withdrawAmt" placeholder="0.00">
-                <div class="flex justify-center gap-4 mt-6">
-                    <span class="text-[9px] font-black text-slate-600 uppercase border border-slate-800 px-3 py-1 rounded-full">Min: ৳10</span>
-                    <span class="text-[9px] font-black text-slate-600 uppercase border border-slate-800 px-3 py-1 rounded-full">Fee: 0%</span>
-                </div>
-            </div>
-
-            <button id="reqBtn" class="withdraw-btn w-full py-5 rounded-2xl font-black tracking-widest uppercase text-sm">
-                Submit Payout Request
-            </button>
-        </div>
-
-        <div class="space-y-4">
-            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest ml-4 flex items-center gap-2">
-                <i class="fas fa-history text-indigo-500"></i> Recent Requests
-            </h3>
-            <div id="historyList" class="space-y-3 px-2">
-                <p class="text-center text-[10px] font-bold text-slate-700 py-10 uppercase tracking-tighter">No recent payout history</p>
-            </div>
-        </div>
-    </main>
+        
+        <p class="text-center text-[10px] text-slate-600 font-bold uppercase tracking-widest">Processing time: 1-12 Hours</p>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, addDoc, collection, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            authDomain: "seen-a1d92.firebaseapp.com", 
-            projectId: "seen-a1d92", 
-            storageBucket: "seen-a1d92.firebasestorage.app", 
-            messagingSenderId: "868584044532", 
-            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+            projectId: "seen-a1d92" 
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let uData = null;
+        let userBalance = 0;
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                onSnapshot(doc(db, "users", user.uid), (d) => {
-                    if (d.exists()) {
-                        uData = d.data();
-                        document.getElementById('currentBal').innerText = (uData.balance || 0).toFixed(2);
-                        
-                        if(uData.paymentNumber) {
-                            document.getElementById('methodName').innerText = uData.paymentMethod;
-                            document.getElementById('methodNum').innerText = uData.paymentNumber;
-                            document.getElementById('methodIcon').innerHTML = `<i class="fas fa-wallet text-green-400"></i>`;
-                            document.getElementById('methodBox').classList.remove('border-dashed', 'border-slate-800');
-                        }
-                    }
-                });
-            } else {
-                window.location.href = "login.html";
-            }
+                const snap = await getDoc(doc(db, "users", user.uid));
+                if (snap.exists()) {
+                    userBalance = snap.data().balance || 0;
+                    document.getElementById('currentBalance').innerText = "৳" + userBalance.toFixed(4);
+                }
+            } else { window.location.href = "login.html"; }
         });
 
-        document.getElementById('reqBtn').onclick = async () => {
-            const amt = parseFloat(document.getElementById('withdrawAmt').value);
-            const btn = document.getElementById('reqBtn');
+        window.submitRequest = async () => {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const method = document.getElementById('method').value;
+            const number = document.getElementById('number').value;
+            const btn = document.getElementById('withdrawBtn');
 
-            // --- SweetAlert ভ্যালিডেশন ---
-            if(!uData || !uData.paymentNumber) {
-                Swal.fire('পেমেন্ট মেথড খালি!', 'প্রথমে প্রোফাইল থেকে পেমেন্ট নাম্বার সেট করুন।', 'warning');
-                return;
-            }
-            if(isNaN(amt) || amt < 10) {
-                Swal.fire('অ্যামাউন্ট ভুল!', 'সর্বনিম্ন ১০ টাকা উইথড্র করা যাবে।', 'error');
-                return;
-            }
-            if(amt > uData.balance) {
-                Swal.fire('ব্যালেন্স কম!', 'আপনার একাউন্টে যথেষ্ট টাকা নেই।', 'error');
-                return;
-            }
+            if (!amount || amount < 20) return Swal.fire("Error", "কমপক্ষে ২০ টাকা উইথড্র করুন", "error");
+            if (number.length < 11) return Swal.fire("Error", "সঠিক নাম্বার দিন", "error");
+            if (amount > userBalance) return Swal.fire("Error", "পর্যাপ্ত ব্যালেন্স নেই!", "error");
 
-            // কনফার্মেশন পপ-আপ
-            const confirm = await Swal.fire({
-                title: 'আপনি কি নিশ্চিত?',
-                text: `আপনি ৳${amt} উইথড্র করতে চাচ্ছেন।`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'হ্যাঁ, পাঠান',
-                cancelButtonText: 'না'
-            });
-
-            if (!confirm.isConfirmed) return;
-
-            btn.innerText = "PROCESSING...";
             btn.disabled = true;
+            btn.innerText = "SENDING REQUEST...";
 
             try {
-                // রিকোয়েস্ট পাঠানো
+                // ১. উইথড্র রিকোয়েস্ট তৈরি
                 await addDoc(collection(db, "withdrawRequests"), {
                     uid: auth.currentUser.uid,
-                    userName: uData.name,
-                    amount: amt,
-                    method: uData.paymentMethod,
-                    number: uData.paymentNumber,
+                    amount: amount,
+                    method: method,
+                    number: number,
                     status: "Pending",
-                    requestedAt: serverTimestamp()
+                    timestamp: serverTimestamp()
                 });
 
-                // ব্যালেন্স কাটা
+                // ২. ইউজারের ব্যালেন্স থেকে টাকা কেটে নেওয়া
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                    balance: increment(-amt)
+                    balance: increment(-amount)
                 });
 
-                Swal.fire({
-                    title: 'রিকোয়েস্ট সফল!',
-                    text: 'অ্যাডমিন চেক করে আপনার পেমেন্ট পাঠিয়ে দেবে।',
-                    icon: 'success',
-                    confirmButtonColor: '#22c55e'
+                Swal.fire("Success", "রিকোয়েস্ট পাঠানো হয়েছে!", "success").then(() => {
+                    location.href = "dashboard.html";
                 });
-                
-                document.getElementById('withdrawAmt').value = "";
-                
             } catch (e) {
-                Swal.fire('ত্রুটি!', e.message, 'error');
+                Swal.fire("Error", e.message, "error");
+                btn.disabled = false;
+                btn.innerText = "Confirm Payout";
             }
-            btn.innerText = "SUBMIT PAYOUT REQUEST";
-            btn.disabled = false;
         };
     </script>
 </body>
