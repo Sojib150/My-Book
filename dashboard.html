@@ -63,7 +63,7 @@
                 <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
                     <i class="fas fa-chart-line text-purple-400"></i>
                 </div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Post Views</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ad Impressions</p>
                 <h3 id="userViews" class="text-2xl font-black mt-1">0</h3>
             </div>
         </div>
@@ -71,7 +71,7 @@
         <div id="monetizationBox" class="glass p-7 rounded-[2.5rem] space-y-5">
             <div class="flex justify-between items-center">
                 <h3 class="font-black text-[11px] uppercase tracking-[2px]">Revenue Status</h3>
-                <span id="mStatusText" class="text-[9px] font-black bg-slate-800 px-4 py-1.5 rounded-full text-slate-400 uppercase tracking-tighter">Under Review</span>
+                <span id="mStatusText" class="text-[9px] font-black bg-slate-800 px-4 py-1.5 rounded-full text-slate-400 uppercase tracking-tighter">Checking...</span>
             </div>
             
             <div id="mProgressArea">
@@ -115,22 +115,27 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // রিয়েলটাইম আপডেট লিসেনার
                 onSnapshot(doc(db, "users", user.uid), (d) => {
                     if (d.exists()) {
                         const data = d.data();
+                        
+                        // ১. নাম ও প্রোফাইল পিকচার
                         document.getElementById('userName').innerText = data.name || "User";
+                        document.getElementById('userPic').src = data.profilePic || "https://via.placeholder.com/100";
+                        if(data.isVerified) document.getElementById('verifyBadge').classList.remove('hidden');
+
+                        // ২. ব্যালেন্স আপডেট (toFixed(4) রাখা হয়েছে যেন ডেসিমেল ইনকাম সুন্দর দেখায়)
                         document.getElementById('userBalance').innerText = (data.balance || 0).toFixed(4);
                         
-                        // Followers Array Length check
+                        // ৩. ফলোয়ার্স চেক (অ্যারে হলে লেন্থ নিবে, সংখ্যা হলে সরাসরি দেখাবে)
                         const followersCount = data.followers ? (Array.isArray(data.followers) ? data.followers.length : data.followers) : 0;
                         document.getElementById('userFollowers').innerText = followersCount;
                         
-                        document.getElementById('userViews').innerText = (data.fakeViews || 0) + (data.views || 0);
-                        document.getElementById('userPic').src = data.profilePic || "https://via.placeholder.com/100";
-                        
-                        if(data.isVerified) document.getElementById('verifyBadge').classList.remove('hidden');
+                        // ৪. ইম্প্রেশন বা অ্যাড ভিউ (আপনার নতুন লজিক অনুযায়ী)
+                        document.getElementById('userViews').innerText = data.totalImpressions || 0;
 
-                        // Monetization Logic
+                        // ৫. মনিটাইজেশন প্রগ্রেস ও স্ট্যাটাস লজিক
                         const goal = 100;
                         const percent = Math.min((followersCount / goal) * 100, 100);
                         document.getElementById('mProgressBar').style.width = percent + "%";
@@ -139,7 +144,11 @@
                         if(data.isMonetized) {
                             document.getElementById('mStatusText').innerText = "Active";
                             document.getElementById('mStatusText').className = "text-[9px] font-black bg-green-500/20 px-4 py-1.5 rounded-full text-green-400 uppercase tracking-tighter";
-                            document.getElementById('mInfo').innerText = "Congratulations! You are officially earning from My Book.";
+                            document.getElementById('mInfo').innerText = "Congratulations! Your account is monetized. You are earning from every valid impression.";
+                            document.getElementById('mProgressArea').style.display = "none"; // গোল পূরণ হলে বার লুকানো হবে
+                        } else {
+                            document.getElementById('mStatusText').innerText = "Under Review";
+                            document.getElementById('mStatusText').className = "text-[9px] font-black bg-slate-800 px-4 py-1.5 rounded-full text-slate-400 uppercase tracking-tighter";
                         }
                     }
                 });
