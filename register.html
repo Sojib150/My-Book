@@ -6,32 +6,29 @@
     <title>Join My Book - Create Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         input { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 16px; padding: 14px; outline: none; transition: 0.3s; width: 100%; }
         input:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6); }
-        .glow-text { font-family: 'Orbitron'; text-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; }
+        .btn-primary:active { transform: scale(0.98); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
 
-    <div class="max-w-md w-full space-y-8 relative">
-        <div class="absolute -top-24 -left-24 w-64 h-64 bg-indigo-600/20 rounded-full blur-[100px]"></div>
-        <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px]"></div>
-
+    <div class="max-w-md w-full space-y-8">
         <div class="text-center">
-            <h1 class="glow-text text-4xl font-black tracking-tighter mb-2">MY <span class="text-indigo-500 text-3xl">BOOK</span></h1>
-            <p class="text-slate-400 text-sm font-medium">Create your content creator profile</p>
+            <h1 class="text-4xl font-extrabold tracking-tighter italic uppercase">MY <span class="text-indigo-500">BOOK</span></h1>
+            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">Create your elite profile</p>
         </div>
 
-        <div class="glass p-8 rounded-[2.5rem] shadow-2xl relative z-10">
+        <div class="glass p-8 rounded-[2.5rem] shadow-2xl">
             <form id="regForm" class="space-y-5">
                 <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Your Full Name</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
                     <input type="text" id="name" placeholder="Enter your name" required>
                 </div>
                 
@@ -45,19 +42,15 @@
                     <input type="password" id="password" placeholder="••••••••" required>
                 </div>
 
-                <div class="pt-2">
-                    <button type="submit" id="regBtn" class="btn-primary w-full py-4 rounded-2xl font-black tracking-widest uppercase">
-                        JOIN THE COMMUNITY
-                    </button>
-                </div>
+                <button type="submit" id="regBtn" class="btn-primary w-full py-4 rounded-2xl font-black tracking-[2px] uppercase text-xs mt-4 shadow-lg shadow-indigo-500/20">
+                    Create Account
+                </button>
             </form>
 
             <div class="mt-8 pt-6 border-t border-white/5 text-center">
                 <p class="text-slate-400 text-xs">Already have an account? <a href="login.html" class="text-indigo-400 font-bold hover:underline">Sign In</a></p>
             </div>
         </div>
-
-        <p class="text-center text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">Secure Infrastructure by My Book Core</p>
     </div>
 
     <script type="module">
@@ -78,6 +71,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // IP অ্যাড্রেস চেক করার ফাংশন
         async function getIP() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -93,48 +87,58 @@
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
 
-            btn.innerText = "CHECKING SECURITY...";
+            btn.innerText = "SECURITY CHECKING...";
             btn.disabled = true;
 
             const userIP = await getIP();
+            const safeIP = userIP.replace(/\./g, "_"); // IP তে ডট থাকলে ফায়ারবেস আইডি নিতে সমস্যা করে
 
             try {
-                // IP Protection (Max 2 accounts)
-                const ipCheck = await getDoc(doc(db, "security_ips", userIP));
-                if (ipCheck.exists() && ipCheck.data().count >= 2) {
-                    alert("SECURITY ALERT: Too many accounts from this network.");
-                    btn.innerText = "ACCESS DENIED";
+                // ১. IP Protection (এক নেটওয়ার্ক থেকে ৩টির বেশি আইডি নয়)
+                const ipCheck = await getDoc(doc(db, "security_ips", safeIP));
+                if (ipCheck.exists() && ipCheck.data().count >= 3) {
+                    Swal.fire("Access Denied", "একই ফোন বা ওয়াইফাই থেকে অনেকগুলো আইডি খোলা হয়েছে।", "error");
+                    btn.innerText = "CREATE ACCOUNT";
+                    btn.disabled = false;
                     return;
                 }
 
+                // ২. ইউজার তৈরি করা
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // My Book User Profile Structure
+                // ৩. ডাটাবেসে ইউজারের তথ্য সেভ করা (আপনার ড্যাশবোর্ড ও প্রোফাইলের জন্য)
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     name: name,
                     email: email,
-                    balance: 0.00,
+                    balance: 0.0000,
+                    views: 0,
+                    fakeViews: 0,
+                    followers: [],
+                    following: [],
                     isVerified: false,
                     isMonetized: false,
-                    followers: 0,
-                    ipAddress: userIP,
                     profilePic: "",
+                    coverPic: "",
+                    bio: "Hello, I am using My Book!",
+                    ipAddress: userIP,
                     createdAt: serverTimestamp()
                 });
 
-                await setDoc(doc(db, "security_ips", userIP), {
+                // ৪. আইপি ডাটা আপডেট
+                await setDoc(doc(db, "security_ips", safeIP), {
                     count: (ipCheck.exists() ? ipCheck.data().count + 1 : 1),
                     lastUser: user.uid
                 }, { merge: true });
 
-                alert("Welcome to My Book! Your journey starts now.");
-                window.location.href = "dashboard.html";
+                Swal.fire("Welcome!", "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।", "success").then(() => {
+                    window.location.href = "profile.html";
+                });
 
             } catch (error) {
-                alert("Error: " + error.message);
-                btn.innerText = "TRY AGAIN";
+                Swal.fire("Error", error.message, "error");
+                btn.innerText = "CREATE ACCOUNT";
                 btn.disabled = false;
             }
         });
