@@ -20,12 +20,15 @@
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); display: none; z-index: 999; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border-radius: 32px; padding: 10px 20px; display: flex; justify-content: space-around; align-items: center; z-index: 900; box-shadow: 0 10px 35px rgba(0,0,0,0.4); }
-        .nav-item { color: rgba(255,255,255,0.5); font-size: 1.2rem; }
+        .nav-item { color: rgba(255,255,255,0.5); transition: color 0.3s; font-size: 1.2rem; }
         .nav-item.active { color: white; }
+        .elite-popup { background: #111 !important; border: 1px solid #D4AF37 !important; color: #fff !important; border-radius: 25px !important; }
+        .elite-confirm { background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important; color: #000 !important; font-weight: bold !important; border-radius: 12px !important; }
+        .elite-cancel { background: #222 !important; color: #fff !important; border-radius: 12px !important; }
         #maintenanceUI { position: fixed; inset: 0; z-index: 10000; background: white; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        /* অ্যাড কন্টেইনার স্টাইল */
-        #global-ad-slot { width: 100%; min-height: 50px; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 15px; margin-bottom: 20px; }
+        #global-ad-slot { width: 100%; min-height: 20px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
     </style>
 </head>
 <body class="pb-32">
@@ -36,16 +39,14 @@
                 <i class="fas fa-tools text-4xl animate-bounce"></i>
             </div>
             <h2 class="text-2xl font-black text-gray-900 mb-3">সার্ভার আপডেট চলছে</h2>
-            <p class="text-gray-500 text-sm mb-6">আমরা অ্যাপটিকে আরও উন্নত করার কাজ করছি। কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
+            <p class="text-gray-500 text-sm leading-relaxed mb-6">আমরা অ্যাপটিকে আরও উন্নত করার কাজ করছি। কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
         </div>
     </div>
 
     <div id="incomingCallUI">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center"><i class="fas fa-video text-white text-xs"></i></div>
-            <div class="min-w-0">
-                <h4 id="callerNameDisplay" class="text-[13px] font-extrabold truncate">Incoming Call...</h4>
-            </div>
+            <div class="min-w-0"><h4 id="callerNameDisplay" class="text-[13px] font-extrabold truncate">লোড হচ্ছে...</h4></div>
         </div>
         <div class="flex gap-2">
             <button id="declineCallBtn" class="w-10 h-10 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
@@ -57,7 +58,12 @@
         <div class="max-w-md mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-black text-blue-600 italic tracking-tighter">My Book</h1>
             <div class="flex items-center gap-5">
-                <img id="navPic" onclick="location.href='profile.html'" src="" class="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover bg-gray-200">
+                <a href="reels.html" class="text-red-500"><i class="fa-solid fa-play-circle text-2xl"></i></a>
+                <div class="relative cursor-pointer" onclick="location.href='notifications.html'">
+                    <i class="fa-solid fa-bell text-xl text-gray-800"></i>
+                    <div id="notifDot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></div>
+                </div>
+                <img id="navPic" onclick="location.href='profile.html'" src="" class="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover cursor-pointer bg-gray-200">
             </div>
         </div>
     </nav>
@@ -66,8 +72,8 @@
         <div id="global-ad-slot"></div>
 
         <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
-            <div class="flex flex-col items-center gap-2 shrink-0" onclick="location.href='upload-story.html'">
-                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white shadow-sm">
+            <div class="flex flex-col items-center gap-2 shrink-0 cursor-pointer" onclick="location.href='upload-story.html'">
+                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </div>
                 <span class="text-[10px] font-bold text-gray-500 uppercase">You</span>
@@ -83,7 +89,7 @@
     <div class="bottom-nav">
         <a href="home.html" class="nav-item active"><i class="fas fa-home-alt"></i></a>
         <a href="search.html" class="nav-item"><i class="fas fa-search"></i></a>
-        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center shadow-xl active:scale-90 transition cursor-pointer">
+        <div onclick="location.href='post.html'" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center shadow-xl cursor-pointer">
             <i class="fas fa-plus text-xl"></i>
         </div>
         <a href="messages.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
@@ -97,7 +103,7 @@
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-6"></div>
         <div class="flex gap-3 border-t pt-4 bg-white mt-2">
             <input id="cInput" type="text" placeholder="মন্তব্য করুন..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none text-sm font-bold">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+            <button onclick="postComment()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -106,33 +112,30 @@
         import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            projectId: "seen-a1d92" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let user = null; 
         let currentUserData = null;
+        let activePostId = null; 
         let globalCPM = 0.0001;
         let viewTimers = {}; 
 
         onAuthStateChanged(auth, async u => { 
             if(u){ 
                 user = u; 
-                // ১. মনিটরিং মেইনটেন্যান্স
+                // মেইনটেন্যান্স এবং অ্যাড সিস্টেম রিয়েল-টাইম সিঙ্ক
                 onSnapshot(doc(db, "appSettings", "maintenance"), (snap) => {
                     if (snap.exists()) document.getElementById('maintenanceUI').style.display = snap.data().isOn ? 'flex' : 'none';
                 });
-
-                // ২. CPM রেট সিঙ্ক
+                
                 onSnapshot(doc(db, "appSettings", "algorithm"), snap => {
                     if (snap.exists()) globalCPM = snap.data().trendBoost || 0.0001;
                 });
 
-                // ৩. অ্যাড কোড সিঙ্ক এবং এক্সিকিউশন (সংশোধিত)
+                // অ্যাড কোড এক্সিকিউশন লজিক
                 onSnapshot(doc(db, "appSettings", "ads"), snap => {
                     if (snap.exists() && snap.data().code) {
                         const adSlot = document.getElementById('global-ad-slot');
@@ -148,23 +151,21 @@
 
                 renderFeed(); 
                 loadProfile(); 
+                checkNotif(); 
                 loadStories(); 
                 listenForCalls(u.uid);
             } else location.href="index.html"; 
         });
 
-        // ভিউ ও ইনকাম হ্যান্ডেলার
         async function handlePostView(postId, creatorId) {
             if (!postId || creatorId === user.uid) return;
             const postRef = doc(db, "posts", postId);
             const postSnap = await getDoc(postRef);
             if (!postSnap.exists()) return;
-            
-            const viewedBy = postSnap.data().viewedBy || [];
-            if (viewedBy.includes(user.uid)) return; // ডুপ্লিকেট ভিউ রোধ
+            if (postSnap.data().viewedBy?.includes(user.uid)) return;
 
             try {
-                await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(user.uid) });
+                await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(user.uid), trendScore: increment(1) });
                 const creatorRef = doc(db, "users", creatorId);
                 const creatorSnap = await getDoc(creatorRef);
                 if (creatorSnap.exists() && creatorSnap.data().isMonetized) {
@@ -177,72 +178,110 @@
             const feed = document.getElementById('feed');
             onSnapshot(query(collection(db, "posts"), limit(30), orderBy("createdAt", "desc")), snap => {
                 feed.innerHTML = "";
-                snap.forEach(d => {
-                    const p = d.data();
-                    const card = createPostCard(d.id, p);
-                    feed.appendChild(card);
-                });
+                snap.forEach(d => feed.appendChild(createPostCard(d.id, d.data())));
                 initIntersection();
             });
         }
 
         function createPostCard(id, p) {
+            const isMine = p.userId === user.uid;
             const hasL = p.likedBy?.includes(user.uid);
+            const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'Just Now';
             const card = document.createElement('div');
             card.className = "premium-card";
             card.innerHTML = `
-                <div class="p-4 flex items-center gap-3">
-                    <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover">
-                    <div>
-                        <h4 class="font-extrabold text-[14px]">@${p.userName}</h4>
+                <div class="p-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
+                        <img src="${p.userPic}" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50">
+                        <div>
+                            <div class="font-extrabold text-[14px]">@${p.userName}</div>
+                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">${date}</p>
+                        </div>
                     </div>
+                    ${isMine ? `<button onclick="confirmDeletePost('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-trash-alt"></i></button>` : ''}
                 </div>
-                <p class="px-5 pb-4 text-[14px] text-gray-700">${p.text || ''}</p>
+                <p class="px-5 pb-4 text-[14px] text-gray-700 font-medium">${p.text || ''}</p>
                 <div class="post-tracker" data-id="${id}" data-creator="${p.userId}">
-                    ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="this.play()"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
+                    ${p.fileUrl ? `<div class="video-box">${p.fileType==='video' ? `<video src="${p.fileUrl}" loop muted playsinline class="post-vid" onclick="handleVideo(this)"></video>` : `<img src="${p.fileUrl}" class="w-full">`}</div>` : ''}
                 </div>
                 <div class="flex justify-around py-2 border-t mt-1">
-                    <button onclick="like('${id}')" class="flex flex-col items-center flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}"><i class="fa-solid fa-heart"></i><span class="text-[10px]">${p.likedBy?.length||0}</span></button>
-                    <button class="flex flex-col items-center flex-1 py-2 text-gray-400"><i class="fa-solid fa-eye"></i><span class="text-[10px]">${p.views || 0}</span></button>
+                    <button onclick="like('${id}')" class="flex flex-col items-center flex-1 py-2 ${hasL ? 'text-red-500':'text-gray-400'}"><i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i><span class="text-[10px] font-black">${p.likedBy?.length||0}</span></button>
+                    <button onclick="openComments('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400"><i class="fa-regular fa-comment-dots text-xl"></i><span class="text-[10px] font-black">${p.commentCount||0}</span></button>
+                    <div class="flex flex-col items-center flex-1 py-2 text-blue-500/60"><i class="fa-solid fa-eye text-xl"></i><span class="text-[10px] font-black">${p.views || 0}</span></div>
+                    <button onclick="sharePost('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400"><i class="fa-solid fa-share-nodes text-xl"></i><span class="text-[10px] font-black uppercase">Share</span></button>
                 </div>
             `;
             return card;
         }
+
+        window.like = async (id) => {
+            const ref = doc(db, "posts", id); 
+            const snap = await getDoc(ref);
+            const d = snap.data();
+            const hasL = d.likedBy?.includes(user.uid);
+            await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+            if(!hasL) sendNotification(d.userId, "like", "আপনার পোস্টে লাইক দিয়েছেন।", d.fileUrl || "", id);
+        };
+
+        window.openComments = (id) => { 
+            activePostId = id; 
+            document.getElementById('commentSheet').classList.add('active'); 
+            document.getElementById('overlay').style.display='block'; 
+            loadComments(id); 
+        };
+        
+        async function loadComments(id) {
+            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
+                const list = document.getElementById('commentList'); list.innerHTML = "";
+                sn.forEach(c => {
+                    const d = c.data();
+                    list.innerHTML += `<div class="flex gap-3"><img src="${d.userPic}" class="w-9 h-9 rounded-full object-cover"><div class="bg-gray-100 p-3 rounded-2xl max-w-[85%]"><p class="text-[10px] font-black text-blue-600">@${d.userName}</p><p class="text-[13px] text-gray-800">${d.text}</p></div></div>`;
+                });
+            });
+        }
+
+        window.postComment = async () => {
+            const v = document.getElementById('cInput').value; if(!v) return;
+            const postRef = doc(db, "posts", activePostId);
+            const postSnap = await getDoc(postRef);
+            await addDoc(collection(db, "posts", activePostId, "comments"), { text: v, userId: user.uid, userName: currentUserData.name, userPic: currentUserData.profilePic, time: serverTimestamp() });
+            await updateDoc(postRef, { commentCount: increment(1) });
+            sendNotification(postSnap.data().userId, "comment", `মন্তব্য করেছেন: "${v}"`, postSnap.data().fileUrl || "", activePostId);
+            document.getElementById('cInput').value = "";
+        };
 
         function initIntersection() { 
             const obs = new IntersectionObserver(es => { 
                 es.forEach(e => { 
                     const postId = e.target.getAttribute('data-id');
                     const creatorId = e.target.getAttribute('data-creator');
+                    const vid = e.target.querySelector('video');
                     if (e.isIntersecting) {
+                        if(vid) vid.play().catch(()=>{});
                         viewTimers[postId] = setTimeout(() => handlePostView(postId, creatorId), 5000); 
                     } else { 
+                        if(vid) vid.pause();
                         clearTimeout(viewTimers[postId]);
                     }
                 }); 
-            }, { threshold: 0.6 }); 
+            }, { threshold: 0.7 }); 
             document.querySelectorAll('.post-tracker').forEach(v => obs.observe(v)); 
         }
 
-        window.like = async (id) => {
-            const ref = doc(db, "posts", id); 
-            const snap = await getDoc(ref);
-            const hasL = snap.data().likedBy?.includes(user.uid);
-            await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+        window.confirmDeletePost = (id) => {
+            Swal.fire({ title: 'পোস্ট মুছে ফেলবেন?', icon: 'warning', showCancelButton: true, confirmButtonText: 'হ্যাঁ, মুছুন', customClass: { popup: 'elite-popup', confirmButton: 'elite-confirm', cancelButton: 'elite-cancel' }
+            }).then(async (result) => { if (result.isConfirmed) await deleteDoc(doc(db, "posts", id)); });
         };
 
-        async function loadProfile() { 
-            const d = await getDoc(doc(db, "users", user.uid)); 
-            if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; 
-        }
-        
-        async function loadStories() { 
-            onSnapshot(collection(db, "stories"), snap => { 
-                const sL = document.getElementById('storyList'); sL.innerHTML = ""; 
-                snap.forEach(d => { 
-                    sL.innerHTML += `<div class="w-16 h-16 rounded-full border-2 border-blue-600 p-1 shrink-0"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div>`; 
-                }); 
-            }); 
+        window.sharePost = (id) => {
+            const url = `${window.location.origin}/post-view.html?id=${id}`;
+            if (navigator.share) navigator.share({ title: 'My Book', url: url });
+            else { navigator.clipboard.writeText(url); Swal.fire({ title: 'লিঙ্ক কপি হয়েছে!', icon: 'success', timer: 1000, showConfirmButton: false }); }
+        };
+
+        async function sendNotification(targetId, type, message, postImg = "", postId = "") {
+            if(!targetId || targetId === user.uid) return;
+            await addDoc(collection(db, "notifications"), { targetUserId: targetId, senderId: user.uid, senderName: currentUserData?.name, senderPic: currentUserData?.profilePic, type: type, message: message, postImg: postImg, postId: postId, read: false, timestamp: serverTimestamp() });
         }
 
         function listenForCalls(myId) {
@@ -250,12 +289,18 @@
                 const ui = document.getElementById('incomingCallUI');
                 if (snap.exists() && snap.data().status === 'ringing') {
                     ui.classList.add('active');
-                    document.getElementById('acceptCallBtn').onclick = () => location.href = `call.html?id=${myId}&action=incoming`;
-                } else { ui.classList.remove('active'); }
+                    document.getElementById('callerNameDisplay').innerText = snap.data().callerName;
+                    document.getElementById('acceptCallBtn').onclick = () => location.href = `call.html?id=${snap.data().callerId}&type=${snap.data().type}&action=incoming`;
+                    document.getElementById('declineCallBtn').onclick = async () => { await deleteDoc(doc(db, "calls", myId)); ui.classList.remove('active'); };
+                } else ui.classList.remove('active');
             });
         }
-        
+
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; };
+        window.handleVideo = (v) => { v.muted = !v.muted; if(v.paused) v.play(); };
+        async function loadProfile() { const d = await getDoc(doc(db, "users", user.uid)); if(d.exists()) document.getElementById('navPic').src = d.data().profilePic || ""; }
+        async function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), snap => { document.getElementById('notifDot').style.display = snap.size > 0 ? 'block' : 'none'; }); }
+        async function loadStories() { onSnapshot(collection(db, "stories"), snap => { const sL = document.getElementById('storyList'); sL.innerHTML = ""; snap.forEach(d => { sL.innerHTML += `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`; }); }); }
     </script>
 </body>
 </html>
