@@ -15,8 +15,8 @@
         .input-box:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
         .btn-pay { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: 0.3s; }
         .btn-pay:active { transform: scale(0.95); }
+        .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-history { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s; }
-        .btn-history:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.08); }
     </style>
 </head>
 <body class="p-6 flex items-center justify-center min-h-screen">
@@ -43,15 +43,16 @@
             <div class="space-y-5">
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Method</label>
-                    <select id="method" class="input-box">
+                    <select id="method" class="input-box" onchange="toggleMethod()">
                         <option value="bKash">bKash (Personal)</option>
                         <option value="Nagad">Nagad (Personal)</option>
+                        <option value="Binance">Binance (USDT - TRC20)</option>
                     </select>
                 </div>
                 
                 <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Account Number</label>
-                    <input type="number" id="number" class="input-box" placeholder="017XXXXXXXX">
+                    <label id="accountLabel" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 block mb-2">Account Number</label>
+                    <input type="text" id="number" class="input-box" placeholder="017XXXXXXXX">
                 </div>
 
                 <div>
@@ -63,11 +64,6 @@
                     <button id="withdrawBtn" onclick="submitRequest()" class="btn-pay w-full py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[3px] shadow-xl shadow-indigo-500/20">
                         Confirm Payout
                     </button>
-                    
-                    <button onclick="location.href='withdraw-history.html'" class="btn-history w-full py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[2px] text-slate-400 flex items-center justify-center gap-2">
-                        <i class="fas fa-clock-rotate-left text-[12px]"></i>
-                        View History
-                    </button>
                 </div>
             </div>
         </div>
@@ -78,7 +74,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -91,15 +87,34 @@
 
         let userBalance = 0;
 
-        onAuthStateChanged(auth, async (user) => {
+        // ব্যালেন্স রিয়েলটাইম আপডেট দেখার জন্য onSnapshot
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                const snap = await getDoc(doc(db, "users", user.uid));
-                if (snap.exists()) {
-                    userBalance = snap.data().balance || 0;
-                    document.getElementById('currentBalance').innerText = "৳" + userBalance.toFixed(4);
-                }
+                onSnapshot(doc(db, "users", user.uid), (snap) => {
+                    if (snap.exists()) {
+                        userBalance = snap.data().balance || 0;
+                        document.getElementById('currentBalance').innerText = "৳" + userBalance.toFixed(4);
+                    }
+                });
             } else { window.location.href = "login.html"; }
         });
+
+        // মেথড অনুযায়ী ইনপুট বক্সের নাম পরিবর্তন
+        window.toggleMethod = () => {
+            const method = document.getElementById('method').value;
+            const label = document.getElementById('accountLabel');
+            const input = document.getElementById('number');
+            
+            if(method === "Binance") {
+                label.innerText = "USDT TRC20 Address";
+                input.placeholder = "Example: T9yDxP... (TRC20)";
+                input.type = "text";
+            } else {
+                label.innerText = "Account Number";
+                input.placeholder = "01XXXXXXXXX";
+                input.type = "number";
+            }
+        };
 
         window.submitRequest = async () => {
             const amount = parseFloat(document.getElementById('amount').value);
@@ -107,32 +122,41 @@
             const number = document.getElementById('number').value;
             const btn = document.getElementById('withdrawBtn');
 
+            // ভ্যালিডেশন
             if (!amount || amount < 20) return Swal.fire("Error", "কমপক্ষে ২০ টাকা উইথড্র করুন", "error");
-            if (number.length < 11) return Swal.fire("Error", "সঠিক নাম্বার দিন", "error");
+            if (number.length < 8) return Swal.fire("Error", "সঠিক অ্যাকাউন্ট বা অ্যাড্রেস দিন", "error");
             if (amount > userBalance) return Swal.fire("Error", "পর্যাপ্ত ব্যালেন্স নেই!", "error");
 
             btn.disabled = true;
             btn.innerText = "SENDING REQUEST...";
 
             try {
+                // ১. রিকোয়েস্ট সেভ করা
                 await addDoc(collection(db, "withdrawRequests"), {
                     uid: auth.currentUser.uid,
                     amount: amount,
                     method: method,
-                    number: number,
+                    accountDetails: number,
                     status: "Pending",
                     timestamp: serverTimestamp()
                 });
 
+                // ২. ব্যালেন্স থেকে টাকা কেটে নেওয়া
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     balance: increment(-amount)
                 });
 
-                Swal.fire("Success", "রিকোয়েস্ট পাঠানো হয়েছে!", "success").then(() => {
+                Swal.fire({
+                    title: "সফল!",
+                    text: "আপনার পেমেন্ট রিকোয়েস্টটি পেন্ডিং অবস্থায় আছে।",
+                    icon: "success",
+                    confirmButtonColor: "#6366f1"
+                }).then(() => {
                     location.href = "dashboard.html";
                 });
+
             } catch (e) {
-                Swal.fire("Error", e.message, "error");
+                Swal.fire("Error", "ব্যর্থ হয়েছে! আবার চেষ্টা করুন।", "error");
                 btn.disabled = false;
                 btn.innerText = "Confirm Payout";
             }
