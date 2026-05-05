@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw History - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: white; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-md mx-auto">
+        <div class="flex items-center gap-4 mb-8">
+            <button onclick="history.back()" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-slate-400">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="text-xl font-black uppercase tracking-tighter italic">Transaction History</h1>
+        </div>
+
+        <div id="historyList" class="space-y-4">
+            <p id="loading" class="text-center text-slate-500 text-xs uppercase font-bold tracking-widest mt-20">Loading records...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const q = query(
+                    collection(db, "withdrawRequests"), 
+                    where("uid", "==", user.uid),
+                    orderBy("timestamp", "desc")
+                );
+
+                onSnapshot(q, (snapshot) => {
+                    const list = document.getElementById('historyList');
+                    const loading = document.getElementById('loading');
+                    list.innerHTML = "";
+                    
+                    if (snapshot.empty) {
+                        list.innerHTML = `<div class="text-center py-20 opacity-30 italic text-xs">No transactions found</div>`;
+                        return;
+                    }
+
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const statusColor = data.status === "Pending" ? "text-yellow-500" : "text-green-500";
+                        
+                        list.innerHTML += `
+                            <div class="glass p-5 rounded-[2rem] flex justify-between items-center">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${data.method}</p>
+                                    <h3 class="text-lg font-black tracking-tight">৳${data.amount.toFixed(2)}</h3>
+                                    <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">${data.timestamp?.toDate().toLocaleString() || 'Just now'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[9px] font-black uppercase ${statusColor} bg-white/5 px-4 py-1.5 rounded-full">${data.status}</span>
+                                    <p class="text-[8px] text-slate-500 mt-2 font-bold">${data.number}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+            } else { window.location.href = "login.html"; }
+        });
+    </script>
+</body>
+</html>
