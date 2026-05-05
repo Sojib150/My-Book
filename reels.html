@@ -45,7 +45,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -68,7 +68,6 @@
                 const uSnap = await getDoc(doc(db, "users", user.uid));
                 currentUserData = uSnap.exists() ? uSnap.data() : null;
 
-                // Load Settings
                 onSnapshot(doc(db, "appSettings", "algorithm"), snap => {
                     if (snap.exists()) globalCPM = snap.data().trendBoost || 0.0001;
                 });
@@ -78,7 +77,13 @@
         });
 
         async function renderReels() {
-            const reelsQuery = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"), limit(20));
+            // কুয়েরি অপ্টিমাইজেশান
+            const reelsQuery = query(
+                collection(db, "posts"), 
+                where("fileType", "==", "video"), 
+                orderBy("createdAt", "desc"), 
+                limit(20)
+            );
             
             onSnapshot(reelsQuery, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
@@ -108,8 +113,8 @@
 
                         <div class="bottom-info">
                             <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover">
-                                <h4 class="text-white font-black text-sm">@${p.userName}</h4>
+                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover bg-gray-800">
+                                <h4 class="text-white font-black text-sm">@${p.userName || 'User'}</h4>
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
@@ -141,11 +146,14 @@
                     if (entry.isIntersecting) {
                         vid.play().catch(() => {});
                         vid.muted = false;
-                        // Start 5-second retention timer
+                        // ৫ সেকেন্ড রিটেনশন টাইমার (আপনার Home.html লজিক অনুযায়ী)
                         viewTimers[id] = setTimeout(() => handleView(id, ownerId), 5000);
                     } else {
                         vid.pause();
-                        clearTimeout(viewTimers[id]);
+                        if(viewTimers[id]) {
+                            clearTimeout(viewTimers[id]);
+                            delete viewTimers[id];
+                        }
                     }
                 });
             }, { threshold: 0.8 });
@@ -156,26 +164,39 @@
             if (ownerId === currentUser.uid) return;
             const postRef = doc(db, "posts", postId);
             const pSnap = await getDoc(postRef);
-            if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
+            if (!pSnap.exists()) return;
+            
+            const viewedBy = pSnap.data().viewedBy || [];
+            if (viewedBy.includes(currentUser.uid)) return;
 
-            await updateDoc(postRef, { 
-                views: increment(1), 
-                viewedBy: arrayUnion(currentUser.uid),
-                trendScore: increment(1)
-            });
+            try {
+                await updateDoc(postRef, { 
+                    views: increment(1), 
+                    viewedBy: arrayUnion(currentUser.uid),
+                    trendScore: increment(1)
+                });
 
-            const ownerRef = doc(db, "users", ownerId);
-            const ownerSnap = await getDoc(ownerRef);
-            if (ownerSnap.exists() && ownerSnap.data().isMonetized) {
-                await updateDoc(ownerRef, { balance: increment(globalCPM) });
-            }
+                const ownerRef = doc(db, "users", ownerId);
+                const ownerSnap = await getDoc(ownerRef);
+                if (ownerSnap.exists() && ownerSnap.data().isMonetized) {
+                    await updateDoc(ownerRef, { balance: increment(globalCPM) });
+                }
+            } catch (e) { console.error("View tracking error:", e); }
         }
 
-        window.handleReelTap = (v) => v.paused ? v.play() : v.pause();
+        window.handleReelTap = (v) => {
+            if(v.paused) {
+                v.play();
+                v.muted = false;
+            } else {
+                v.pause();
+            }
+        };
 
         window.likeReel = async (id) => {
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
+            if(!pSnap.exists()) return;
             const isLiked = pSnap.data().likedBy?.includes(currentUser.uid);
             await updateDoc(ref, {
                 likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
@@ -185,14 +206,14 @@
         window.openComments = async (id) => {
             activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
+            const list = document.getElementById('commentList');
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc")), (snap) => {
-                const list = document.getElementById('commentList');
                 list.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.data();
                     list.innerHTML += `
                         <div class="flex gap-3">
-                            <img src="${d.userPic}" class="w-8 h-8 rounded-full object-cover">
+                            <img src="${d.userPic || ''}" class="w-8 h-8 rounded-full object-cover bg-gray-700">
                             <div>
                                 <p class="text-indigo-400 font-bold text-[10px]">@${d.userName}</p>
                                 <p class="text-white text-xs">${d.text}</p>
@@ -206,12 +227,14 @@
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            if(!input.value || !activePostId) return;
+            const val = input.value.trim();
+            if(!val || !activePostId) return;
+            
             await addDoc(collection(db, "posts", activePostId, "comments"), {
-                text: input.value,
+                text: val,
                 userId: currentUser.uid,
-                userName: currentUserData.name,
-                userPic: currentUserData.profilePic,
+                userName: currentUserData.name || "User",
+                userPic: currentUserData.profilePic || "",
                 timestamp: serverTimestamp()
             });
             await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
@@ -219,12 +242,18 @@
         };
 
         window.shareReel = async (id) => {
-            const url = window.location.origin + "/reels.html?id=" + id;
+            const url = window.location.origin + "/post-view.html?id=" + id;
             if (navigator.share) {
                 navigator.share({ title: 'My Book', url: url });
             } else {
                 navigator.clipboard.writeText(url);
-                Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1500, showConfirmButton: false, customClass: { popup: 'elite-popup' } });
+                Swal.fire({ 
+                    title: 'Link Copied!', 
+                    icon: 'success', 
+                    timer: 1500, 
+                    showConfirmButton: false, 
+                    customClass: { popup: 'elite-popup' } 
+                });
             }
         };
     </script>
