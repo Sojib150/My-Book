@@ -16,7 +16,6 @@
         input, textarea { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; }
         .stat-card { border-bottom: 4px solid #6366f1; }
         .user-card { transition: 0.3s; border: 1px solid rgba(255,255,255,0.03); }
-        .status-badge { font-size: 8px; font-weight: 900; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -60,11 +59,9 @@
             <div id="tab-citizens" class="tab-content space-y-6">
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-4 text-slate-500"></i>
-                    <input type="text" id="uSearch" onkeyup="searchUser()" placeholder="Search by name or UID..." class="w-full pl-12 h-14">
+                    <input type="text" id="uSearch" placeholder="Search by name..." class="w-full pl-12 h-14">
                 </div>
-                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full text-center py-20 text-slate-500"><i class="fas fa-spinner fa-spin mr-2"></i>Loading Citizens...</div>
-                </div>
+                <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
             <div id="tab-economy" class="hidden tab-content space-y-6">
@@ -75,13 +72,13 @@
                         <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Ads</button>
                     </div>
                     <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
-                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate</h3>
+                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate (Per Impression)</h3>
                         <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black">
                         <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update CPM</button>
                     </div>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem]">
-                    <h3 class="font-black text-lg mb-6"><i class="fas fa-wallet mr-2"></i> Withdrawal Requests</h3>
+                    <h3 class="font-black text-lg mb-6"><i class="fas fa-wallet mr-2"></i> Pending Withdrawals</h3>
                     <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
             </div>
@@ -90,8 +87,7 @@
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-red-600">
                     <i class="fas fa-triangle-exclamation text-4xl text-red-600 mb-4"></i>
                     <h3 class="font-black text-xl mb-2">Maintenance Mode</h3>
-                    <p class="text-slate-500 text-xs mb-6">মেইনটেন্যান্স মোড অন করলে ইউজাররা অ্যাপ ব্যবহার করতে পারবে না।</p>
-                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition">INITIALIZING...</button>
+                    <button id="mBtn" onclick="toggleMaintenance()" class="w-full py-4 rounded-2xl font-black transition">LOADING...</button>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-indigo-600">
                     <i class="fas fa-database text-4xl text-indigo-600 mb-4"></i>
@@ -126,7 +122,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -160,10 +156,10 @@
                 snap.forEach(d => {
                     const u = d.data(); const id = d.id;
                     const card = document.createElement('div');
-                    card.className = "glass p-5 rounded-[2rem] user-card admin-card";
+                    card.className = "glass p-5 rounded-[2rem] user-card";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-4">
-                            <img src="${u.profilePic || ''}" class="w-12 h-12 rounded-xl bg-gray-800 object-cover">
+                            <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl bg-gray-800 object-cover">
                             <div class="flex-1 truncate">
                                 <h4 class="font-bold text-sm">${u.name || 'User'}</h4>
                                 <p class="text-[10px] text-green-400 font-black">৳${(u.balance || 0).toFixed(4)}</p>
@@ -171,15 +167,17 @@
                             <button onclick="openMagic('${id}', '${u.name}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-2 text-indigo-400"><i class="fas fa-edit"></i></button>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="toggleMonetize('${id}', ${u.isMonetized})" class="flex-1 py-2 rounded-lg text-[8px] bg-indigo-500/10">${u.isMonetized ? 'Ads On' : 'Ads Off'}</button>
-                            <button onclick="hardBanUser('${id}')" class="flex-1 py-2 rounded-lg text-[8px] bg-red-500/10 text-red-500">Ban</button>
+                            <button onclick="toggleMonetize('${id}', ${u.isMonetized})" class="flex-1 py-2 rounded-lg text-[8px] font-black ${u.isMonetized ? 'bg-green-500/20 text-green-400' : 'bg-slate-800'}">
+                                ${u.isMonetized ? 'ADS ON' : 'ADS OFF'}
+                            </button>
+                            <button onclick="hardBanUser('${id}')" class="flex-1 py-2 rounded-lg text-[8px] bg-red-500/10 text-red-500">BAN</button>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // Maintenance Sync (FIXED)
+            // Maintenance Sync
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
                 const btn = document.getElementById('mBtn');
                 const status = document.getElementById('systemLiveStatus');
@@ -189,8 +187,6 @@
                     btn.className = mStatus ? "w-full py-4 rounded-2xl font-black bg-red-600" : "w-full py-4 rounded-2xl font-black bg-slate-800 text-green-500 border border-green-500/20";
                     status.innerText = mStatus ? "OFFLINE" : "LIVE";
                     status.className = mStatus ? "text-2xl font-black mt-1 text-red-500" : "text-2xl font-black mt-1 text-green-400";
-                } else {
-                    setDoc(doc(db, "appSettings", "maintenance"), { isOn: false });
                 }
             });
 
@@ -203,20 +199,24 @@
                 }
             });
 
-            // Withdraws Monitor
+            // Withdraws Monitor (FIXED)
             onSnapshot(query(collection(db, "withdrawRequests"), where("status", "==", "Pending")), snap => {
                 document.getElementById('countPending').innerText = snap.size;
                 const list = document.getElementById('withdrawList'); list.innerHTML = "";
                 snap.forEach(d => {
                     const r = d.data();
+                    const accInfo = r.accountDetails || r.number || "N/A";
                     const card = document.createElement('div');
-                    card.className = "p-4 border border-white/5 rounded-2xl space-y-3";
+                    card.className = "p-4 border border-white/5 rounded-2xl space-y-3 glass";
                     card.innerHTML = `
-                        <p class="font-bold text-[10px]">${r.userName} (৳${r.amount})</p>
-                        <p class="text-[9px] text-slate-500">${r.method} - ${r.number}</p>
+                        <div class="flex justify-between">
+                            <p class="font-bold text-[11px] text-indigo-400">${r.method}</p>
+                            <p class="font-black text-white text-[11px]">৳${r.amount}</p>
+                        </div>
+                        <p class="text-[10px] text-slate-300 font-mono break-all">${accInfo}</p>
                         <div class="flex gap-2">
-                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[8px]">Pay</button>
-                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-500/10 text-red-500 rounded-lg text-[8px]">Cancel</button>
+                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[9px] font-black uppercase">Approve</button>
+                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-500/10 text-red-500 rounded-lg text-[9px] font-black uppercase">Reject</button>
                         </div>
                     `;
                     list.appendChild(card);
@@ -225,10 +225,19 @@
         }
 
         // Actions
+        window.processPayout = async (docId, status, uid = null, amt = 0) => {
+            if(!confirm(`Are you sure you want to ${status}?`)) return;
+            try {
+                await updateDoc(doc(db, "withdrawRequests", docId), { status: status });
+                if(status === 'Rejected' && uid) {
+                    await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
+                }
+                Swal.fire('Success', `Withdrawal ${status}`, 'success');
+            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
         window.toggleMaintenance = async () => {
-            const newStatus = !mStatus;
-            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: newStatus }, { merge: true });
-            Swal.fire('Updated', `System is now ${newStatus ? 'Offline' : 'Online'}`, 'success');
+            await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !mStatus }, { merge: true });
         };
 
         window.saveAd = async () => {
@@ -242,6 +251,10 @@
             Swal.fire('Success', 'CPM Updated', 'success');
         };
 
+        window.toggleMonetize = async (id, status) => {
+            await updateDoc(doc(db, "users", id), { isMonetized: !status });
+        };
+
         window.openMagic = (id, name, bal, views) => {
             document.getElementById('targetUserName').innerText = name;
             document.getElementById('addBalanceInput').value = bal;
@@ -253,19 +266,12 @@
                     fakeViews: parseInt(document.getElementById('fakeViewInput').value)
                 });
                 closeMagic();
-                Swal.fire('Updated', '', 'success');
+                Swal.fire('Updated', 'User data saved', 'success');
             };
         };
 
         window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
-        window.toggleMonetize = async (id, status) => await updateDoc(doc(db, "users", id), { isMonetized: !status });
-        window.hardBanUser = async (id) => { if(confirm('Ban this user?')) await deleteDoc(doc(db, "users", id)); };
-        
-        window.processPayout = async (id, status, uid = null, amt = 0) => {
-            await updateDoc(doc(db, "withdrawRequests", id), { status: status });
-            if(status === 'Rejected' && uid) await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
-            Swal.fire('Done', '', 'success');
-        };
+        window.hardBanUser = async (id) => { if(confirm('Ban this user?')) await updateDoc(doc(db, "users", id), { isBanned: true }); };
 
         window.sendBroadcast = async () => {
             const msg = document.getElementById('broadcastMsg').value;
@@ -279,13 +285,12 @@
         };
 
         window.resetAllBalances = async () => {
-            if(confirm('সব ব্যালেন্স ০ করতে চান?')) {
-                const users = await getDocs(collection(db, "users"));
-                const batch = writeBatch(db);
-                users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
-                await batch.commit();
-                Swal.fire('Reset Done', '', 'success');
-            }
+            if(!confirm('Reset ALL balances to 0?')) return;
+            const users = await getDocs(collection(db, "users"));
+            const batch = writeBatch(db);
+            users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
+            await batch.commit();
+            Swal.fire('Reset Done', '', 'success');
         };
     </script>
 </body>
