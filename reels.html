@@ -15,15 +15,14 @@
         .reels-container::-webkit-scrollbar { display: none; }
         .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* ভিডিও কন্টেইনার */
         .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
         .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
-        /* নিচের অ্যাড সেকশন */
-        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 40px; z-index: 20; color: white; font-size: 10px; }
+        /* অ্যাড সেকশন */
+        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 40px; z-index: 20; color: white; font-size: 10px; display: none; }
 
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
@@ -63,6 +62,7 @@
         let userData = null;
         let globalCPM = 0.0001;
         let viewTimers = {};
+        let activePostId = null;
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -76,9 +76,8 @@
         async function renderReels() {
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
             
-            // অ্যাড কোড নিয়ে আসা
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const adCode = adSnap.exists() ? adSnap.data().code : "বিজ্ঞাপন লোড হচ্ছে...";
+            const adCode = adSnap.exists() ? adSnap.data().code : "";
 
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
             
@@ -86,9 +85,13 @@
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
                 
-                snap.forEach(d => {
+                snap.forEach(async d => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
+
+                    // ইউজার মনিটাইজেশন চেক
+                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
+                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
 
                     const card = document.createElement('div');
                     card.className = "reel-card";
@@ -116,19 +119,24 @@
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
 
-                        <div class="bottom-ad-slot" id="ad-box-${id}">
+                        ${isOwnerMonetized && adCode ? `
+                        <div class="bottom-ad-slot" id="ad-box-${id}" style="display:flex;">
                             ${adCode}
-                        </div>
+                        </div>` : ''}
                     `;
                     wrapper.appendChild(card);
                     
-                    // অ্যাড যদি স্ক্রিপ্ট হয় তবে তা রান করানো
-                    if(adCode.includes('<script')) {
-                         const adBox = document.getElementById(`ad-box-${id}`);
-                         const range = document.createRange();
-                         const fragment = range.createContextualFragment(adCode);
-                         adBox.innerHTML = "";
-                         adBox.appendChild(fragment);
+                    // স্ক্রিপ্ট অ্যাড থাকলে রান করানো
+                    if(isOwnerMonetized && adCode && adCode.includes('<script')) {
+                         setTimeout(() => {
+                             const adBox = document.getElementById(`ad-box-${id}`);
+                             if(adBox) {
+                                 const range = document.createRange();
+                                 const fragment = range.createContextualFragment(adCode);
+                                 adBox.innerHTML = "";
+                                 adBox.appendChild(fragment);
+                             }
+                         }, 500);
                     }
                 });
                 initObserver();
@@ -179,6 +187,7 @@
         };
 
         window.openComments = (id) => {
+            activePostId = id; // কমেন্টের জন্য আইডি সেট
             document.getElementById('commentSheet').classList.add('active');
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc")), (snap) => {
                 const list = document.getElementById('commentList');
@@ -197,7 +206,7 @@
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            if(!input.value) return;
+            if(!input.value || !activePostId) return;
             await addDoc(collection(db, "posts", activePostId, "comments"), {
                 text: input.value,
                 userId: currentUser.uid,
