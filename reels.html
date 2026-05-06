@@ -21,8 +21,6 @@
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
         .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
-        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 40px; z-index: 20; color: white; font-size: 10px; display: none; }
-
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
@@ -53,13 +51,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            projectId: "seen-a1d92", 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -70,7 +65,7 @@
         let viewTimers = {};
         let activePostId = null;
         let replyCommentId = null;
-        let isAudioEnabled = false; // ট্র্যাক করবে ইউজার একবার স্ক্রিনে টাচ করেছে কি না
+        let isAudioEnabled = false;
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -81,44 +76,35 @@
             } else { window.location.href="index.html"; }
         });
 
-        // ব্রাউজারের অটো-প্লে ব্লক দূর করার জন্য ইউজার ইন্টারঅ্যাকশন হ্যান্ডলার
-        document.body.addEventListener('click', () => {
-            isAudioEnabled = true;
-            const currentVideo = document.querySelector('.reel-video[data-playing="true"]');
-            if(currentVideo) {
-                currentVideo.muted = false;
-                currentVideo.play().catch(e => console.log("Audio play blocked"));
-            }
-        }, { once: true });
+        // সাউন্ড অ্যাক্টিভেট করার জন্য
+        document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
         async function renderReels() {
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
-            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const adCode = adSnap.exists() ? adSnap.data().code : "";
-
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
+            
             onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
                 snap.forEach(async d => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
-                    
-                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
-                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
 
                     const card = document.createElement('div');
                     card.className = "reel-card";
                     card.innerHTML = `
                         <div class="video-wrapper">
-                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}" data-playing="false"></video>
+                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
                         </div>
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
                                 <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
                                 <span class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
                             </div>
-                            <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
+                            <div class="flex flex-col items-center">
+                                <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
+                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">0</span>
+                            </div>
                             <button onclick="shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
                         </div>
                         <div class="bottom-info">
@@ -128,9 +114,12 @@
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" style="display:flex;">${adCode}</div>` : ''}
                     `;
                     wrapper.appendChild(card);
+                    
+                    // কমেন্ট সংখ্যা লোড করা
+                    const cSnap = await getDocs(collection(db, "posts", id, "comments"));
+                    document.getElementById(`count-${id}`).innerText = cSnap.size;
                 });
                 initObserver();
             });
@@ -143,21 +132,17 @@
                     const id = vid.getAttribute('data-id');
                     const owner = vid.getAttribute('data-owner');
                     if (entry.isIntersecting) {
-                        vid.setAttribute('data-playing', 'true');
-                        vid.play().then(() => {
-                            // যদি ইউজার আগে ক্লিক করে থাকে, তবে সাউন্ড অন হবে
-                            if(isAudioEnabled) vid.muted = false;
-                        }).catch(() => {}); 
-                        
+                        vid.play();
+                        if(isAudioEnabled) vid.muted = false;
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
-                        vid.setAttribute('data-playing', 'false');
-                        vid.muted = true;
+                        vid.muted = true; // সাউন্ড মিক্সিং বন্ধ করতে
+                        vid.currentTime = 0; // স্ক্রিন থেকে গেলে শুরু থেকে সেট হবে
                         clearTimeout(viewTimers[id]); 
                     }
                 });
-            }, { threshold: 0.6 });
+            }, { threshold: 0.7 });
             document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
         }
 
@@ -175,12 +160,8 @@
         }
 
         window.handleReelTap = (v) => {
-            if (v.paused) {
-                v.play();
-                if(isAudioEnabled) v.muted = false;
-            } else {
-                v.pause();
-            }
+            if(v.paused) { v.play(); if(isAudioEnabled) v.muted = false; }
+            else v.pause();
         };
 
         window.likeReel = async (id) => {
@@ -193,32 +174,26 @@
         window.openComments = (id) => {
             activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
-            const q = query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc"));
-            onSnapshot(q, (snap) => {
+            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "desc")), (snap) => {
                 const list = document.getElementById('commentList');
                 list.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.data(); const cid = c.id;
                     const isCLiked = d.likes?.includes(currentUser.uid);
                     list.innerHTML += `
-                        <div class="flex flex-col gap-2">
-                            <div class="flex gap-3">
-                                <img src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover">
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start">
-                                        <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
-                                        <button onclick="likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'}">
-                                            <i class="${isCLiked ? 'fas' : 'far'} fa-heart text-xs"></i>
-                                            <span class="text-[9px] ml-1">${d.likes?.length || 0}</span>
-                                        </button>
-                                    </div>
-                                    <p class="text-white text-xs mt-1">
-                                        ${d.replyTo ? `<span class="text-indigo-500 mr-1 font-bold">@${d.replyTo}</span>` : ''} ${d.text}
-                                    </p>
-                                    <div class="flex gap-4 mt-2">
-                                        <button onclick="setupReply('${cid}', '${d.userName}')" class="text-[9px] font-black uppercase text-gray-500 tracking-wider">Reply</button>
-                                    </div>
+                        <div class="flex gap-3">
+                            <img onclick="window.location.href='user.html?id=${d.userId}'" src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover cursor-pointer">
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <p onclick="window.location.href='user.html?id=${d.userId}'" class="text-indigo-400 font-bold text-xs cursor-pointer">@${d.userName}</p>
+                                    <button onclick="likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'} text-[10px]">
+                                        <i class="fas fa-heart"></i> ${d.likes?.length || 0}
+                                    </button>
                                 </div>
+                                <p class="text-white text-xs mt-1">
+                                    ${d.replyTo ? `<span class="text-indigo-500 font-bold">@${d.replyTo}</span> ` : ''}${d.text}
+                                </p>
+                                <button onclick="setupReply('${cid}', '${d.userName}')" class="text-gray-500 text-[9px] font-bold mt-2 uppercase">Reply</button>
                             </div>
                         </div>`;
                 });
@@ -247,35 +222,28 @@
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
             if(!input.value || !activePostId) return;
-            
             const commentData = {
-                text: input.value,
-                userId: currentUser.uid,
-                userName: userData.name,
-                userPic: userData.profilePic,
-                likes: [],
-                timestamp: serverTimestamp()
+                text: input.value, userId: currentUser.uid, userName: userData.name,
+                userPic: userData.profilePic, likes: [], timestamp: serverTimestamp()
             };
-
             if (replyCommentId) {
                 const rSnap = await getDoc(doc(db, "posts", activePostId, "comments", replyCommentId));
                 commentData.replyTo = rSnap.data().userName;
                 cancelReply();
             }
-
             await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
             input.value = "";
+            // কমেন্ট সংখ্যা আপডেট
+            const cSnap = await getDocs(collection(db, "posts", activePostId, "comments"));
+            document.getElementById(`count-${activePostId}`).innerText = cSnap.size;
         };
 
-        window.closeComments = () => {
-            document.getElementById('commentSheet').classList.remove('active');
-            cancelReply();
-        };
+        window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); cancelReply(); };
 
         window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
-            if (navigator.share) navigator.share({ title: 'My Book', url: url });
-            else { navigator.clipboard.writeText(url); Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1500, showConfirmButton: false }); }
+            navigator.clipboard.writeText(url);
+            Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1000, showConfirmButton: false });
         };
     </script>
 </body>
