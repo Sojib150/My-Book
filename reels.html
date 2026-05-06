@@ -21,14 +21,13 @@
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
         .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
-        /* অ্যাড সেকশন */
         .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 40px; z-index: 20; color: white; font-size: 10px; display: none; }
 
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
-        .elite-popup { background: #111 !important; border: 1px solid #6366f1 !important; color: #fff !important; border-radius: 20px !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
@@ -36,11 +35,19 @@
     <div class="reels-container" id="reelsWrapper"></div>
 
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
-        <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6" onclick="closeComments()"></div>
+        <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar pb-20 text-sm"></div>
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3">
-            <input type="text" id="commentInput" placeholder="Write a message..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
+        
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm">
+            </div>
+
+        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
+            <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
+            <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
+            <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
             <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
@@ -63,6 +70,7 @@
         let globalCPM = 0.0001;
         let viewTimers = {};
         let activePostId = null;
+        let replyCommentId = null; // For threading
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -75,21 +83,17 @@
 
         async function renderReels() {
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
-            
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const adCode = adSnap.exists() ? adSnap.data().code : "";
 
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
-            
             onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
-                
                 snap.forEach(async d => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
-
-                    // ইউজার মনিটাইজেশন চেক
+                    
                     const ownerSnap = await getDoc(doc(db, "users", p.userId));
                     const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
 
@@ -99,45 +103,24 @@
                         <div class="video-wrapper">
                             <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
                         </div>
-                        
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
-                                <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}">
-                                    <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
-                                </button>
+                                <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
                                 <span class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
                             </div>
                             <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
                             <button onclick="shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
                         </div>
-
                         <div class="bottom-info">
                             <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover bg-gray-700">
+                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover">
                                 <h4 class="text-white font-black text-sm">@${p.userName}</h4>
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-
-                        ${isOwnerMonetized && adCode ? `
-                        <div class="bottom-ad-slot" id="ad-box-${id}" style="display:flex;">
-                            ${adCode}
-                        </div>` : ''}
+                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" style="display:flex;">${adCode}</div>` : ''}
                     `;
                     wrapper.appendChild(card);
-                    
-                    // স্ক্রিপ্ট অ্যাড থাকলে রান করানো
-                    if(isOwnerMonetized && adCode && adCode.includes('<script')) {
-                         setTimeout(() => {
-                             const adBox = document.getElementById(`ad-box-${id}`);
-                             if(adBox) {
-                                 const range = document.createRange();
-                                 const fragment = range.createContextualFragment(adCode);
-                                 adBox.innerHTML = "";
-                                 adBox.appendChild(fragment);
-                             }
-                         }, 500);
-                    }
                 });
                 initObserver();
             });
@@ -149,15 +132,10 @@
                     const vid = entry.target;
                     const id = vid.getAttribute('data-id');
                     const owner = vid.getAttribute('data-owner');
-
                     if (entry.isIntersecting) {
-                        vid.play().catch(() => {});
-                        vid.muted = false;
+                        vid.play().catch(() => {}); vid.muted = false;
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
-                    } else {
-                        vid.pause();
-                        clearTimeout(viewTimers[id]);
-                    }
+                    } else { vid.pause(); clearTimeout(viewTimers[id]); }
                 });
             }, { threshold: 0.8 });
             document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
@@ -168,17 +146,15 @@
             const postRef = doc(db, "posts", postId);
             const pSnap = await getDoc(postRef);
             if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
-
             await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(currentUser.uid) });
             const ownerRef = doc(db, "users", ownerId);
             const oSnap = await getDoc(ownerRef);
             if (oSnap.exists() && oSnap.data().isMonetized) {
-                await updateDoc(ownerRef, { balance: increment(globalCPM) });
+                await updateDoc(ownerRef, { balance: increment(globalCPM), totalImpressions: increment(1) });
             }
         }
 
         window.handleReelTap = (v) => v.paused ? v.play() : v.pause();
-
         window.likeReel = async (id) => {
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
@@ -186,35 +162,87 @@
             await updateDoc(ref, { likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
 
+        // --- Comments with Like & Reply ---
         window.openComments = (id) => {
-            activePostId = id; // কমেন্টের জন্য আইডি সেট
+            activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
-            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc")), (snap) => {
+            const q = query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snap) => {
                 const list = document.getElementById('commentList');
                 list.innerHTML = "";
                 snap.forEach(c => {
-                    const d = c.data();
-                    list.innerHTML += `<div class="flex gap-3">
-                        <img src="${d.userPic}" class="w-8 h-8 rounded-full object-cover">
-                        <div><p class="text-indigo-400 font-bold text-[10px]">@${d.userName}</p><p class="text-white text-xs">${d.text}</p></div>
-                    </div>`;
+                    const d = c.data(); const cid = c.id;
+                    const isCLiked = d.likes?.includes(currentUser.uid);
+                    list.innerHTML += `
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-3">
+                                <img src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover">
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
+                                        <button onclick="likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'}">
+                                            <i class="${isCLiked ? 'fas' : 'far'} fa-heart text-xs"></i>
+                                            <span class="text-[9px] ml-1">${d.likes?.length || 0}</span>
+                                        </button>
+                                    </div>
+                                    <p class="text-white text-xs mt-1">
+                                        ${d.replyTo ? `<span class="text-indigo-500 mr-1 font-bold">@${d.replyTo}</span>` : ''} ${d.text}
+                                    </p>
+                                    <div class="flex gap-4 mt-2">
+                                        <button onclick="setupReply('${cid}', '${d.userName}')" class="text-[9px] font-black uppercase text-gray-500 tracking-wider">Reply</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                 });
             });
         };
 
-        window.closeComments = () => document.getElementById('commentSheet').classList.remove('active');
+        window.likeComment = async (cid) => {
+            const ref = doc(db, "posts", activePostId, "comments", cid);
+            const snap = await getDoc(ref);
+            const isLiked = snap.data().likes?.includes(currentUser.uid);
+            await updateDoc(ref, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+        };
+
+        window.setupReply = (cid, name) => {
+            replyCommentId = cid;
+            document.getElementById('replyPreview').classList.remove('hidden');
+            document.getElementById('replyToText').innerText = `Replying to @${name}`;
+            document.getElementById('commentInput').focus();
+        };
+
+        window.cancelReply = () => {
+            replyCommentId = null;
+            document.getElementById('replyPreview').classList.add('hidden');
+        };
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
             if(!input.value || !activePostId) return;
-            await addDoc(collection(db, "posts", activePostId, "comments"), {
+            
+            const commentData = {
                 text: input.value,
                 userId: currentUser.uid,
                 userName: userData.name,
                 userPic: userData.profilePic,
+                likes: [],
                 timestamp: serverTimestamp()
-            });
+            };
+
+            if (replyCommentId) {
+                const rSnap = await getDoc(doc(db, "posts", activePostId, "comments", replyCommentId));
+                commentData.replyTo = rSnap.data().userName;
+                cancelReply();
+            }
+
+            await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
             input.value = "";
+        };
+
+        window.closeComments = () => {
+            document.getElementById('commentSheet').classList.remove('active');
+            cancelReply();
         };
 
         window.shareReel = (id) => {
