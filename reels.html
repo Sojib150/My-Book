@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -24,9 +24,8 @@
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
         
-        .reel-ad-box { position: absolute; top: 60px; width: 90%; z-index: 20; display: flex; justify-content: center; }
+        .reel-ad { position: absolute; top: 20px; width: 85%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border-radius: 16px; padding: 12px; color: white; text-align: center; border: 1px solid rgba(99, 102, 241, 0.3); z-index: 20; }
         .elite-popup { background: #111 !important; border: 1px solid #6366f1 !important; color: #fff !important; border-radius: 20px !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
@@ -45,47 +44,43 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            projectId: "seen-a1d92" 
+            projectId: "seen-a1d92", 
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let currentUser = null;
-        let currentUserData = null;
+        let userData = null;
         let activePostId = null;
         let globalCPM = 0.0001;
         let viewTimers = {};
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
-                currentUser = user;
+                currentUser = user; 
                 const uSnap = await getDoc(doc(db, "users", user.uid));
-                currentUserData = uSnap.exists() ? uSnap.data() : null;
-
-                onSnapshot(doc(db, "appSettings", "algorithm"), snap => {
-                    if (snap.exists()) globalCPM = snap.data().trendBoost || 0.0001;
-                });
-
+                userData = uSnap.data();
                 renderReels(); 
             } else { window.location.href="index.html"; }
         });
 
         async function renderReels() {
-            // কুয়েরি অপ্টিমাইজেশান
-            const reelsQuery = query(
-                collection(db, "posts"), 
-                where("fileType", "==", "video"), 
-                orderBy("createdAt", "desc"), 
-                limit(20)
-            );
+            // সেটিংস থেকে CPM রেট নেওয়া
+            onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
             
-            onSnapshot(reelsQuery, (snap) => {
+            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+            const adCode = adSnap.exists() ? adSnap.data().code : "";
+
+            // শুধুমাত্র ভিডিও পোস্টগুলো লোড করা (orderBy সরিয়ে দেওয়া হয়েছে ইনডেক্স এরর এড়াতে)
+            const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
+            
+            onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
                 
@@ -98,8 +93,6 @@
                     card.innerHTML = `
                         <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
                         
-                        <div class="reel-ad-box" id="ad-slot-${id}"></div>
-
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
                                 <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}">
@@ -112,28 +105,19 @@
                         </div>
 
                         <div class="bottom-info">
-                            <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover bg-gray-800">
-                                <h4 class="text-white font-black text-sm">@${p.userName || 'User'}</h4>
+                            <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">
+                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover bg-gray-700">
+                                <h4 class="text-white font-black text-sm">@${p.userName}</h4>
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
+
+                        ${adCode ? `<div class="reel-ad text-[10px] font-bold"><i class="fas fa-ad mr-2"></i> ${adCode}</div>` : ""}
                     `;
                     wrapper.appendChild(card);
-                    loadAdForReel(id);
                 });
                 initObserver();
             });
-        }
-
-        async function loadAdForReel(postId) {
-            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            if (adSnap.exists() && adSnap.data().code) {
-                const adSlot = document.getElementById(`ad-slot-${postId}`);
-                const range = document.createRange();
-                const fragment = range.createContextualFragment(adSnap.data().code);
-                adSlot.appendChild(fragment);
-            }
         }
 
         function initObserver() {
@@ -141,19 +125,16 @@
                 entries.forEach(entry => {
                     const vid = entry.target;
                     const id = vid.getAttribute('data-id');
-                    const ownerId = vid.getAttribute('data-owner');
+                    const owner = vid.getAttribute('data-owner');
 
                     if (entry.isIntersecting) {
                         vid.play().catch(() => {});
                         vid.muted = false;
-                        // ৫ সেকেন্ড রিটেনশন টাইমার (আপনার Home.html লজিক অনুযায়ী)
-                        viewTimers[id] = setTimeout(() => handleView(id, ownerId), 5000);
+                        // ৫ সেকেন্ড ভিউ হলে ইনকাম হবে
+                        viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else {
                         vid.pause();
-                        if(viewTimers[id]) {
-                            clearTimeout(viewTimers[id]);
-                            delete viewTimers[id];
-                        }
+                        clearTimeout(viewTimers[id]);
                     }
                 });
             }, { threshold: 0.8 });
@@ -164,61 +145,45 @@
             if (ownerId === currentUser.uid) return;
             const postRef = doc(db, "posts", postId);
             const pSnap = await getDoc(postRef);
-            if (!pSnap.exists()) return;
-            
-            const viewedBy = pSnap.data().viewedBy || [];
-            if (viewedBy.includes(currentUser.uid)) return;
+            if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
 
-            try {
-                await updateDoc(postRef, { 
-                    views: increment(1), 
-                    viewedBy: arrayUnion(currentUser.uid),
-                    trendScore: increment(1)
-                });
+            // ভিউ আপডেট
+            await updateDoc(postRef, { 
+                views: increment(1), 
+                viewedBy: arrayUnion(currentUser.uid) 
+            });
 
-                const ownerRef = doc(db, "users", ownerId);
-                const ownerSnap = await getDoc(ownerRef);
-                if (ownerSnap.exists() && ownerSnap.data().isMonetized) {
-                    await updateDoc(ownerRef, { balance: increment(globalCPM) });
-                }
-            } catch (e) { console.error("View tracking error:", e); }
+            // মালিকের ব্যালেন্স আপডেট
+            const ownerRef = doc(db, "users", ownerId);
+            const oSnap = await getDoc(ownerRef);
+            if (oSnap.exists() && oSnap.data().isMonetized) {
+                await updateDoc(ownerRef, { balance: increment(globalCPM) });
+            }
         }
 
-        window.handleReelTap = (v) => {
-            if(v.paused) {
-                v.play();
-                v.muted = false;
-            } else {
-                v.pause();
-            }
-        };
+        window.handleReelTap = (v) => v.paused ? v.play() : v.pause();
 
         window.likeReel = async (id) => {
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
-            if(!pSnap.exists()) return;
             const isLiked = pSnap.data().likedBy?.includes(currentUser.uid);
             await updateDoc(ref, {
                 likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
             });
         };
 
-        window.openComments = async (id) => {
+        window.openComments = (id) => {
             activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
-            const list = document.getElementById('commentList');
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc")), (snap) => {
+                const list = document.getElementById('commentList');
                 list.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.data();
-                    list.innerHTML += `
-                        <div class="flex gap-3">
-                            <img src="${d.userPic || ''}" class="w-8 h-8 rounded-full object-cover bg-gray-700">
-                            <div>
-                                <p class="text-indigo-400 font-bold text-[10px]">@${d.userName}</p>
-                                <p class="text-white text-xs">${d.text}</p>
-                            </div>
-                        </div>`;
+                    list.innerHTML += `<div class="flex gap-3">
+                        <img src="${d.userPic}" class="w-8 h-8 rounded-full object-cover bg-gray-700">
+                        <div><p class="text-indigo-400 font-bold text-[10px]">@${d.userName}</p><p class="text-white text-xs">${d.text}</p></div>
+                    </div>`;
                 });
             });
         };
@@ -227,33 +192,25 @@
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            const val = input.value.trim();
-            if(!val || !activePostId) return;
-            
+            if(!input.value || !activePostId) return;
             await addDoc(collection(db, "posts", activePostId, "comments"), {
-                text: val,
+                text: input.value,
                 userId: currentUser.uid,
-                userName: currentUserData.name || "User",
-                userPic: currentUserData.profilePic || "",
+                userName: userData.name,
+                userPic: userData.profilePic,
                 timestamp: serverTimestamp()
             });
             await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
             input.value = "";
         };
 
-        window.shareReel = async (id) => {
+        window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
             if (navigator.share) {
                 navigator.share({ title: 'My Book', url: url });
             } else {
                 navigator.clipboard.writeText(url);
-                Swal.fire({ 
-                    title: 'Link Copied!', 
-                    icon: 'success', 
-                    timer: 1500, 
-                    showConfirmButton: false, 
-                    customClass: { popup: 'elite-popup' } 
-                });
+                Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 2000, showConfirmButton: false, customClass: { popup: 'elite-popup' } });
             }
         };
     </script>
