@@ -13,18 +13,22 @@
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
         .reels-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
-        .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* ভিডিও কন্টেইনার */
+        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
-        .side-bar { position: absolute; right: 12px; bottom: 140px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
-        .bottom-info { position: absolute; bottom: 40px; left: 15px; right: 80px; z-index: 10; }
+        .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
+        .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
+        /* নিচের অ্যাড সেকশন */
+        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 40px; z-index: 20; color: white; font-size: 10px; }
+
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
-        
-        .reel-ad { position: absolute; top: 20px; width: 85%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border-radius: 16px; padding: 12px; color: white; text-align: center; border: 1px solid rgba(99, 102, 241, 0.3); z-index: 20; }
         .elite-popup { background: #111 !important; border: 1px solid #6366f1 !important; color: #fff !important; border-radius: 20px !important; }
     </style>
 </head>
@@ -57,7 +61,6 @@
 
         let currentUser = null;
         let userData = null;
-        let activePostId = null;
         let globalCPM = 0.0001;
         let viewTimers = {};
 
@@ -71,13 +74,12 @@
         });
 
         async function renderReels() {
-            // সেটিংস থেকে CPM রেট নেওয়া
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
             
+            // অ্যাড কোড নিয়ে আসা
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            const adCode = adSnap.exists() ? adSnap.data().code : "";
+            const adCode = adSnap.exists() ? adSnap.data().code : "বিজ্ঞাপন লোড হচ্ছে...";
 
-            // শুধুমাত্র ভিডিও পোস্টগুলো লোড করা (orderBy সরিয়ে দেওয়া হয়েছে ইনডেক্স এরর এড়াতে)
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
             
             onSnapshot(q, (snap) => {
@@ -91,7 +93,9 @@
                     const card = document.createElement('div');
                     card.className = "reel-card";
                     card.innerHTML = `
-                        <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
+                        <div class="video-wrapper">
+                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
+                        </div>
                         
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
@@ -112,9 +116,20 @@
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
 
-                        ${adCode ? `<div class="reel-ad text-[10px] font-bold"><i class="fas fa-ad mr-2"></i> ${adCode}</div>` : ""}
+                        <div class="bottom-ad-slot" id="ad-box-${id}">
+                            ${adCode}
+                        </div>
                     `;
                     wrapper.appendChild(card);
+                    
+                    // অ্যাড যদি স্ক্রিপ্ট হয় তবে তা রান করানো
+                    if(adCode.includes('<script')) {
+                         const adBox = document.getElementById(`ad-box-${id}`);
+                         const range = document.createRange();
+                         const fragment = range.createContextualFragment(adCode);
+                         adBox.innerHTML = "";
+                         adBox.appendChild(fragment);
+                    }
                 });
                 initObserver();
             });
@@ -130,7 +145,6 @@
                     if (entry.isIntersecting) {
                         vid.play().catch(() => {});
                         vid.muted = false;
-                        // ৫ সেকেন্ড ভিউ হলে ইনকাম হবে
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else {
                         vid.pause();
@@ -147,13 +161,7 @@
             const pSnap = await getDoc(postRef);
             if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
 
-            // ভিউ আপডেট
-            await updateDoc(postRef, { 
-                views: increment(1), 
-                viewedBy: arrayUnion(currentUser.uid) 
-            });
-
-            // মালিকের ব্যালেন্স আপডেট
+            await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(currentUser.uid) });
             const ownerRef = doc(db, "users", ownerId);
             const oSnap = await getDoc(ownerRef);
             if (oSnap.exists() && oSnap.data().isMonetized) {
@@ -167,13 +175,10 @@
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
             const isLiked = pSnap.data().likedBy?.includes(currentUser.uid);
-            await updateDoc(ref, {
-                likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-            });
+            await updateDoc(ref, { likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
 
         window.openComments = (id) => {
-            activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "asc")), (snap) => {
                 const list = document.getElementById('commentList');
@@ -181,7 +186,7 @@
                 snap.forEach(c => {
                     const d = c.data();
                     list.innerHTML += `<div class="flex gap-3">
-                        <img src="${d.userPic}" class="w-8 h-8 rounded-full object-cover bg-gray-700">
+                        <img src="${d.userPic}" class="w-8 h-8 rounded-full object-cover">
                         <div><p class="text-indigo-400 font-bold text-[10px]">@${d.userName}</p><p class="text-white text-xs">${d.text}</p></div>
                     </div>`;
                 });
@@ -192,7 +197,7 @@
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            if(!input.value || !activePostId) return;
+            if(!input.value) return;
             await addDoc(collection(db, "posts", activePostId, "comments"), {
                 text: input.value,
                 userId: currentUser.uid,
@@ -200,18 +205,13 @@
                 userPic: userData.profilePic,
                 timestamp: serverTimestamp()
             });
-            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
             input.value = "";
         };
 
         window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
-            if (navigator.share) {
-                navigator.share({ title: 'My Book', url: url });
-            } else {
-                navigator.clipboard.writeText(url);
-                Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 2000, showConfirmButton: false, customClass: { popup: 'elite-popup' } });
-            }
+            if (navigator.share) navigator.share({ title: 'My Book', url: url });
+            else { navigator.clipboard.writeText(url); Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1500, showConfirmButton: false }); }
         };
     </script>
 </body>
