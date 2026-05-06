@@ -20,6 +20,9 @@
         .video-box { width: 100%; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
         video { width: 100%; max-height: 70vh; display: block; }
         
+        /* ভিডিওর ভেতরে অ্যাড স্লট */
+        .post-ad-slot { width: 100%; background: #f1f5f9; padding: 8px; font-size: 10px; text-align: center; border-top: 1px solid #e2e8f0; display: none; }
+        
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); display: none; z-index: 999; }
@@ -127,12 +130,12 @@
         let currentUserData = null;
         let activePostId = null; 
         let globalCPM = 0.0001;
+        let adCode = "";
         let viewTimers = {}; 
 
         onAuthStateChanged(auth, async u => { 
             if(u){ 
                 user = u; 
-                // সেটিংস এবং সিকিউরিটি লিসেনার
                 onSnapshot(doc(db, "appSettings", "maintenance"), (snap) => {
                     if (snap.exists()) document.getElementById('maintenanceUI').style.display = snap.data().isOn ? 'flex' : 'none';
                 });
@@ -141,12 +144,13 @@
                     if (snap.exists()) globalCPM = snap.data().trendBoost || 0.0001;
                 });
 
-                // বিজ্ঞাপন লোডার
+                // বিজ্ঞাপন ডাটা ফেচ
                 onSnapshot(doc(db, "appSettings", "ads"), snap => {
                     if (snap.exists() && snap.data().code) {
+                        adCode = snap.data().code;
                         const adSlot = document.getElementById('global-ad-slot');
                         const range = document.createRange();
-                        const documentFragment = range.createContextualFragment(snap.data().code);
+                        const documentFragment = range.createContextualFragment(adCode);
                         adSlot.innerHTML = ""; 
                         adSlot.appendChild(documentFragment);
                     }
@@ -163,7 +167,6 @@
             } else location.href="index.html"; 
         });
 
-        // ভিউ এবং মনিটাইজেশন হ্যান্ডলার
         async function handlePostView(postId, creatorId) {
             if (!postId || creatorId === user.uid) return;
             const postRef = doc(db, "posts", postId);
@@ -191,19 +194,23 @@
             const feed = document.getElementById('feed');
             onSnapshot(query(collection(db, "posts"), limit(30), orderBy("createdAt", "desc")), snap => {
                 feed.innerHTML = "";
-                snap.forEach(d => {
-                    const card = createPostCard(d.id, d.data());
+                snap.forEach(async d => {
+                    const card = await createPostCard(d.id, d.data());
                     feed.appendChild(card);
                 });
-                initIntersection();
+                setTimeout(initIntersection, 1000);
             });
         }
 
-        function createPostCard(id, p) {
+        async function createPostCard(id, p) {
             const isMine = p.userId === user.uid;
             const hasL = p.likedBy?.includes(user.uid);
             const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'Just Now';
             
+            // মনিটাইজেশন চেক
+            const creatorSnap = await getDoc(doc(db, "users", p.userId));
+            const isCreatorMonetized = creatorSnap.exists() ? creatorSnap.data().isMonetized : false;
+
             const card = document.createElement('div');
             card.className = "premium-card";
             card.innerHTML = `
@@ -227,6 +234,13 @@
                             }
                         </div>` : ''}
                 </div>
+
+                ${isCreatorMonetized && p.fileType === 'video' && adCode ? `
+                    <div class="post-ad-slot" id="post-ad-${id}" style="display:block;">
+                        ${adCode}
+                    </div>
+                ` : ''}
+
                 <div class="flex justify-around py-2 border-t mt-1">
                     <button onclick="like('${id}')" class="flex flex-col items-center flex-1 py-2 ${hasL ? 'text-red-500' : 'text-gray-400'}">
                         <i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i>
@@ -246,6 +260,20 @@
                     </button>
                 </div>
             `;
+
+            // যদি অ্যাড কোডে স্ক্রিপ্ট থাকে তবে তা রেন্ডার করা
+            if(isCreatorMonetized && p.fileType === 'video' && adCode.includes('<script')) {
+                setTimeout(() => {
+                    const adDiv = document.getElementById(`post-ad-${id}`);
+                    if(adDiv) {
+                        const range = document.createRange();
+                        const fragment = range.createContextualFragment(adCode);
+                        adDiv.innerHTML = "";
+                        adDiv.appendChild(fragment);
+                    }
+                }, 500);
+            }
+
             return card;
         }
 
