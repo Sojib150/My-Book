@@ -29,7 +29,7 @@
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* হার্ট এনিমেশন (Double Tap) */
+        /* হার্ট এনিমেশন */
         .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; }
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
@@ -111,11 +111,11 @@
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
                                 <button id="likeBtn-${id}" onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
-                                <span id="likeCount-${id}" class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
+                                <span class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
                             </div>
                             <div class="flex flex-col items-center">
                                 <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
-                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">...</span>
+                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">0</span>
                             </div>
                             <button onclick="shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
                         </div>
@@ -126,40 +126,19 @@
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}">${adCode}</div>` : ''}
+                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>` : ''}
                     `;
                     wrapper.appendChild(card);
                     
-                    // লাইভ কমেন্ট কাউন্ট আপডেট
+                    // লাইভ কমেন্ট সংখ্যা
                     onSnapshot(collection(db, "posts", id, "comments"), s => {
-                        document.getElementById(`count-${id}`).innerText = s.size;
+                        const countEl = document.getElementById(`count-${id}`);
+                        if(countEl) countEl.innerText = s.size;
                     });
-
-                    // অ্যাড স্ক্রিপ্ট রান করানো
-                    if(isOwnerMonetized && adCode.includes('<script')) {
-                        setTimeout(() => {
-                            const range = document.createRange();
-                            const fragment = range.createContextualFragment(adCode);
-                            const box = document.getElementById(`ad-box-${id}`);
-                            if(box) { box.innerHTML = ""; box.appendChild(fragment); }
-                        }, 500);
-                    }
                 });
                 initObserver();
             });
         }
-
-        window.handleDoubleTap = async (el, id) => {
-            const heart = el.querySelector('.heart-animation');
-            heart.classList.add('heart-active');
-            setTimeout(() => heart.classList.remove('heart-active'), 800);
-            
-            const ref = doc(db, "posts", id);
-            const pSnap = await getDoc(ref);
-            if(!pSnap.data().likedBy?.includes(currentUser.uid)) {
-                await updateDoc(ref, { likedBy: arrayUnion(currentUser.uid) });
-            }
-        };
 
         function initObserver() {
             const observer = new IntersectionObserver((entries) => {
@@ -167,20 +146,38 @@
                     const vid = entry.target;
                     const id = vid.getAttribute('data-id');
                     const owner = vid.getAttribute('data-owner');
+                    const adBox = document.getElementById(`ad-box-${id}`);
+
                     if (entry.isIntersecting) {
                         vid.play();
                         if(isAudioEnabled) vid.muted = false;
+                        
+                        // লাজি লোড অ্যাড (ভিডিও সামনে আসলে অ্যাড ইনজেক্ট হবে)
+                        if(adBox && adBox.innerHTML.trim() === "") {
+                            const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
+                            const range = document.createRange();
+                            const fragment = range.createContextualFragment(rawAd);
+                            adBox.appendChild(fragment);
+                        }
+
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
                         vid.muted = true; 
-                        vid.currentTime = 0;
+                        vid.currentTime = 0; // সাউন্ড মিক্স বন্ধ করতে
                         clearTimeout(viewTimers[id]); 
                     }
                 });
-            }, { threshold: 0.7 });
+            }, { threshold: 0.6 });
             document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
         }
+
+        window.handleDoubleTap = async (el, id) => {
+            const heart = el.querySelector('.heart-animation');
+            heart.classList.add('heart-active');
+            setTimeout(() => heart.classList.remove('heart-active'), 800);
+            await likeReel(id);
+        };
 
         async function handleView(postId, ownerId) {
             if (ownerId === currentUser.uid) return;
