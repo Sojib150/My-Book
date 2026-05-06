@@ -21,11 +21,18 @@
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
         .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
+        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 50px; z-index: 20; color: white; font-size: 10px; }
+
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* হার্ট এনিমেশন (Double Tap) */
+        .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; }
+        .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
+        @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
     </style>
 </head>
 <body>
@@ -76,13 +83,14 @@
             } else { window.location.href="index.html"; }
         });
 
-        // সাউন্ড অ্যাক্টিভেট করার জন্য
         document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
         async function renderReels() {
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
+            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+            const adCode = adSnap.exists() ? adSnap.data().code : "";
+
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
-            
             onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
@@ -90,20 +98,24 @@
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
 
+                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
+                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
+
                     const card = document.createElement('div');
                     card.className = "reel-card";
                     card.innerHTML = `
-                        <div class="video-wrapper">
+                        <div class="video-wrapper" ondblclick="handleDoubleTap(this, '${id}')">
+                            <i class="fas fa-heart heart-animation"></i>
                             <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
                         </div>
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
-                                <button onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
-                                <span class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
+                                <button id="likeBtn-${id}" onclick="likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : ''}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
+                                <span id="likeCount-${id}" class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
                             </div>
                             <div class="flex flex-col items-center">
                                 <button onclick="openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
-                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">0</span>
+                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">...</span>
                             </div>
                             <button onclick="shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
                         </div>
@@ -114,16 +126,40 @@
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
+                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}">${adCode}</div>` : ''}
                     `;
                     wrapper.appendChild(card);
                     
-                    // কমেন্ট সংখ্যা লোড করা
-                    const cSnap = await getDocs(collection(db, "posts", id, "comments"));
-                    document.getElementById(`count-${id}`).innerText = cSnap.size;
+                    // লাইভ কমেন্ট কাউন্ট আপডেট
+                    onSnapshot(collection(db, "posts", id, "comments"), s => {
+                        document.getElementById(`count-${id}`).innerText = s.size;
+                    });
+
+                    // অ্যাড স্ক্রিপ্ট রান করানো
+                    if(isOwnerMonetized && adCode.includes('<script')) {
+                        setTimeout(() => {
+                            const range = document.createRange();
+                            const fragment = range.createContextualFragment(adCode);
+                            const box = document.getElementById(`ad-box-${id}`);
+                            if(box) { box.innerHTML = ""; box.appendChild(fragment); }
+                        }, 500);
+                    }
                 });
                 initObserver();
             });
         }
+
+        window.handleDoubleTap = async (el, id) => {
+            const heart = el.querySelector('.heart-animation');
+            heart.classList.add('heart-active');
+            setTimeout(() => heart.classList.remove('heart-active'), 800);
+            
+            const ref = doc(db, "posts", id);
+            const pSnap = await getDoc(ref);
+            if(!pSnap.data().likedBy?.includes(currentUser.uid)) {
+                await updateDoc(ref, { likedBy: arrayUnion(currentUser.uid) });
+            }
+        };
 
         function initObserver() {
             const observer = new IntersectionObserver((entries) => {
@@ -137,8 +173,8 @@
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
-                        vid.muted = true; // সাউন্ড মিক্সিং বন্ধ করতে
-                        vid.currentTime = 0; // স্ক্রিন থেকে গেলে শুরু থেকে সেট হবে
+                        vid.muted = true; 
+                        vid.currentTime = 0;
                         clearTimeout(viewTimers[id]); 
                     }
                 });
@@ -233,9 +269,6 @@
             }
             await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
             input.value = "";
-            // কমেন্ট সংখ্যা আপডেট
-            const cSnap = await getDocs(collection(db, "posts", activePostId, "comments"));
-            document.getElementById(`count-${activePostId}`).innerText = cSnap.size;
         };
 
         window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); cancelReply(); };
