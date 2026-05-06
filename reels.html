@@ -38,8 +38,7 @@
         <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
         
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm">
-            </div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
 
         <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
             <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
@@ -70,7 +69,8 @@
         let globalCPM = 0.0001;
         let viewTimers = {};
         let activePostId = null;
-        let replyCommentId = null; // For threading
+        let replyCommentId = null;
+        let isAudioEnabled = false; // ট্র্যাক করবে ইউজার একবার স্ক্রিনে টাচ করেছে কি না
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -80,6 +80,16 @@
                 renderReels(); 
             } else { window.location.href="index.html"; }
         });
+
+        // ব্রাউজারের অটো-প্লে ব্লক দূর করার জন্য ইউজার ইন্টারঅ্যাকশন হ্যান্ডলার
+        document.body.addEventListener('click', () => {
+            isAudioEnabled = true;
+            const currentVideo = document.querySelector('.reel-video[data-playing="true"]');
+            if(currentVideo) {
+                currentVideo.muted = false;
+                currentVideo.play().catch(e => console.log("Audio play blocked"));
+            }
+        }, { once: true });
 
         async function renderReels() {
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
@@ -101,7 +111,7 @@
                     card.className = "reel-card";
                     card.innerHTML = `
                         <div class="video-wrapper">
-                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}"></video>
+                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="handleReelTap(this)" data-id="${id}" data-owner="${p.userId}" data-playing="false"></video>
                         </div>
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
@@ -133,11 +143,21 @@
                     const id = vid.getAttribute('data-id');
                     const owner = vid.getAttribute('data-owner');
                     if (entry.isIntersecting) {
-                        vid.play().catch(() => {}); vid.muted = false;
+                        vid.setAttribute('data-playing', 'true');
+                        vid.play().then(() => {
+                            // যদি ইউজার আগে ক্লিক করে থাকে, তবে সাউন্ড অন হবে
+                            if(isAudioEnabled) vid.muted = false;
+                        }).catch(() => {}); 
+                        
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
-                    } else { vid.pause(); clearTimeout(viewTimers[id]); }
+                    } else { 
+                        vid.pause(); 
+                        vid.setAttribute('data-playing', 'false');
+                        vid.muted = true;
+                        clearTimeout(viewTimers[id]); 
+                    }
                 });
-            }, { threshold: 0.8 });
+            }, { threshold: 0.6 });
             document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
         }
 
@@ -154,7 +174,15 @@
             }
         }
 
-        window.handleReelTap = (v) => v.paused ? v.play() : v.pause();
+        window.handleReelTap = (v) => {
+            if (v.paused) {
+                v.play();
+                if(isAudioEnabled) v.muted = false;
+            } else {
+                v.pause();
+            }
+        };
+
         window.likeReel = async (id) => {
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
@@ -162,7 +190,6 @@
             await updateDoc(ref, { likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
 
-        // --- Comments with Like & Reply ---
         window.openComments = (id) => {
             activePostId = id;
             document.getElementById('commentSheet').classList.add('active');
