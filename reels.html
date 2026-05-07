@@ -29,7 +29,6 @@
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* হার্ট এনিমেশন */
         .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; }
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
@@ -74,6 +73,10 @@
         let replyCommentId = null;
         let isAudioEnabled = false;
 
+        // URL থেকে ID চেক করার জন্য
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVideoId = urlParams.get('id');
+
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
                 currentUser = user; 
@@ -90,11 +93,23 @@
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const adCode = adSnap.exists() ? adSnap.data().code : "";
 
-            const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
+            const q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
             onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
-                snap.forEach(async d => {
+                
+                let allDocs = snap.docs;
+
+                // যদি হোম পেজ থেকে নির্দিষ্ট আইডি আসে, তবে সেই ভিডিওটিকে সবার আগে নিয়ে আসা
+                if (targetVideoId) {
+                    const targetIndex = allDocs.findIndex(d => d.id === targetVideoId);
+                    if (targetIndex > -1) {
+                        const targetDoc = allDocs.splice(targetIndex, 1)[0];
+                        allDocs.unshift(targetDoc); 
+                    }
+                }
+
+                allDocs.forEach(async d => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
 
@@ -130,13 +145,12 @@
                     `;
                     wrapper.appendChild(card);
                     
-                    // লাইভ কমেন্ট সংখ্যা
                     onSnapshot(collection(db, "posts", id, "comments"), s => {
                         const countEl = document.getElementById(`count-${id}`);
                         if(countEl) countEl.innerText = s.size;
                     });
                 });
-                initObserver();
+                setTimeout(initObserver, 500);
             });
         }
 
@@ -149,10 +163,9 @@
                     const adBox = document.getElementById(`ad-box-${id}`);
 
                     if (entry.isIntersecting) {
-                        vid.play();
+                        vid.play().catch(e => console.log("Auto-play blocked"));
                         if(isAudioEnabled) vid.muted = false;
                         
-                        // লাজি লোড অ্যাড (ভিডিও সামনে আসলে অ্যাড ইনজেক্ট হবে)
                         if(adBox && adBox.innerHTML.trim() === "") {
                             const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
                             const range = document.createRange();
@@ -164,7 +177,7 @@
                     } else { 
                         vid.pause(); 
                         vid.muted = true; 
-                        vid.currentTime = 0; // সাউন্ড মিক্স বন্ধ করতে
+                        vid.currentTime = 0; 
                         clearTimeout(viewTimers[id]); 
                     }
                 });
@@ -193,8 +206,12 @@
         }
 
         window.handleReelTap = (v) => {
-            if(v.paused) { v.play(); if(isAudioEnabled) v.muted = false; }
-            else v.pause();
+            if(v.paused) { 
+                v.play(); 
+                if(isAudioEnabled) v.muted = false; 
+            } else {
+                v.pause();
+            }
         };
 
         window.likeReel = async (id) => {
