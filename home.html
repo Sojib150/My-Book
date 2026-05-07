@@ -17,41 +17,41 @@
         #incomingCallUI { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-150%); width: 92%; max-width: 380px; background: #000; border-radius: 35px; padding: 12px 20px; z-index: 2000; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; align-items: center; justify-content: space-between; color: white; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
         #incomingCallUI.active { transform: translateX(-50%) translateY(0); }
         
-        .video-box-wrapper { width: 100%; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
+        .video-box-wrapper { width: 100%; background: #000; border-radius: 10px; overflow: hidden; position: relative; min-height: 250px; }
         video { width: 100%; max-height: 70vh; display: block; cursor: pointer; background: #000; }
         
-        .mute-btn-indicator { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0.8; }
-        .reels-expand-btn { position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 10px 14px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+        .mute-btn-indicator { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: 0.3s; }
+        .reels-expand-btn { position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 10px 14px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; z-index: 10; }
 
         .post-ad-slot { width: 100%; background: #f1f5f9; padding: 12px; font-size: 10px; text-align: center; border-top: 1px solid #e2e8f0; min-height: 50px; }
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); display: none; z-index: 999; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border-radius: 32px; padding: 10px 20px; display: flex; justify-content: space-around; align-items: center; z-index: 900; box-shadow: 0 10px 35px rgba(0,0,0,0.4); }
-        .nav-item { color: rgba(255,255,255,0.5); transition: color 0.3s; font-size: 1.2rem; }
+        .nav-item { color: rgba(255,255,255,0.5); font-size: 1.2rem; }
         .nav-item.active { color: white; }
         .follow-btn { padding: 5px 12px; background: #2563eb; color: white; border-radius: 12px; font-size: 11px; font-weight: 800; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-32">
 
     <div id="maintenanceUI" style="display:none; position:fixed; inset:0; background:white; z-index:3000; align-items:center; justify-content:center;">
-        <div class="max-w-xs mx-auto text-center p-6">
+        <div class="text-center p-6">
             <i class="fas fa-tools text-4xl text-blue-600 animate-bounce mb-4"></i>
-            <h2 class="text-2xl font-black text-gray-900 mb-3">সার্ভার আপডেট চলছে</h2>
-            <p class="text-gray-500 text-sm">আমরা অ্যাপটিকে আরও উন্নত করার কাজ করছি। কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
+            <h2 class="text-2xl font-black">সার্ভার আপডেট চলছে</h2>
+            <p class="text-gray-500">কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
         </div>
     </div>
 
     <div id="incomingCallUI">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center"><i class="fas fa-video text-white text-xs"></i></div>
-            <div class="min-w-0"><h4 id="callerNameDisplay" class="text-[13px] font-extrabold truncate">লোড হচ্ছে...</h4></div>
+            <h4 id="callerNameDisplay" class="text-[13px] font-extrabold truncate">Calling...</h4>
         </div>
         <div class="flex gap-2">
             <button id="declineCallBtn" class="w-10 h-10 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center pulse-call"><i class="fas fa-phone-alt"></i></button>
+            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center"><i class="fas fa-phone-alt"></i></button>
         </div>
     </div>
 
@@ -71,15 +71,18 @@
 
     <div class="max-w-md mx-auto p-4">
         <div id="global-ad-slot" class="mb-4"></div>
+        
         <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
             <div class="flex flex-col items-center gap-2 shrink-0 cursor-pointer" onclick="location.href='upload-story.html'">
-                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-white">
-                    <i class="fa-solid fa-plus text-xl"></i>
+                <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                    <img id="storyMyPic" class="w-14 h-14 rounded-full object-cover hidden">
+                    <i id="storyPlusIcon" class="fa-solid fa-plus text-xl"></i>
                 </div>
                 <span class="text-[10px] font-bold text-gray-500 uppercase">You</span>
             </div>
             <div id="storyList" class="flex gap-4"></div>
         </div>
+
         <div id="feed" class="space-y-4">
             <div class="text-center py-20"><i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i></div>
         </div>
@@ -124,7 +127,7 @@
             if(u){ 
                 user = u; 
                 const uSnap = await getDoc(doc(db, "users", u.uid));
-                currentUserData = uSnap.data();
+                currentUserData = uSnap.data() || {};
                 initApp();
             } else location.href="index.html"; 
         });
@@ -148,11 +151,9 @@
 
         async function renderFeed() {
             const feed = document.getElementById('feed');
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(30));
-            onSnapshot(q, async snap => {
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(30)), async snap => {
                 const fragment = document.createDocumentFragment();
-                const postPromises = snap.docs.map(d => createPostCard(d.id, d.data()));
-                const cards = await Promise.all(postPromises);
+                const cards = await Promise.all(snap.docs.map(d => createPostCard(d.id, d.data())));
                 cards.forEach(c => fragment.appendChild(c));
                 feed.innerHTML = "";
                 feed.appendChild(fragment);
@@ -164,8 +165,6 @@
             const isMine = p.userId === user.uid;
             const hasL = p.likedBy?.includes(user.uid);
             const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'Just Now';
-            
-            // ইউজার ইনভেন্টরি চেক (Follow status)
             const isFollowing = currentUserData.following?.includes(p.userId);
 
             const card = document.createElement('div');
@@ -173,10 +172,10 @@
             card.innerHTML = `
                 <div class="p-4 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <img src="${p.userPic}" onclick="location.href='user.html?id=${p.userId}'" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50 cursor-pointer">
+                        <img src="${p.userPic || ''}" onclick="location.href='user.html?id=${p.userId}'" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50 cursor-pointer bg-gray-200">
                         <div>
-                            <div class="font-extrabold text-[14px]">@${p.userName}</div>
-                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">${date}</p>
+                            <div class="font-extrabold text-[14px]">@${p.userName || 'User'}</div>
+                            <p class="text-[9px] text-gray-400 font-black uppercase">${date}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -207,57 +206,49 @@
                         <i class="fa-regular fa-comment-dots text-xl"></i>
                         <span class="text-[10px] font-black">${p.commentCount || 0}</span>
                     </button>
-                    <div class="flex flex-col items-center flex-1 py-2 text-blue-500/60">
-                        <i class="fa-solid fa-eye text-xl"></i>
-                        <span class="text-[10px] font-black">${p.views || 0}</span>
-                    </div>
-                    <button onclick="sharePost('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400">
-                        <i class="fa-solid fa-share-nodes text-xl"></i>
-                        <span class="text-[10px] font-black uppercase">Share</span>
-                    </button>
+                    <div class="flex flex-col items-center flex-1 py-2 text-blue-500/60"><i class="fa-solid fa-eye text-xl"></i><span class="text-[10px] font-black">${p.views || 0}</span></div>
+                    <button onclick="sharePost('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400"><i class="fa-solid fa-share-nodes text-xl"></i><span class="text-[10px] font-black">Share</span></button>
                 </div>
             `;
 
-            // মনিটাইজেশন অনুযায়ী অ্যাড ইনজেক্ট
-            const creatorSnap = await getDoc(doc(db, "users", p.userId));
-            if(creatorSnap.exists() && creatorSnap.data().isMonetized && adCode) {
+            // Monetization Check
+            const cSnap = await getDoc(doc(db, "users", p.userId));
+            if(cSnap.exists() && cSnap.data().isMonetized && adCode) {
                 setTimeout(() => {
-                    const slot = document.getElementById(`ad-slot-${id}`);
-                    if(slot) { slot.classList.remove('hidden'); injectAd(slot, adCode); }
-                }, 500);
+                    const s = document.getElementById(`ad-slot-${id}`);
+                    if(s) { s.classList.remove('hidden'); injectAd(s, adCode); }
+                }, 600);
             }
-
             return card;
         }
 
         function injectAd(el, code) {
-            if(!el || !code) return;
             const range = document.createRange();
-            const fragment = range.createContextualFragment(code);
-            el.innerHTML = ""; el.appendChild(fragment);
+            const frag = range.createContextualFragment(code);
+            el.innerHTML = ""; el.appendChild(frag);
         }
 
         window.toggleMute = (id) => {
-            const vid = document.getElementById(`vid-${id}`);
-            const icon = document.getElementById(`mute-icon-${id}`);
-            vid.muted = !vid.muted;
-            icon.innerHTML = vid.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
-            icon.style.opacity = vid.muted ? '0.8' : '0';
-            if(!vid.muted) setTimeout(() => icon.style.opacity = '0', 1000);
+            const v = document.getElementById(`vid-${id}`);
+            const i = document.getElementById(`mute-icon-${id}`);
+            v.muted = !v.muted;
+            i.innerHTML = v.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            i.style.opacity = '0.8';
+            setTimeout(() => { if(!v.muted) i.style.opacity = '0'; }, 800);
         };
 
-        window.followUser = async (targetId) => {
-            await updateDoc(doc(db, "users", user.uid), { following: arrayUnion(targetId) });
-            await updateDoc(doc(db, "users", targetId), { followers: arrayUnion(user.uid) });
+        window.followUser = async (tid) => {
+            await updateDoc(doc(db, "users", user.uid), { following: arrayUnion(tid) });
+            await updateDoc(doc(db, "users", tid), { followers: arrayUnion(user.uid) });
             Swal.fire({ title: 'Following!', icon: 'success', timer: 1000, showConfirmButton: false });
         };
 
-        window.like = async (id, ownerId, fileUrl) => {
+        window.like = async (id, oid, url) => {
             const ref = doc(db, "posts", id);
             const snap = await getDoc(ref);
             const hasL = snap.data().likedBy?.includes(user.uid);
             await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-            if(!hasL) sendNotification(ownerId, "like", "আপনার পোস্টে লাইক দিয়েছেন।", fileUrl || "", id);
+            if(!hasL) sendNotification(oid, "like", "আপনার পোস্টে লাইক দিয়েছেন।", url || "", id);
         };
 
         window.openComments = (id) => { activePostId = id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadComments(id); };
@@ -306,18 +297,17 @@
             const snap = await getDoc(ref);
             if(!snap.exists() || snap.data().viewedBy?.includes(user.uid)) return;
             await updateDoc(ref, { views: increment(1), viewedBy: arrayUnion(user.uid) });
-            const creRef = doc(db, "users", cid);
-            const creSnap = await getDoc(creRef);
-            if (creSnap.exists() && creSnap.data().isMonetized) await updateDoc(creRef, { balance: increment(globalCPM) });
+            const creSnap = await getDoc(doc(db, "users", cid));
+            if (creSnap.exists() && creSnap.data().isMonetized) await updateDoc(doc(db, "users", cid), { balance: increment(globalCPM) });
         }
 
         window.confirmDeletePost = (id) => {
             Swal.fire({ title: 'মুছে ফেলবেন?', icon: 'warning', showCancelButton: true }).then(async r => { if (r.isConfirmed) await deleteDoc(doc(db, "posts", id)); });
         };
 
-        window.reportPost = (postId) => {
-            Swal.fire({ title: 'Report', input: 'textarea', inputPlaceholder: 'আপনার অভিযোগ লিখুন...', showCancelButton: true }).then(async (r) => {
-                if (r.isConfirmed) { await addDoc(collection(db, "reports"), { postId, reporterId: user.uid, reason: r.value, timestamp: serverTimestamp() }); Swal.fire('Submitted', '', 'success'); }
+        window.reportPost = (pid) => {
+            Swal.fire({ title: 'Report', input: 'textarea', inputPlaceholder: 'অভিযোগ লিখুন...', showCancelButton: true }).then(async (r) => {
+                if (r.isConfirmed) { await addDoc(collection(db, "reports"), { postId: pid, reporterId: user.uid, reason: r.value, timestamp: serverTimestamp() }); Swal.fire('Submitted', '', 'success'); }
             });
         };
 
@@ -326,9 +316,9 @@
             Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1000, showConfirmButton: false });
         };
 
-        async function sendNotification(targetId, type, message, postImg, postId) {
-            if(!targetId || targetId === user.uid) return;
-            await addDoc(collection(db, "notifications"), { targetUserId: targetId, senderName: currentUserData.name, senderPic: currentUserData.profilePic, type, message, postImg, postId, read: false, timestamp: serverTimestamp() });
+        async function sendNotification(tid, type, msg, img, pid) {
+            if(!tid || tid === user.uid) return;
+            await addDoc(collection(db, "notifications"), { targetUserId: tid, senderName: currentUserData.name, senderPic: currentUserData.profilePic, type, message: msg, postImg: img, postId: pid, read: false, timestamp: serverTimestamp() });
         }
 
         function listenForCalls(myId) {
@@ -343,7 +333,15 @@
             });
         }
 
-        function loadProfile() { document.getElementById('navPic').src = currentUserData.profilePic || ""; }
+        function loadProfile() { 
+            const pic = currentUserData.profilePic || "";
+            document.getElementById('navPic').src = pic; 
+            if(pic) {
+                document.getElementById('storyMyPic').src = pic;
+                document.getElementById('storyMyPic').classList.remove('hidden');
+                document.getElementById('storyPlusIcon').classList.add('hidden');
+            }
+        }
         function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? 'block' : 'none'; }); }
         function loadStories() {
             onSnapshot(collection(db, "stories"), s => {
