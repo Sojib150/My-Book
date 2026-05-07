@@ -15,21 +15,20 @@
         .reels-container::-webkit-scrollbar { display: none; }
         .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        /* লোডিং এর সময় কালো ভাব কাটাতে background set করা হয়েছে */
+        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
+        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
         .bottom-info { position: absolute; bottom: 50px; left: 15px; right: 80px; z-index: 10; }
         
         .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 50px; z-index: 20; color: white; font-size: 10px; }
-
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* হার্ট এনিমেশন */
         .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; }
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
@@ -42,14 +41,11 @@
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
         <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
-        
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
-
         <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
             <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
             <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
         </div>
-
         <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
             <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
             <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
@@ -58,7 +54,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -90,17 +86,19 @@
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const adCode = adSnap.exists() ? adSnap.data().code : "";
 
+            // Query তে orderBy যোগ করা হয়েছে যাতে ফায়ারবেস ইনডেক্সিং এরর না দেয়
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
-            onSnapshot(q, (snap) => {
+            
+            onSnapshot(q, async (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
-                wrapper.innerHTML = "";
-                snap.forEach(async d => {
+                wrapper.innerHTML = ""; 
+
+                // Promise.all ব্যবহার করে দ্রুত ডেটা রেন্ডার করা
+                const reelPromises = snap.docs.map(async (d) => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
 
-                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
-                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
-
+                    // এখানে await getDoc সরাসরি লুপের ভেতরে না রেখে কার্ডটি আগে তৈরি করা হচ্ছে
                     const card = document.createElement('div');
                     card.className = "reel-card";
                     card.innerHTML = `
@@ -126,17 +124,24 @@
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>` : ''}
+                        <div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>
                     `;
-                    wrapper.appendChild(card);
-                    
-                    // লাইভ কমেন্ট সংখ্যা
-                    onSnapshot(collection(db, "posts", id, "comments"), s => {
-                        const countEl = document.getElementById(`count-${id}`);
-                        if(countEl) countEl.innerText = s.size;
+                    return card;
+                });
+
+                const cards = await Promise.all(reelPromises);
+                cards.forEach(card => wrapper.appendChild(card));
+                
+                // রেন্ডার হওয়ার পর অবজারভার চালু করা
+                setTimeout(initObserver, 300);
+
+                // কমেন্ট কাউন্ট লাইভ আপডেট
+                snap.docs.forEach(d => {
+                    onSnapshot(collection(db, "posts", d.id, "comments"), s => {
+                        const el = document.getElementById(`count-${d.id}`);
+                        if(el) el.innerText = s.size;
                     });
                 });
-                initObserver();
             });
         }
 
@@ -149,26 +154,25 @@
                     const adBox = document.getElementById(`ad-box-${id}`);
 
                     if (entry.isIntersecting) {
-                        vid.play();
+                        vid.play().catch(e => console.log("Play blocked"));
                         if(isAudioEnabled) vid.muted = false;
                         
-                        // লাজি লোড অ্যাড (ভিডিও সামনে আসলে অ্যাড ইনজেক্ট হবে)
                         if(adBox && adBox.innerHTML.trim() === "") {
                             const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
-                            const range = document.createRange();
-                            const fragment = range.createContextualFragment(rawAd);
-                            adBox.appendChild(fragment);
+                            if(rawAd && rawAd !== "undefined") {
+                                const range = document.createRange();
+                                const fragment = range.createContextualFragment(rawAd);
+                                adBox.appendChild(fragment);
+                            }
                         }
-
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
                         vid.muted = true; 
-                        vid.currentTime = 0; // সাউন্ড মিক্স বন্ধ করতে
                         clearTimeout(viewTimers[id]); 
                     }
                 });
-            }, { threshold: 0.6 });
+            }, { threshold: 0.5 });
             document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
         }
 
