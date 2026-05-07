@@ -17,27 +17,22 @@
         #incomingCallUI { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-150%); width: 92%; max-width: 380px; background: #000; border-radius: 35px; padding: 12px 20px; z-index: 2000; transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; align-items: center; justify-content: space-between; color: white; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
         #incomingCallUI.active { transform: translateX(-50%) translateY(0); }
         
-        .video-box { width: 100%; background: #000; border-radius: 10px; overflow: hidden; position: relative; cursor: pointer; }
-        video { width: 100%; max-height: 70vh; display: block; pointer-events: none; }
+        /* ভিডিও বক্স স্টাইল */
+        .video-box-wrapper { width: 100%; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
+        video { width: 100%; max-height: 70vh; display: block; cursor: pointer; }
         
-        /* ভিডিওর ভেতরে অ্যাড স্লট */
+        .mute-btn-indicator { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0.8; }
+        .reels-expand-btn { position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 10px 14px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+        .reels-expand-btn:active { transform: scale(0.9); }
+
         .post-ad-slot { width: 100%; background: #f1f5f9; padding: 12px; font-size: 10px; text-align: center; border-top: 1px solid #e2e8f0; min-height: 50px; }
-        
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 1000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); display: none; z-index: 999; }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border-radius: 32px; padding: 10px 20px; display: flex; justify-content: space-around; align-items: center; z-index: 900; box-shadow: 0 10px 35px rgba(0,0,0,0.4); }
         .nav-item { color: rgba(255,255,255,0.5); transition: color 0.3s; font-size: 1.2rem; }
         .nav-item.active { color: white; }
-        
-        .elite-popup { background: #111 !important; border: 1px solid #D4AF37 !important; color: #fff !important; border-radius: 25px !important; }
-        .elite-confirm { background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important; color: #000 !important; font-weight: bold !important; border-radius: 12px !important; }
-        .elite-cancel { background: #222 !important; color: #fff !important; border-radius: 12px !important; }
-        
-        #maintenanceUI { position: fixed; inset: 0; z-index: 10000; background: white; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #global-ad-slot { width: 100%; min-height: 20px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
         .follow-btn { padding: 5px 12px; background: #2563eb; color: white; border-radius: 12px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
@@ -213,10 +208,16 @@
 
                 <div class="post-tracker" data-id="${id}" data-creator="${p.userId}">
                     ${p.fileUrl ? `
-                        <div class="video-box" onclick="${p.fileType === 'video' ? "location.href='reels.html'" : "location.href='post-view.html?id=" + id + "'" }">
+                        <div class="video-box-wrapper">
                             ${p.fileType === 'video' ? 
-                                `<video src="${p.fileUrl}" loop muted playsinline autoplay></video>` : 
-                                `<img src="${p.fileUrl}" class="w-full object-cover">`
+                                `
+                                <video id="vid-${id}" src="${p.fileUrl}" loop muted playsinline autoplay onclick="toggleMute('${id}')"></video>
+                                <div id="mute-icon-${id}" class="mute-btn-indicator"><i class="fa-solid fa-volume-xmark"></i></div>
+                                <button onclick="location.href='reels.html?id=${id}'" class="reels-expand-btn">
+                                    <i class="fa-solid fa-expand mr-1"></i> Reels
+                                </button>
+                                ` : 
+                                `<img src="${p.fileUrl}" class="w-full object-cover" onclick="location.href='post-view.html?id=${id}'">`
                             }
                         </div>` : ''}
                 </div>
@@ -255,6 +256,21 @@
             }
             return card;
         }
+
+        // সাউন্ড অন/অফ লজিক
+        window.toggleMute = (id) => {
+            const vid = document.getElementById(`vid-${id}`);
+            const icon = document.getElementById(`mute-icon-${id}`);
+            if(vid.muted){
+                vid.muted = false;
+                icon.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                setTimeout(() => icon.style.opacity = '0', 1000);
+            } else {
+                vid.muted = true;
+                icon.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                icon.style.opacity = '0.8';
+            }
+        };
 
         window.followUser = async (targetId) => {
             await updateDoc(doc(db, "users", user.uid), { following: arrayUnion(targetId) });
