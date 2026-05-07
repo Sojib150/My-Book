@@ -15,7 +15,7 @@
         .reels-container::-webkit-scrollbar { display: none; }
         .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #0a0a0a; }
+        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
@@ -25,14 +25,11 @@
 
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
-        /* প্রোফাইল ও প্লাস বাটন লজিক */
-        .profile-box { position: relative; width: 40px; height: 40px; }
-        .follow-btn-mini { position: absolute; bottom: -4px; right: -4px; background: #4f46e5; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1.5px solid #000; cursor: pointer; }
-
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* হার্ট এনিমেশন */
         .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; }
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
@@ -45,11 +42,14 @@
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
         <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
+        
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
+
         <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
             <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
             <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
         </div>
+
         <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
             <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
             <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
@@ -58,7 +58,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -73,9 +73,6 @@
         let activePostId = null;
         let replyCommentId = null;
         let isAudioEnabled = false;
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetVideoId = urlParams.get('id');
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -93,29 +90,16 @@
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
             const adCode = adSnap.exists() ? adSnap.data().code : "";
 
-            // orderBy("createdAt", "desc") যোগ করা হয়েছে যাতে স্ক্রিন কালা হয়ে আটকে না থাকে
-            const q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
-            
-            onSnapshot(q, async (snap) => {
+            const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
+            onSnapshot(q, (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
                 wrapper.innerHTML = "";
-                
-                let allDocs = [...snap.docs];
-
-                // টার্গেট ভিডিও থাকলে সেটাকে সবার উপরে নিয়ে আসা
-                if (targetVideoId) {
-                    const targetIndex = allDocs.findIndex(d => d.id === targetVideoId);
-                    if (targetIndex > -1) {
-                        const targetDoc = allDocs.splice(targetIndex, 1)[0];
-                        allDocs.unshift(targetDoc); 
-                    }
-                }
-
-                // কার্ড রেন্ডারিং ফাস্ট করার জন্য লুপ
-                for (const d of allDocs) {
+                snap.forEach(async d => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
-                    const isFollowing = userData?.following?.includes(p.userId);
+
+                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
+                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
 
                     const card = document.createElement('div');
                     card.className = "reel-card";
@@ -136,35 +120,25 @@
                             <button onclick="shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
                         </div>
                         <div class="bottom-info">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="profile-box cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">
-                                    <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover">
-                                    ${(!isFollowing && p.userId !== currentUser.uid) ? `<div onclick="followUser(event, '${p.userId}')" class="follow-btn-mini"><i class="fas fa-plus"></i></div>` : ''}
-                                </div>
-                                <h4 class="text-white font-black text-sm cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">@${p.userName}</h4>
+                            <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">
+                                <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover">
+                                <h4 class="text-white font-black text-sm">@${p.userName}</h4>
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-                        <div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>
+                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>` : ''}
                     `;
                     wrapper.appendChild(card);
                     
+                    // লাইভ কমেন্ট সংখ্যা
                     onSnapshot(collection(db, "posts", id, "comments"), s => {
                         const countEl = document.getElementById(`count-${id}`);
                         if(countEl) countEl.innerText = s.size;
                     });
-                }
-                setTimeout(initObserver, 500); // ভিডিওগুলো ঠিকমতো প্লে হওয়ার জন্য সামান্য ডিলে
+                });
+                initObserver();
             });
         }
-
-        window.followUser = async (e, targetUid) => {
-            e.stopPropagation();
-            if(!currentUser || targetUid === currentUser.uid) return;
-            await updateDoc(doc(db, "users", currentUser.uid), { following: arrayUnion(targetUid) });
-            await updateDoc(doc(db, "users", targetUid), { followers: arrayUnion(currentUser.uid) });
-            Swal.fire({ title: 'Followed!', icon: 'success', timer: 1000, showConfirmButton: false });
-        };
 
         function initObserver() {
             const observer = new IntersectionObserver((entries) => {
@@ -175,20 +149,22 @@
                     const adBox = document.getElementById(`ad-box-${id}`);
 
                     if (entry.isIntersecting) {
-                        vid.play().catch(e => {});
+                        vid.play();
                         if(isAudioEnabled) vid.muted = false;
+                        
+                        // লাজি লোড অ্যাড (ভিডিও সামনে আসলে অ্যাড ইনজেক্ট হবে)
                         if(adBox && adBox.innerHTML.trim() === "") {
                             const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
-                            if(rawAd && rawAd !== "undefined") {
-                                const range = document.createRange();
-                                const fragment = range.createContextualFragment(rawAd);
-                                adBox.appendChild(fragment);
-                            }
+                            const range = document.createRange();
+                            const fragment = range.createContextualFragment(rawAd);
+                            adBox.appendChild(fragment);
                         }
+
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
                         vid.muted = true; 
+                        vid.currentTime = 0; // সাউন্ড মিক্স বন্ধ করতে
                         clearTimeout(viewTimers[id]); 
                     }
                 });
@@ -209,7 +185,6 @@
             const pSnap = await getDoc(postRef);
             if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
             await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(currentUser.uid) });
-            
             const ownerRef = doc(db, "users", ownerId);
             const oSnap = await getDoc(ownerRef);
             if (oSnap.exists() && oSnap.data().isMonetized) {
@@ -240,10 +215,10 @@
                     const isCLiked = d.likes?.includes(currentUser.uid);
                     list.innerHTML += `
                         <div class="flex gap-3">
-                            <img src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover cursor-pointer" onclick="window.location.href='user.html?id=${d.userId}'">
+                            <img onclick="window.location.href='user.html?id=${d.userId}'" src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover cursor-pointer">
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <p class="text-indigo-400 font-bold text-xs cursor-pointer" onclick="window.location.href='user.html?id=${d.userId}'">@${d.userName}</p>
+                                    <p onclick="window.location.href='user.html?id=${d.userId}'" class="text-indigo-400 font-bold text-xs cursor-pointer">@${d.userName}</p>
                                     <button onclick="likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'} text-[10px]">
                                         <i class="fas fa-heart"></i> ${d.likes?.length || 0}
                                     </button>
