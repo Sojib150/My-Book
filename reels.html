@@ -15,7 +15,7 @@
         .reels-container::-webkit-scrollbar { display: none; }
         .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
+        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #0a0a0a; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
         .side-bar { position: absolute; right: 12px; bottom: 160px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
@@ -25,14 +25,9 @@
 
         .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); }
         
-        /* Follow Button Style */
-        .profile-container { position: relative; }
-        .follow-btn-mini { 
-            position: absolute; bottom: -2px; right: -2px; 
-            background: #4f46e5; color: white; width: 18px; height: 18px; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-            font-size: 10px; border: 2px solid #000; cursor: pointer;
-        }
+        /* প্রোফাইল ও প্লাস বাটন */
+        .profile-box { position: relative; width: 40px; height: 40px; }
+        .follow-btn-mini { position: absolute; bottom: -4px; right: -4px; background: #4f46e5; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; border: 1.5px solid #000; cursor: pointer; }
 
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
         #commentSheet.active { transform: translateY(0); }
@@ -45,13 +40,16 @@
 </head>
 <body>
 
-    <div class="reels-container" id="reelsWrapper">
-        </div>
+    <div class="reels-container" id="reelsWrapper"></div>
 
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
         <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
         <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
+        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
+            <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
+            <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
+        </div>
         <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
             <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
             <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
@@ -73,6 +71,7 @@
         let globalCPM = 0.0001;
         let viewTimers = {};
         let activePostId = null;
+        let replyCommentId = null;
         let isAudioEnabled = false;
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -87,7 +86,6 @@
             } else { window.location.href="index.html"; }
         });
 
-        // সাউন্ড অন করার জন্য প্রথম ক্লিক লজিক
         document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
         async function renderReels() {
@@ -96,12 +94,12 @@
             const adCode = adSnap.exists() ? adSnap.data().code : "";
 
             const q = query(collection(db, "posts"), where("fileType", "==", "video"), orderBy("createdAt", "desc"), limit(30));
-            
             onSnapshot(q, async (snap) => {
                 const wrapper = document.getElementById('reelsWrapper');
+                wrapper.innerHTML = "";
+                
                 let allDocs = [...snap.docs];
 
-                // টার্গেট ভিডিও হ্যান্ডলিং
                 if (targetVideoId) {
                     const targetIndex = allDocs.findIndex(d => d.id === targetVideoId);
                     if (targetIndex > -1) {
@@ -110,12 +108,13 @@
                     }
                 }
 
-                wrapper.innerHTML = ""; // আগের কন্টেন্ট ক্লিয়ার করা
-
                 for (const d of allDocs) {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
-                    const isFollowing = userData.following?.includes(p.userId);
+                    const isFollowing = userData?.following?.includes(p.userId);
+
+                    const ownerSnap = await getDoc(doc(db, "users", p.userId));
+                    const isOwnerMonetized = ownerSnap.exists() ? ownerSnap.data().isMonetized : false;
 
                     const card = document.createElement('div');
                     card.className = "reel-card";
@@ -137,37 +136,33 @@
                         </div>
                         <div class="bottom-info">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="profile-container" onclick="window.location.href='user.html?id=${p.userId}'">
+                                <div class="profile-box cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">
                                     <img src="${p.userPic || ''}" class="w-10 h-10 rounded-2xl border border-white/20 object-cover">
                                     ${(!isFollowing && p.userId !== currentUser.uid) ? `<div onclick="followUser(event, '${p.userId}')" class="follow-btn-mini"><i class="fas fa-plus"></i></div>` : ''}
                                 </div>
-                                <h4 class="text-white font-black text-sm" onclick="window.location.href='user.html?id=${p.userId}'">@${p.userName}</h4>
+                                <h4 class="text-white font-black text-sm cursor-pointer" onclick="window.location.href='user.html?id=${p.userId}'">@${p.userName}</h4>
                             </div>
                             <p class="text-white/90 text-xs line-clamp-2">${p.text || ''}</p>
                         </div>
-                        ${adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>` : ''}
+                        ${isOwnerMonetized && adCode ? `<div class="bottom-ad-slot" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}"></div>` : ''}
                     `;
                     wrapper.appendChild(card);
                     
-                    // লাইভ কমেন্ট সংখ্যা
                     onSnapshot(collection(db, "posts", id, "comments"), s => {
                         const countEl = document.getElementById(`count-${id}`);
                         if(countEl) countEl.innerText = s.size;
                     });
                 }
-                initObserver(); // ভিডিও রেন্ডার হওয়ার পর অবজারভার চালু করা
+                initObserver();
             });
         }
 
-        // ফলো লজিক
         window.followUser = async (e, targetUid) => {
             e.stopPropagation();
-            if(!currentUser || targetUid === currentUser.uid) return;
-            try {
-                await updateDoc(doc(db, "users", currentUser.uid), { following: arrayUnion(targetUid) });
-                await updateDoc(doc(db, "users", targetUid), { followers: arrayUnion(currentUser.uid) });
-                Swal.fire({ title: 'Followed!', icon: 'success', timer: 800, showConfirmButton: false });
-            } catch (err) { console.error("Follow error:", err); }
+            if(!currentUser) return;
+            await updateDoc(doc(db, "users", currentUser.uid), { following: arrayUnion(targetUid) });
+            await updateDoc(doc(db, "users", targetUid), { followers: arrayUnion(currentUser.uid) });
+            Swal.fire({ title: 'Followed!', icon: 'success', timer: 1000, showConfirmButton: false });
         };
 
         function initObserver() {
@@ -179,17 +174,14 @@
                     const adBox = document.getElementById(`ad-box-${id}`);
 
                     if (entry.isIntersecting) {
-                        vid.play().catch(() => console.log("Play interrupted"));
+                        vid.play().catch(e => {});
                         if(isAudioEnabled) vid.muted = false;
-
-                        // অ্যাড ইনজেকশন
                         if(adBox && adBox.innerHTML.trim() === "") {
                             const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
                             const range = document.createRange();
                             const fragment = range.createContextualFragment(rawAd);
                             adBox.appendChild(fragment);
                         }
-
                         viewTimers[id] = setTimeout(() => handleView(id, owner), 5000);
                     } else { 
                         vid.pause(); 
@@ -211,6 +203,8 @@
         async function handleView(postId, ownerId) {
             if (ownerId === currentUser.uid) return;
             const postRef = doc(db, "posts", postId);
+            const pSnap = await getDoc(postRef);
+            if (!pSnap.exists() || pSnap.data().viewedBy?.includes(currentUser.uid)) return;
             await updateDoc(postRef, { views: increment(1), viewedBy: arrayUnion(currentUser.uid) });
             const ownerRef = doc(db, "users", ownerId);
             const oSnap = await getDoc(ownerRef);
@@ -220,12 +214,8 @@
         }
 
         window.handleReelTap = (v) => {
-            if(v.paused) { 
-                v.play(); 
-                if(isAudioEnabled) v.muted = false; 
-            } else {
-                v.pause();
-            }
+            if(v.paused) { v.play(); if(isAudioEnabled) v.muted = false; }
+            else v.pause();
         };
 
         window.likeReel = async (id) => {
@@ -242,29 +232,64 @@
                 const list = document.getElementById('commentList');
                 list.innerHTML = "";
                 snap.forEach(c => {
-                    const d = c.data();
-                    list.innerHTML += `<div class="flex gap-3">
-                        <img src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover">
-                        <div>
-                            <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
-                            <p class="text-white text-xs mt-1">${d.text}</p>
-                        </div>
-                    </div>`;
+                    const d = c.data(); const cid = c.id;
+                    const isCLiked = d.likes?.includes(currentUser.uid);
+                    list.innerHTML += `
+                        <div class="flex gap-3">
+                            <img src="${d.userPic}" class="w-10 h-10 rounded-xl object-cover">
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
+                                    <button onclick="likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'} text-[10px]">
+                                        <i class="fas fa-heart"></i> ${d.likes?.length || 0}
+                                    </button>
+                                </div>
+                                <p class="text-white text-xs mt-1">
+                                    ${d.replyTo ? `<span class="text-indigo-500 font-bold">@${d.replyTo}</span> ` : ''}${d.text}
+                                </p>
+                                <button onclick="setupReply('${cid}', '${d.userName}')" class="text-gray-500 text-[9px] font-bold mt-2 uppercase">Reply</button>
+                            </div>
+                        </div>`;
                 });
             });
+        };
+
+        window.likeComment = async (cid) => {
+            const ref = doc(db, "posts", activePostId, "comments", cid);
+            const snap = await getDoc(ref);
+            const isLiked = snap.data().likes?.includes(currentUser.uid);
+            await updateDoc(ref, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+        };
+
+        window.setupReply = (cid, name) => {
+            replyCommentId = cid;
+            document.getElementById('replyPreview').classList.remove('hidden');
+            document.getElementById('replyToText').innerText = `Replying to @${name}`;
+            document.getElementById('commentInput').focus();
+        };
+
+        window.cancelReply = () => {
+            replyCommentId = null;
+            document.getElementById('replyPreview').classList.add('hidden');
         };
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
             if(!input.value || !activePostId) return;
-            await addDoc(collection(db, "posts", activePostId, "comments"), {
+            const commentData = {
                 text: input.value, userId: currentUser.uid, userName: userData.name,
-                userPic: userData.profilePic, timestamp: serverTimestamp()
-            });
+                userPic: userData.profilePic, likes: [], timestamp: serverTimestamp()
+            };
+            if (replyCommentId) {
+                const rSnap = await getDoc(doc(db, "posts", activePostId, "comments", replyCommentId));
+                commentData.replyTo = rSnap.data().userName;
+                cancelReply();
+            }
+            await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
             input.value = "";
         };
 
-        window.closeComments = () => document.getElementById('commentSheet').classList.remove('active');
+        window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); cancelReply(); };
 
         window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
