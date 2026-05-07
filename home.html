@@ -37,11 +37,7 @@
 <body class="pb-32">
 
     <div id="maintenanceUI" style="display:none; position:fixed; inset:0; background:white; z-index:3000; align-items:center; justify-content:center;">
-        <div class="text-center p-6">
-            <i class="fas fa-tools text-4xl text-blue-600 animate-bounce mb-4"></i>
-            <h2 class="text-2xl font-black">সার্ভার আপডেট চলছে</h2>
-            <p class="text-gray-500">কিছুক্ষণ পর আবার অ্যাপটি ওপেন করুন।</p>
-        </div>
+        <div class="text-center p-6"><i class="fas fa-tools text-4xl text-blue-600 animate-bounce mb-4"></i><h2 class="text-2xl font-black">সার্ভার আপডেট চলছে</h2></div>
     </div>
 
     <div id="incomingCallUI">
@@ -51,7 +47,7 @@
         </div>
         <div class="flex gap-2">
             <button id="declineCallBtn" class="w-10 h-10 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
-            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center"><i class="fas fa-phone-alt"></i></button>
+            <button id="acceptCallBtn" class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center pulse-call"><i class="fas fa-phone-alt"></i></button>
         </div>
     </div>
 
@@ -71,7 +67,6 @@
 
     <div class="max-w-md mx-auto p-4">
         <div id="global-ad-slot" class="mb-4"></div>
-        
         <div id="stories" class="flex gap-4 overflow-x-auto no-scrollbar mb-6 py-2">
             <div class="flex flex-col items-center gap-2 shrink-0 cursor-pointer" onclick="location.href='upload-story.html'">
                 <div class="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
@@ -82,10 +77,7 @@
             </div>
             <div id="storyList" class="flex gap-4"></div>
         </div>
-
-        <div id="feed" class="space-y-4">
-            <div class="text-center py-20"><i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i></div>
-        </div>
+        <div id="feed" class="space-y-4"></div>
     </div>
 
     <div class="bottom-nav">
@@ -132,16 +124,41 @@
             } else location.href="index.html"; 
         });
 
+        // ===================================
+        // 🔥 ALGORITHM: SMART FEED SORTING
+        // ===================================
+        function getSortedFeed(posts, currentUser) {
+            function calculateScore(post) {
+                const likes = post.likedBy?.length || 0;
+                const comments = post.commentCount || 0;
+                const shares = post.shares || 0;
+                const views = post.views || 0;
+
+                const engagementScore = (likes * 2) + (comments * 4) + (shares * 5) + (views * 1);
+
+                let contentScore = post.fileType === "video" ? 30 : 15;
+                let userInterestScore = currentUser?.interests?.includes(post.category) ? 40 : 10;
+
+                const postTime = post.createdAt ? post.createdAt.seconds * 1000 : Date.now();
+                const hours = (Date.now() - postTime) / 3600000;
+                let timeScore = hours < 1 ? 40 : (hours < 6 ? 25 : 10);
+
+                let score = (engagementScore * 0.5) + (contentScore * 0.2) + (userInterestScore * 0.2) + (timeScore * 0.1);
+                if (currentUser?.following?.includes(post.userId)) score += 20;
+                if (post.viewedBy?.includes(user.uid)) score -= 15;
+                if (likes > 50) score += 100;
+
+                return score;
+            }
+            return posts.sort((a, b) => calculateScore(b) - calculateScore(a));
+        }
+
         function initApp() {
             onSnapshot(doc(db, "appSettings", "maintenance"), s => { document.getElementById('maintenanceUI').style.display = s.exists() && s.data().isOn ? 'flex' : 'none'; });
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
             onSnapshot(doc(db, "appSettings", "ads"), s => { 
-                if(s.exists() && s.data().code) {
-                    adCode = s.data().code;
-                    injectAd(document.getElementById('global-ad-slot'), adCode);
-                }
+                if(s.exists() && s.data().code) { adCode = s.data().code; injectAd(document.getElementById('global-ad-slot'), adCode); }
             });
-
             renderFeed(); 
             loadProfile(); 
             checkNotif(); 
@@ -151,10 +168,15 @@
 
         async function renderFeed() {
             const feed = document.getElementById('feed');
-            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(30)), async snap => {
+            onSnapshot(query(collection(db, "posts"), limit(50)), async snap => {
+                let posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const sorted = getSortedFeed(posts, currentUserData);
+                
                 const fragment = document.createDocumentFragment();
-                const cards = await Promise.all(snap.docs.map(d => createPostCard(d.id, d.data())));
-                cards.forEach(c => fragment.appendChild(c));
+                for(let p of sorted) {
+                    const card = await createPostCard(p.id, p);
+                    fragment.appendChild(card);
+                }
                 feed.innerHTML = "";
                 feed.appendChild(fragment);
                 initIntersection();
@@ -164,122 +186,54 @@
         async function createPostCard(id, p) {
             const isMine = p.userId === user.uid;
             const hasL = p.likedBy?.includes(user.uid);
-            const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric',day:'numeric',month:'short'}) : 'Just Now';
             const isFollowing = currentUserData.following?.includes(p.userId);
+            const date = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString('bn-BD',{hour:'numeric',minute:'numeric'}) : 'এখন';
 
             const card = document.createElement('div');
             card.className = "premium-card";
             card.innerHTML = `
                 <div class="p-4 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <img src="${p.userPic || ''}" onclick="location.href='user.html?id=${p.userId}'" class="w-11 h-11 rounded-2xl object-cover border-2 border-blue-50 cursor-pointer bg-gray-200">
-                        <div>
-                            <div class="font-extrabold text-[14px]">@${p.userName || 'User'}</div>
-                            <p class="text-[9px] text-gray-400 font-black uppercase">${date}</p>
-                        </div>
+                        <img src="${p.userPic || ''}" onclick="location.href='user.html?id=${p.userId}'" class="w-11 h-11 rounded-2xl object-cover bg-gray-200">
+                        <div><div class="font-extrabold text-[14px]">@${p.userName || 'User'}</div><p class="text-[9px] text-gray-400 uppercase">${date}</p></div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex gap-2">
                         ${(!isMine && !isFollowing) ? `<button onclick="followUser('${p.userId}')" class="follow-btn">Follow</button>` : ''}
                         ${isMine ? `<button onclick="confirmDeletePost('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-trash-alt"></i></button>` : ''}
-                        <button onclick="reportPost('${id}')" class="text-gray-300 p-2"><i class="fa-solid fa-circle-exclamation"></i></button>
                     </div>
                 </div>
-                <div class="px-5 pb-4 text-[14px] text-gray-700 font-medium cursor-pointer" onclick="location.href='post-view.html?id=${id}'">${p.text || ''}</div>
+                <div class="px-5 pb-4 text-[14px] font-medium">${p.text || ''}</div>
                 <div class="post-tracker" data-id="${id}" data-creator="${p.userId}">
-                    ${p.fileUrl ? `
-                        <div class="video-box-wrapper">
-                            ${p.fileType === 'video' ? 
-                                `<video id="vid-${id}" src="${p.fileUrl}" loop muted playsinline autoplay onclick="toggleMute('${id}')"></video>
-                                <div id="mute-icon-${id}" class="mute-btn-indicator"><i class="fa-solid fa-volume-xmark"></i></div>
-                                <button onclick="location.href='reels.html?id=${id}'" class="reels-expand-btn"><i class="fa-solid fa-expand mr-1"></i> Reels</button>` : 
-                                `<img src="${p.fileUrl}" class="w-full object-cover" onclick="location.href='post-view.html?id=${id}'">`
-                            }
-                        </div>` : ''}
+                    ${p.fileUrl ? `<div class="video-box-wrapper">
+                        ${p.fileType === 'video' ? `<video id="vid-${id}" src="${p.fileUrl}" loop muted playsinline autoplay onclick="toggleMute('${id}')"></video><div id="mute-icon-${id}" class="mute-btn-indicator"><i class="fa-solid fa-volume-xmark"></i></div>` : `<img src="${p.fileUrl}" class="w-full">`}
+                    </div>` : ''}
                 </div>
                 <div id="ad-slot-${id}" class="post-ad-slot hidden"></div>
                 <div class="flex justify-around py-2 border-t mt-1">
-                    <button onclick="like('${id}', '${p.userId}', '${p.fileUrl}')" class="flex flex-col items-center flex-1 py-2 ${hasL ? 'text-red-500' : 'text-gray-400'}">
-                        <i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i>
-                        <span class="text-[10px] font-black">${p.likedBy?.length || 0}</span>
-                    </button>
-                    <button onclick="openComments('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400">
-                        <i class="fa-regular fa-comment-dots text-xl"></i>
-                        <span class="text-[10px] font-black">${p.commentCount || 0}</span>
-                    </button>
-                    <div class="flex flex-col items-center flex-1 py-2 text-blue-500/60"><i class="fa-solid fa-eye text-xl"></i><span class="text-[10px] font-black">${p.views || 0}</span></div>
-                    <button onclick="sharePost('${id}')" class="flex flex-col items-center flex-1 py-2 text-gray-400"><i class="fa-solid fa-share-nodes text-xl"></i><span class="text-[10px] font-black">Share</span></button>
-                </div>
-            `;
+                    <button onclick="like('${id}', '${p.userId}', '${p.fileUrl}')" class="flex flex-col items-center flex-1 ${hasL ? 'text-red-500' : 'text-gray-400'}"><i class="fa-${hasL ? 'solid' : 'regular'} fa-heart text-xl"></i><span class="text-[10px]">${p.likedBy?.length || 0}</span></button>
+                    <button onclick="openComments('${id}')" class="flex flex-col items-center flex-1 text-gray-400"><i class="fa-regular fa-comment-dots text-xl"></i><span class="text-[10px]">${p.commentCount || 0}</span></button>
+                    <div class="flex flex-col items-center flex-1 text-blue-500/60"><i class="fa-solid fa-eye text-xl"></i><span class="text-[10px]">${p.views || 0}</span></div>
+                </div>`;
 
-            // Monetization Check
             const cSnap = await getDoc(doc(db, "users", p.userId));
             if(cSnap.exists() && cSnap.data().isMonetized && adCode) {
-                setTimeout(() => {
-                    const s = document.getElementById(`ad-slot-${id}`);
-                    if(s) { s.classList.remove('hidden'); injectAd(s, adCode); }
-                }, 600);
+                setTimeout(() => { const s = document.getElementById(`ad-slot-${id}`); if(s){ s.classList.remove('hidden'); injectAd(s, adCode); } }, 600);
             }
             return card;
         }
 
-        function injectAd(el, code) {
-            const range = document.createRange();
-            const frag = range.createContextualFragment(code);
-            el.innerHTML = ""; el.appendChild(frag);
-        }
-
-        window.toggleMute = (id) => {
-            const v = document.getElementById(`vid-${id}`);
-            const i = document.getElementById(`mute-icon-${id}`);
-            v.muted = !v.muted;
-            i.innerHTML = v.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
-            i.style.opacity = '0.8';
-            setTimeout(() => { if(!v.muted) i.style.opacity = '0'; }, 800);
-        };
-
-        window.followUser = async (tid) => {
-            await updateDoc(doc(db, "users", user.uid), { following: arrayUnion(tid) });
-            await updateDoc(doc(db, "users", tid), { followers: arrayUnion(user.uid) });
-            Swal.fire({ title: 'Following!', icon: 'success', timer: 1000, showConfirmButton: false });
-        };
-
-        window.like = async (id, oid, url) => {
-            const ref = doc(db, "posts", id);
-            const snap = await getDoc(ref);
-            const hasL = snap.data().likedBy?.includes(user.uid);
-            await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-            if(!hasL) sendNotification(oid, "like", "আপনার পোস্টে লাইক দিয়েছেন।", url || "", id);
-        };
-
-        window.openComments = (id) => { activePostId = id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadComments(id); };
-        
-        function loadComments(id) {
-            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
-                document.getElementById('commentList').innerHTML = sn.docs.map(c => {
-                    const d = c.data();
-                    return `<div class="flex gap-3"><img src="${d.userPic}" class="w-9 h-9 rounded-full object-cover"><div class="bg-gray-100 p-3 rounded-2xl max-w-[85%]"><p class="text-[10px] font-black text-blue-600">@${d.userName}</p><p class="text-[13px] text-gray-800">${d.text}</p></div></div>`;
-                }).join('');
-            });
-        }
-
-        window.postComment = async () => {
-            const input = document.getElementById('cInput');
-            if(!input.value.trim() || !activePostId) return;
-            const pRef = doc(db, "posts", activePostId);
-            const pSnap = await getDoc(pRef);
-            await addDoc(collection(db, "posts", activePostId, "comments"), { text: input.value, userId: user.uid, userName: currentUserData.name, userPic: currentUserData.profilePic, time: serverTimestamp() });
-            await updateDoc(pRef, { commentCount: increment(1) });
-            sendNotification(pSnap.data().userId, "comment", `মন্তব্য করেছেন: "${input.value}"`, pSnap.data().fileUrl || "", activePostId);
-            input.value = "";
-        };
-
+        // ===================================
+        // 🔥 ALGORITHM: VIDEO KILL-PROCESS
+        // ===================================
         function initIntersection() { 
-            const obs = new IntersectionObserver(es => { 
-                es.forEach(e => { 
-                    const pid = e.target.getAttribute('data-id');
-                    const cid = e.target.getAttribute('data-creator');
-                    const vid = e.target.querySelector('video');
-                    if (e.isIntersecting) {
+            const obs = new IntersectionObserver(entries => { 
+                entries.forEach(entry => { 
+                    const vid = entry.target.querySelector('video');
+                    const pid = entry.target.getAttribute('data-id');
+                    const cid = entry.target.getAttribute('data-creator');
+
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('video').forEach(v => { if(v !== vid) { v.pause(); v.currentTime = 0; } });
                         if(vid) vid.play().catch(()=>{});
                         viewTimers[pid] = setTimeout(() => handlePostView(pid, cid), 5000);
                     } else { 
@@ -287,7 +241,7 @@
                         clearTimeout(viewTimers[pid]); 
                     }
                 }); 
-            }, { threshold: 0.6 }); 
+            }, { threshold: 0.8 }); 
             document.querySelectorAll('.post-tracker').forEach(v => obs.observe(v)); 
         }
 
@@ -297,57 +251,24 @@
             const snap = await getDoc(ref);
             if(!snap.exists() || snap.data().viewedBy?.includes(user.uid)) return;
             await updateDoc(ref, { views: increment(1), viewedBy: arrayUnion(user.uid) });
-            const creSnap = await getDoc(doc(db, "users", cid));
-            if (creSnap.exists() && creSnap.data().isMonetized) await updateDoc(doc(db, "users", cid), { balance: increment(globalCPM) });
+            const creRef = doc(db, "users", cid);
+            const creSnap = await getDoc(creRef);
+            if (creSnap.exists() && creSnap.data().isMonetized) await updateDoc(creRef, { balance: increment(globalCPM) });
         }
 
-        window.confirmDeletePost = (id) => {
-            Swal.fire({ title: 'মুছে ফেলবেন?', icon: 'warning', showCancelButton: true }).then(async r => { if (r.isConfirmed) await deleteDoc(doc(db, "posts", id)); });
-        };
-
-        window.reportPost = (pid) => {
-            Swal.fire({ title: 'Report', input: 'textarea', inputPlaceholder: 'অভিযোগ লিখুন...', showCancelButton: true }).then(async (r) => {
-                if (r.isConfirmed) { await addDoc(collection(db, "reports"), { postId: pid, reporterId: user.uid, reason: r.value, timestamp: serverTimestamp() }); Swal.fire('Submitted', '', 'success'); }
-            });
-        };
-
-        window.sharePost = (id) => {
-            navigator.clipboard.writeText(`${window.location.origin}/post-view.html?id=${id}`);
-            Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1000, showConfirmButton: false });
-        };
-
-        async function sendNotification(tid, type, msg, img, pid) {
-            if(!tid || tid === user.uid) return;
-            await addDoc(collection(db, "notifications"), { targetUserId: tid, senderName: currentUserData.name, senderPic: currentUserData.profilePic, type, message: msg, postImg: img, postId: pid, read: false, timestamp: serverTimestamp() });
-        }
-
-        function listenForCalls(myId) {
-            onSnapshot(doc(db, "calls", myId), (snap) => {
-                const ui = document.getElementById('incomingCallUI');
-                if (snap.exists() && snap.data().status === 'ringing') {
-                    ui.classList.add('active');
-                    document.getElementById('callerNameDisplay').innerText = snap.data().callerName;
-                    document.getElementById('acceptCallBtn').onclick = () => location.href = `call.html?id=${snap.data().callerId}&type=${snap.data().type}&action=incoming`;
-                    document.getElementById('declineCallBtn').onclick = async () => { await deleteDoc(doc(db, "calls", myId)); ui.classList.remove('active'); };
-                } else ui.classList.remove('active');
-            });
-        }
-
-        function loadProfile() { 
-            const pic = currentUserData.profilePic || "";
-            document.getElementById('navPic').src = pic; 
-            if(pic) {
-                document.getElementById('storyMyPic').src = pic;
-                document.getElementById('storyMyPic').classList.remove('hidden');
-                document.getElementById('storyPlusIcon').classList.add('hidden');
-            }
-        }
+        function injectAd(el, code) { const range = document.createRange(); const frag = range.createContextualFragment(code); el.innerHTML = ""; el.appendChild(frag); }
+        window.toggleMute = (id) => { const v = document.getElementById(`vid-${id}`); const i = document.getElementById(`mute-icon-${id}`); v.muted = !v.muted; i.innerHTML = v.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>'; i.style.opacity = '0.8'; setTimeout(() => { if(!v.muted) i.style.opacity = '0'; }, 800); };
+        window.followUser = async (tid) => { await updateDoc(doc(db, "users", user.uid), { following: arrayUnion(tid) }); await updateDoc(doc(db, "users", tid), { followers: arrayUnion(user.uid) }); Swal.fire({ title: 'Following!', icon: 'success', timer: 1000, showConfirmButton: false }); };
+        window.like = async (id, oid, url) => { const ref = doc(db, "posts", id); const snap = await getDoc(ref); const hasL = snap.data().likedBy?.includes(user.uid); await updateDoc(ref, { likedBy: hasL ? arrayRemove(user.uid) : arrayUnion(user.uid) }); if(!hasL) sendNotification(oid, "like", "লাইক দিয়েছেন।", url || "", id); };
+        window.openComments = (id) => { activePostId = id; document.getElementById('commentSheet').classList.add('active'); document.getElementById('overlay').style.display='block'; loadComments(id); };
+        function loadComments(id) { onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => { document.getElementById('commentList').innerHTML = sn.docs.map(c => `<div class="flex gap-3"><img src="${c.data().userPic}" class="w-9 h-9 rounded-full"><div class="bg-gray-100 p-3 rounded-2xl max-w-[85%]"><p class="text-[10px] font-black text-blue-600">@${c.data().userName}</p><p class="text-[13px]">${c.data().text}</p></div></div>`).join(''); }); }
+        window.postComment = async () => { const input = document.getElementById('cInput'); if(!input.value.trim() || !activePostId) return; const pRef = doc(db, "posts", activePostId); const pSnap = await getDoc(pRef); await addDoc(collection(db, "posts", activePostId, "comments"), { text: input.value, userId: user.uid, userName: currentUserData.name, userPic: currentUserData.profilePic, time: serverTimestamp() }); await updateDoc(pRef, { commentCount: increment(1) }); sendNotification(pSnap.data().userId, "comment", `মন্তব্য করেছেন: "${input.value}"`, pSnap.data().fileUrl || "", activePostId); input.value = ""; };
+        window.confirmDeletePost = (id) => { Swal.fire({ title: 'মুছে ফেলবেন?', icon: 'warning', showCancelButton: true }).then(async r => { if (r.isConfirmed) await deleteDoc(doc(db, "posts", id)); }); };
+        async function sendNotification(tid, type, msg, img, pid) { if(!tid || tid === user.uid) return; await addDoc(collection(db, "notifications"), { targetUserId: tid, senderName: currentUserData.name, senderPic: currentUserData.profilePic, type, message: msg, postImg: img, postId: pid, read: false, timestamp: serverTimestamp() }); }
+        function listenForCalls(myId) { onSnapshot(doc(db, "calls", myId), (snap) => { const ui = document.getElementById('incomingCallUI'); if (snap.exists() && snap.data().status === 'ringing') { ui.classList.add('active'); document.getElementById('callerNameDisplay').innerText = snap.data().callerName; document.getElementById('acceptCallBtn').onclick = () => location.href = `call.html?id=${snap.data().callerId}&type=${snap.data().type}&action=incoming`; document.getElementById('declineCallBtn').onclick = async () => { await deleteDoc(doc(db, "calls", myId)); ui.classList.remove('active'); }; } else ui.classList.remove('active'); }); }
+        function loadProfile() { const pic = currentUserData.profilePic || ""; document.getElementById('navPic').src = pic; if(pic) { document.getElementById('storyMyPic').src = pic; document.getElementById('storyMyPic').classList.remove('hidden'); document.getElementById('storyPlusIcon').classList.add('hidden'); } }
         function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? 'block' : 'none'; }); }
-        function loadStories() {
-            onSnapshot(collection(db, "stories"), s => {
-                document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="flex flex-col items-center gap-1 shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`).join('');
-            });
-        }
+        function loadStories() { onSnapshot(collection(db, "stories"), s => { document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="flex flex-col items-center shrink-0" onclick="location.href='story-view.html?id=${d.id}'"><div class="w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div><span class="text-[9px] font-bold text-gray-500">${d.data().userName}</span></div>`).join(''); }); }
         window.closeAll = () => { document.querySelectorAll('.drawer').forEach(d=>d.classList.remove('active')); document.getElementById('overlay').style.display='none'; };
     </script>
 </body>
