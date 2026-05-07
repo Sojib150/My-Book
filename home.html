@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>My Book - Ultra Professional</title>
+    <title>My Book - Smart Algorithm Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f4f8; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f7fa; -webkit-tap-highlight-color: transparent; }
         
         .premium-card { background: white; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 40px rgba(0,0,0,0.02); overflow: hidden; position: relative; }
         
-        /* Ad Banner Style */
-        .ad-tag { background: linear-gradient(90deg, #1877f2, #00d2ff); color: white; padding: 4px 12px; border-radius: 0 0 15px 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        /* Ad & Verified Badge */
+        .ad-tag { background: linear-gradient(90deg, #1877f2, #00d2ff); color: white; padding: 4px 12px; border-radius: 0 0 15px 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; position: absolute; top: 0; left: 0; z-index: 10; }
         
         .video-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; margin-top: 10px; }
         video { width: 100%; max-height: 75vh; }
@@ -24,7 +24,7 @@
 
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: #000; border-radius: 35px; padding: 12px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .nav-item { color: rgba(255,255,255,0.4); font-size: 1.4rem; transition: 0.3s; }
-        .nav-item.active { color: white; transform: scale(1.1); }
+        .nav-item.active { color: white; }
 
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.5s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
@@ -46,34 +46,24 @@
     </nav>
 
     <div class="max-w-md mx-auto p-4">
-        <div id="storyContainer" class="flex gap-4 overflow-x-auto no-scrollbar mb-8 py-2">
-            <div class="flex flex-col items-center shrink-0" onclick="location.href='upload-story.html'">
-                <div class="w-16 h-16 rounded-full border-2 border-dashed border-blue-400 flex items-center justify-center text-blue-500 bg-white shadow-sm">
-                    <i class="fa-solid fa-plus text-2xl"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-2 text-gray-400 uppercase">Your Story</span>
-            </div>
-            <div id="storyList" class="flex gap-4"></div>
-        </div>
-
+        <div id="storyList" class="flex gap-4 overflow-x-auto no-scrollbar mb-8 py-2"></div>
         <div id="feed" class="space-y-6"></div>
     </div>
 
     <div class="bottom-nav">
         <a href="home.html" class="nav-item active"><i class="fas fa-th-large"></i></a>
         <a href="reels.html" class="nav-item"><i class="fas fa-play"></i></a>
-        <div onclick="location.href='post.html'" class="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center -mt-8 border-4 border-[#f0f4f8] shadow-lg"><i class="fas fa-plus text-xl"></i></div>
+        <div onclick="location.href='post.html'" class="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center -mt-8 border-4 border-[#f4f7fa] shadow-lg"><i class="fas fa-plus text-xl"></i></div>
         <a href="messages.html" class="nav-item"><i class="fas fa-comment-dots"></i></a>
         <a href="profile.html" class="nav-item"><i class="fas fa-user-circle"></i></a>
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
     <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-8">
-        <div class="w-14 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-4"></div>
         <div class="flex gap-3 pt-6 border-t">
-            <input id="cInput" type="text" placeholder="মতামত জানান..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none font-bold text-sm">
-            <button onclick="postComment()" class="bg-blue-600 text-white px-7 rounded-2xl shadow-lg shadow-blue-200"><i class="fa-solid fa-paper-plane"></i></button>
+            <input id="cInput" type="text" placeholder="মতামত জানান..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none font-bold">
+            <button onclick="postComment()" class="bg-blue-600 text-white px-7 rounded-2xl shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -90,13 +80,38 @@
         let user = null; let currentUserData = null; let activePostId = null; 
         let globalCPM = 0.0001; let viewTimers = {};
 
-        function formatTime(ts) {
-            if(!ts) return "সদ্য";
-            const diff = Math.floor((Date.now() - ts.toDate()) / 1000);
-            if(diff < 60) return diff + "s ago";
-            if(diff < 3600) return Math.floor(diff/60) + "m ago";
-            if(diff < 86400) return Math.floor(diff/3600) + "h ago";
-            return Math.floor(diff/86400) + "d ago";
+        // ==========================================
+        // 🔥 SMART HYBRID FEED ALGORITHM (YOUR CODE)
+        // ==========================================
+        function getSortedFeed(posts, currentUser) {
+            function calculateScore(post) {
+                const likes = post.likedBy?.length || 0;
+                const comments = post.commentCount || 0;
+                const shares = post.shares || 0;
+                const views = post.views || 0;
+
+                const engagementScore = (likes * 2) + (comments * 4) + (shares * 5) + (views * 1);
+
+                let contentScore = 10;
+                if (post.fileType === "video") contentScore = 50; 
+                else if (post.fileType === "image") contentScore = 15;
+
+                let userInterestScore = 10;
+                if (currentUser?.interests?.includes(post.category)) userInterestScore = 40;
+
+                const postTime = post.createdAt?.toDate ? post.createdAt.toDate().getTime() : Date.now();
+                const hours = (Date.now() - postTime) / 3600000;
+                let timeScore = hours < 1 ? 40 : (hours < 6 ? 25 : (hours < 24 ? 10 : 0));
+
+                let score = (engagementScore * 0.5) + (contentScore * 0.2) + (userInterestScore * 0.2) + (timeScore * 0.1);
+
+                if (currentUser?.friends?.includes(post.userId)) score += 20;
+                if (post.viewedBy?.includes(currentUser?.uid)) score -= 15;
+                if (likes > 100) score += 100;
+
+                return score;
+            }
+            return posts.sort((a, b) => calculateScore(b) - calculateScore(a));
         }
 
         onAuthStateChanged(auth, async u => {
@@ -113,39 +128,37 @@
             renderFeed(); loadProfile(); checkNotif(); loadStories();
         }
 
-        async function renderFeed() {
+        function renderFeed() {
             const feed = document.getElementById('feed');
-            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50)), snap => {
-                feed.innerHTML = snap.docs.map(doc => {
-                    const p = doc.data(); const id = doc.id;
-                    const isLiked = p.likedBy?.includes(user.uid);
-                    
-                    // মনিটাইজড ইউজার হলে অ্যাড ট্যাগ শো করবে
-                    const adBadge = p.isCreatorMonetized ? `<div class="ad-tag"><i class="fa-solid fa-certificate mr-1"></i> Sponsored</div>` : '';
+            // অ্যালগরিদমের জন্য ডাটা নিয়ে আসা (সর্টিং ছাড়া, কারণ আমরা কাস্টম সর্ট করবো)
+            onSnapshot(collection(db, "posts"), snap => {
+                const rawPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const sortedPosts = getSortedFeed(rawPosts, { uid: user.uid, ...currentUserData });
 
+                feed.innerHTML = sortedPosts.map(p => {
+                    const isLiked = p.likedBy?.includes(user.uid);
+                    const adBadge = p.isCreatorMonetized ? `<div class="ad-tag"><i class="fa-solid fa-certificate mr-1"></i> Sponsored</div>` : '';
+                    
                     return `
                     <div class="premium-card">
                         ${adBadge}
                         <div class="p-5 flex items-center justify-between">
                             <div class="flex items-center gap-4">
                                 <img src="${p.userPic}" class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm">
-                                <div>
-                                    <h4 class="font-extrabold text-[15px] text-gray-900">@${p.userName}</h4>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${formatTime(p.createdAt)} • Verified</p>
-                                </div>
+                                <div><h4 class="font-extrabold text-[15px]">@${p.userName}</h4><p class="text-[10px] text-gray-400 font-bold uppercase">Public</p></div>
                             </div>
-                            <i class="fa-solid fa-ellipsis text-gray-300 text-xl"></i>
+                            <i class="fa-solid fa-ellipsis text-gray-300"></i>
                         </div>
-                        <div class="px-6 pb-4 text-[14px] font-medium text-gray-800 leading-relaxed">${p.text || ''}</div>
-                        <div class="post-tracker" data-id="${id}" data-creator="${p.userId}" data-monetized="${p.isCreatorMonetized || false}">
+                        <div class="px-6 pb-4 text-[14px] font-medium text-gray-800">${p.text || ''}</div>
+                        <div class="post-tracker" data-id="${p.id}" data-creator="${p.userId}" data-monetized="${p.isCreatorMonetized || false}">
                             ${p.fileUrl ? `
                                 <div class="px-4">
                                     <div class="video-box shadow-xl shadow-gray-200/50">
                                         ${p.fileType === 'video' ? `
-                                            <video id="vid-${id}" src="${p.fileUrl}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video>
+                                            <video id="vid-${p.id}" src="${p.fileUrl}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video>
                                             <div class="vid-controls">
-                                                <button onclick="toggleSound('${id}')" class="control-btn"><i id="vol-${id}" class="fas fa-volume-mute"></i></button>
-                                                <button onclick="location.href='reels.html?id=${id}'" class="control-btn"><i class="fas fa-expand"></i></button>
+                                                <button onclick="toggleSound('${p.id}')" class="control-btn"><i id="vol-${p.id}" class="fas fa-volume-mute"></i></button>
+                                                <button onclick="location.href='reels.html?id=${p.id}'" class="control-btn"><i class="fas fa-expand"></i></button>
                                             </div>
                                         ` : `<img src="${p.fileUrl}" class="w-full object-cover">`}
                                     </div>
@@ -153,19 +166,13 @@
                         </div>
                         <div class="px-6 py-4 flex justify-between items-center mt-2">
                             <div class="flex gap-6">
-                                <button onclick="handleLike('${id}', '${p.userId}')" class="flex items-center gap-2 ${isLiked?'text-blue-600':'text-gray-400'}">
+                                <button onclick="handleLike('${p.id}', '${p.userId}')" class="flex items-center gap-2 ${isLiked?'text-blue-600':'text-gray-400'}">
                                     <i class="fa-${isLiked?'solid':'regular'} fa-heart text-2xl"></i>
                                     <span class="text-xs font-black">${p.likedBy?.length || 0}</span>
                                 </button>
-                                <button onclick="openComments('${id}')" class="flex items-center gap-2 text-gray-400">
-                                    <i class="fa-regular fa-comment-dots text-2xl"></i>
-                                    <span class="text-xs font-black">${p.commentCount || 0}</span>
-                                </button>
+                                <button onclick="openComments('${p.id}')" class="flex items-center gap-2 text-gray-400"><i class="fa-regular fa-comment-dots text-2xl"></i><span class="text-xs font-black">${p.commentCount || 0}</span></button>
                             </div>
-                            <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full">
-                                <i class="fa-solid fa-chart-simple text-[10px]"></i>
-                                <span class="text-[11px] font-black">${p.views || 0} VIEWS</span>
-                            </div>
+                            <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full"><i class="fa-solid fa-chart-simple text-[10px]"></i><span class="text-[11px] font-black">${p.views || 0} VIEWS</span></div>
                         </div>
                     </div>`;
                 }).join('');
@@ -173,7 +180,7 @@
             });
         }
 
-        // 🔥 ULTRA ADS LOGIC & INCOME
+        // 🔥 INCOME & VIEW LOGIC
         function initSmartObserver() {
             const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
@@ -181,10 +188,8 @@
                     const cid = entry.target.dataset.creator;
                     const isMon = entry.target.dataset.monetized === "true";
                     const vid = entry.target.querySelector('video');
-                    
                     if (entry.isIntersecting) {
                         if(vid) vid.play().catch(()=>{});
-                        // ৫ সেকেন্ড দেখার পর ইনকাম ও ভিউ রেকর্ড হবে
                         viewTimers[pid] = setTimeout(() => recordStrongView(pid, cid, isMon), 5000);
                     } else {
                         if(vid) vid.pause();
@@ -199,17 +204,12 @@
             if(cid === user.uid) return;
             const pRef = doc(db, "posts", pid);
             const pSnap = await getDoc(pRef);
-            
             if(!pSnap.exists() || pSnap.data().viewedBy?.includes(user.uid)) return;
 
-            // ভিউ আপডেট (রিয়েল টাইম)
             await updateDoc(pRef, { views: increment(1), viewedBy: arrayUnion(user.uid) });
-
-            // ইনকাম লজিক: শুধুমাত্র মনিটাইজড হলে টাকা জমা হবে
             if(isMon) {
-                const uRef = doc(db, "users", cid);
-                await updateDoc(uRef, { balance: increment(globalCPM) });
-                console.log("💰 Ad Income Dispatched to Creator Dashboard");
+                await updateDoc(doc(db, "users", cid), { balance: increment(globalCPM) });
+                console.log("💰 Income Added via Algorithm");
             }
         }
 
@@ -225,23 +225,14 @@
             const s = await getDoc(r);
             const l = s.data().likedBy?.includes(user.uid);
             await updateDoc(r, { likedBy: l ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-            if(!l && oid !== user.uid) {
-                addDoc(collection(db, "notifications"), { targetUserId: oid, senderName: currentUserData.name, senderPic: currentUserData.profilePic, type: "like", timestamp: serverTimestamp(), read: false });
-            }
+            if(!l && oid !== user.uid) addDoc(collection(db, "notifications"), { targetUserId: oid, senderName: currentUserData.name, type: "like", timestamp: serverTimestamp(), read: false });
         };
 
         window.openComments = (id) => {
             activePostId = id; document.getElementById('commentSheet').classList.add('active');
             document.getElementById('overlay').style.display = "block";
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
-                document.getElementById('commentList').innerHTML = sn.docs.map(c => `
-                    <div class="flex gap-4">
-                        <img src="${c.data().userPic}" class="w-10 h-10 rounded-2xl object-cover border">
-                        <div class="bg-gray-50 p-4 rounded-2xl flex-1 border border-gray-100">
-                            <p class="text-[11px] font-black text-blue-600 mb-1">@${c.data().userName}</p>
-                            <p class="text-sm font-bold text-gray-800">${c.data().text}</p>
-                        </div>
-                    </div>`).join('');
+                document.getElementById('commentList').innerHTML = sn.docs.map(c => `<div class="flex gap-4"><img src="${c.data().userPic}" class="w-10 h-10 rounded-2xl object-cover border"><div class="bg-gray-50 p-4 rounded-2xl flex-1"><p class="text-[11px] font-black text-blue-600">@${c.data().userName}</p><p class="text-sm font-bold text-gray-800">${c.data().text}</p></div></div>`).join('');
             });
         };
 
