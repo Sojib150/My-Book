@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supreme Command - Bondo AI V3</title>
+    <title>Supreme Command - Bondo AI V3 (Elite Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -17,6 +17,7 @@
         .stat-card { border-bottom: 4px solid #6366f1; }
         .user-card { transition: 0.3s; border: 1px solid rgba(255,255,255,0.03); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .post-card-admin { border-radius: 20px; overflow: hidden; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body class="min-h-screen pb-20">
@@ -41,6 +42,7 @@
                 </div>
                 <nav class="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
                     <button onclick="showTab('citizens')" class="tab-link tab-active"><i class="fas fa-users mr-2"></i>Users</button>
+                    <button onclick="showTab('intelligence')" class="tab-link"><i class="fas fa-eye mr-2"></i>Content</button>
                     <button onclick="showTab('economy')" class="tab-link"><i class="fas fa-chart-line mr-2"></i>Economy</button>
                     <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-rss mr-2"></i>Alerts</button>
                     <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-gears mr-2"></i>Core</button>
@@ -64,6 +66,14 @@
                 <div id="userGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
+            <div id="tab-intelligence" class="hidden tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-black italic tracking-tighter">GLOBAL <span class="text-indigo-500">FEED MONITOR</span></h2>
+                    <span class="bg-indigo-500/10 text-indigo-400 px-4 py-1 rounded-full text-[10px] font-black uppercase">Live Updates</span>
+                </div>
+                <div id="globalPostGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            </div>
+
             <div id="tab-economy" class="hidden tab-content space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500">
@@ -72,7 +82,7 @@
                         <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Ads</button>
                     </div>
                     <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
-                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate (Per Impression)</h3>
+                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate (৳)</h3>
                         <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black">
                         <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update CPM</button>
                     </div>
@@ -110,9 +120,11 @@
         <div class="glass w-full max-w-md rounded-[3rem] p-10 border-t-8 border-indigo-600">
             <h3 id="targetUserName" class="font-black text-center text-xl mb-6">Edit Citizen</h3>
             <div class="space-y-4">
-                <input type="number" id="addBalanceInput" placeholder="Balance" class="w-full text-xl font-black">
-                <input type="number" id="fakeViewInput" placeholder="Fake Views" class="w-full text-xl font-black">
-                <div class="flex gap-4">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Account Balance (৳)</label>
+                <input type="number" id="addBalanceInput" class="w-full text-xl font-black">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Boosted Views (Fake)</label>
+                <input type="number" id="fakeViewInput" class="w-full text-xl font-black">
+                <div class="flex gap-4 pt-4">
                     <button onclick="closeMagic()" class="flex-1 py-4 bg-slate-800 rounded-2xl font-bold">CANCEL</button>
                     <button id="saveMagicBtn" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-black">UPDATE</button>
                 </div>
@@ -122,12 +134,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            projectId: "seen-a1d92" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -149,7 +158,7 @@
         };
 
         function initSupremeSystem() {
-            // User Monitor
+            // 1. User Monitor
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 const grid = document.getElementById('userGrid'); grid.innerHTML = "";
@@ -159,7 +168,7 @@
                     card.className = "glass p-5 rounded-[2rem] user-card";
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-4">
-                            <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl bg-gray-800 object-cover">
+                            <img src="${u.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl bg-gray-800 object-cover border border-white/10">
                             <div class="flex-1 truncate">
                                 <h4 class="font-bold text-sm">${u.name || 'User'}</h4>
                                 <p class="text-[10px] text-green-400 font-black">৳${(u.balance || 0).toFixed(4)}</p>
@@ -167,30 +176,55 @@
                             <button onclick="openMagic('${id}', '${u.name}', ${u.balance || 0}, ${u.fakeViews || 0})" class="p-2 text-indigo-400"><i class="fas fa-edit"></i></button>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="toggleMonetize('${id}', ${u.isMonetized})" class="flex-1 py-2 rounded-lg text-[8px] font-black ${u.isMonetized ? 'bg-green-500/20 text-green-400' : 'bg-slate-800'}">
-                                ${u.isMonetized ? 'ADS ON' : 'ADS OFF'}
+                            <button onclick="toggleMonetize('${id}', ${u.isMonetized || false})" class="flex-1 py-2 rounded-lg text-[8px] font-black ${u.isMonetized ? 'bg-green-500 text-white' : 'bg-slate-800 text-gray-500'}">
+                                ${u.isMonetized ? 'MONETIZED' : 'FREE USER'}
                             </button>
-                            <button onclick="hardBanUser('${id}')" class="flex-1 py-2 rounded-lg text-[8px] bg-red-500/10 text-red-500">BAN</button>
+                            <button onclick="hardBanUser('${id}')" class="flex-1 py-2 rounded-lg text-[8px] bg-red-500/10 text-red-500 font-black">BAN</button>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
             });
 
-            // Maintenance Sync
+            // 2. Global Post Monitor (🔥 CONNECTED TO MAIN CODE)
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
+                const postGrid = document.getElementById('globalPostGrid');
+                postGrid.innerHTML = "";
+                snap.forEach(d => {
+                    const p = d.data();
+                    const pid = d.id;
+                    const pCard = document.createElement('div');
+                    pCard.className = "post-card-admin glass p-3 flex flex-col gap-3";
+                    pCard.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <img src="${p.userPic}" class="w-6 h-6 rounded-full">
+                            <span class="text-[10px] font-black text-indigo-400">@${p.userName}</span>
+                        </div>
+                        ${p.fileType === 'video' ? 
+                            `<video src="${p.fileUrl}" class="w-full h-32 object-cover rounded-xl" muted autoplay loop></video>` : 
+                            `<img src="${p.fileUrl}" class="w-full h-32 object-cover rounded-xl">`}
+                        <div class="flex gap-2">
+                            <button onclick="deleteAnyPost('${pid}')" class="flex-1 bg-red-600/20 text-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Delete</button>
+                            <button onclick="window.open('${p.fileUrl}', '_blank')" class="bg-indigo-600/20 text-indigo-400 px-3 rounded-lg text-[9px]"><i class="fas fa-external-link"></i></button>
+                        </div>
+                    `;
+                    postGrid.appendChild(pCard);
+                });
+            });
+
+            // 3. System Sync
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
-                const btn = document.getElementById('mBtn');
-                const status = document.getElementById('systemLiveStatus');
                 if(d.exists()) {
                     mStatus = d.data().isOn;
-                    btn.innerText = mStatus ? "OFFLINE: MAINTENANCE ON" : "ONLINE: MAINTENANCE OFF";
+                    const btn = document.getElementById('mBtn');
+                    const status = document.getElementById('systemLiveStatus');
+                    btn.innerText = mStatus ? "DISABLE MAINTENANCE" : "ENABLE MAINTENANCE";
                     btn.className = mStatus ? "w-full py-4 rounded-2xl font-black bg-red-600" : "w-full py-4 rounded-2xl font-black bg-slate-800 text-green-500 border border-green-500/20";
                     status.innerText = mStatus ? "OFFLINE" : "LIVE";
                     status.className = mStatus ? "text-2xl font-black mt-1 text-red-500" : "text-2xl font-black mt-1 text-green-400";
                 }
             });
 
-            // Economy Sync
             onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { 
                 if(d.exists()) {
@@ -199,24 +233,23 @@
                 }
             });
 
-            // Withdraws Monitor (FIXED)
+            // 4. Withdraws Monitor
             onSnapshot(query(collection(db, "withdrawRequests"), where("status", "==", "Pending")), snap => {
                 document.getElementById('countPending').innerText = snap.size;
                 const list = document.getElementById('withdrawList'); list.innerHTML = "";
                 snap.forEach(d => {
                     const r = d.data();
-                    const accInfo = r.accountDetails || r.number || "N/A";
                     const card = document.createElement('div');
                     card.className = "p-4 border border-white/5 rounded-2xl space-y-3 glass";
                     card.innerHTML = `
-                        <div class="flex justify-between">
-                            <p class="font-bold text-[11px] text-indigo-400">${r.method}</p>
-                            <p class="font-black text-white text-[11px]">৳${r.amount}</p>
+                        <div class="flex justify-between font-black text-[11px]">
+                            <span class="text-indigo-400">${r.method}</span>
+                            <span class="text-white">৳${r.amount}</span>
                         </div>
-                        <p class="text-[10px] text-slate-300 font-mono break-all">${accInfo}</p>
+                        <p class="text-[10px] text-slate-400 break-all font-mono">${r.accountDetails || r.number}</p>
                         <div class="flex gap-2">
-                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[9px] font-black uppercase">Approve</button>
-                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-500/10 text-red-500 rounded-lg text-[9px] font-black uppercase">Reject</button>
+                            <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[9px] font-black">APPROVE</button>
+                            <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-600/20 text-red-500 rounded-lg text-[9px] font-black">REJECT</button>
                         </div>
                     `;
                     list.appendChild(card);
@@ -225,15 +258,27 @@
         }
 
         // Actions
+        window.deleteAnyPost = async (id) => {
+            if(confirm('Delete this content permanently?')) await deleteDoc(doc(db, "posts", id));
+        };
+
+        window.toggleMonetize = async (uid, currentStatus) => {
+            const newStatus = !currentStatus;
+            await updateDoc(doc(db, "users", uid), { isMonetized: newStatus });
+            
+            // Sync all user's existing posts for ads
+            const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
+            const snap = await getDocs(postQuery);
+            const batch = writeBatch(db);
+            snap.forEach(p => batch.update(doc(db, "posts", p.id), { isCreatorMonetized: newStatus }));
+            await batch.commit();
+            Swal.fire('Success', 'User & Posts Updated', 'success');
+        };
+
         window.processPayout = async (docId, status, uid = null, amt = 0) => {
-            if(!confirm(`Are you sure you want to ${status}?`)) return;
-            try {
-                await updateDoc(doc(db, "withdrawRequests", docId), { status: status });
-                if(status === 'Rejected' && uid) {
-                    await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
-                }
-                Swal.fire('Success', `Withdrawal ${status}`, 'success');
-            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+            await updateDoc(doc(db, "withdrawRequests", docId), { status: status });
+            if(status === 'Rejected' && uid) await updateDoc(doc(db, "users", uid), { balance: increment(amt) });
+            Swal.fire('Updated', `Request ${status}`, 'success');
         };
 
         window.toggleMaintenance = async () => {
@@ -242,17 +287,13 @@
 
         window.saveAd = async () => {
             await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true });
-            Swal.fire('Success', 'Ad Code Updated', 'success');
+            Swal.fire('Success', 'Ad Code Globalized', 'success');
         };
 
         window.updateCPM = async () => {
             const val = parseFloat(document.getElementById('cpmRateInput').value);
             await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: val }, { merge: true });
             Swal.fire('Success', 'CPM Updated', 'success');
-        };
-
-        window.toggleMonetize = async (id, status) => {
-            await updateDoc(doc(db, "users", id), { isMonetized: !status });
         };
 
         window.openMagic = (id, name, bal, views) => {
@@ -266,12 +307,12 @@
                     fakeViews: parseInt(document.getElementById('fakeViewInput').value)
                 });
                 closeMagic();
-                Swal.fire('Updated', 'User data saved', 'success');
+                Swal.fire('Saved', 'Citizen data updated', 'success');
             };
         };
 
         window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
-        window.hardBanUser = async (id) => { if(confirm('Ban this user?')) await updateDoc(doc(db, "users", id), { isBanned: true }); };
+        window.hardBanUser = async (id) => { if(confirm('Ban this citizen permanently?')) await updateDoc(doc(db, "users", id), { isBanned: true }); };
 
         window.sendBroadcast = async () => {
             const msg = document.getElementById('broadcastMsg').value;
@@ -285,12 +326,12 @@
         };
 
         window.resetAllBalances = async () => {
-            if(!confirm('Reset ALL balances to 0?')) return;
+            if(!confirm('DANGER: Reset ALL balances to 0?')) return;
             const users = await getDocs(collection(db, "users"));
             const batch = writeBatch(db);
             users.forEach(u => batch.update(doc(db, "users", u.id), { balance: 0 }));
             await batch.commit();
-            Swal.fire('Reset Done', '', 'success');
+            Swal.fire('Wipe Complete', '', 'success');
         };
     </script>
 </body>
