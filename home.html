@@ -27,6 +27,8 @@
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.5s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: none; z-index: 1500; }
+        
+        .reply-box { border-left: 2px solid #e2e8f0; margin-left: 15px; padding-left: 10px; margin-top: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -48,7 +50,6 @@
             <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
             <span class="text-gray-400 font-bold text-sm">Search friends or videos...</span>
         </div>
-
         <div id="storyList" class="flex gap-4 overflow-x-auto no-scrollbar mb-8 py-2"></div>
         <div id="feed" class="space-y-6"></div>
     </div>
@@ -62,17 +63,23 @@
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
-    <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-8">
+    <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-6">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+        <h3 class="font-black text-center mb-4">Comments</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-4"></div>
-        <div class="flex gap-3 pt-6 border-t">
-            <input id="cInput" type="text" placeholder="মতামত জানান..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none font-bold">
-            <button onclick="postComment()" class="bg-blue-600 text-white px-7 rounded-2xl shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+        <div id="replyIndicator" class="hidden px-4 py-2 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-t-xl flex justify-between">
+            <span>Replying to <span id="replyTargetName"></span></span>
+            <button onclick="cancelReply()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="flex gap-3 pt-4 border-t">
+            <input id="cInput" type="text" placeholder="মতামত জানান..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none font-bold text-sm">
+            <button onclick="postComment()" class="bg-blue-600 text-white px-6 rounded-2xl shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -81,36 +88,9 @@
         const auth = getAuth(app);
 
         let user = null; let currentUserData = null; let activePostId = null; 
-        let globalCPM = 0.0001; let viewTimers = {};
+        let replyToId = null; let globalCPM = 0.0001; let viewTimers = {};
 
-        // 🕒 Time Formatter
-        function getFameTime(ts) {
-            if(!ts) return "এখনই";
-            const date = ts.toDate ? ts.toDate() : new Date(ts);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
-            if (diff < 60) return "সদ্য";
-            if (diff < 3600) return Math.floor(diff/60) + " মিনিট আগে";
-            if (diff < 86400) return Math.floor(diff/3600) + " ঘণ্টা আগে";
-            return date.toLocaleDateString('bn-BD', {day:'numeric', month:'long'});
-        }
-
-        // 🧠 Smart Algorithm
-        function getSortedFeed(posts, currentUser) {
-            function calculateScore(post) {
-                const likes = post.likedBy?.length || 0;
-                const comments = post.commentCount || 0;
-                const engagementScore = (likes * 2) + (comments * 4) + (post.views * 1);
-                const postTime = post.createdAt?.toDate ? post.createdAt.toDate().getTime() : Date.now();
-                const hours = (Date.now() - postTime) / 3600000;
-                let timeScore = hours < 1 ? 40 : (hours < 6 ? 25 : 10);
-                let score = (engagementScore * 0.5) + (timeScore * 0.5);
-                if (likes > 100) score += 100;
-                return score;
-            }
-            return posts.sort((a, b) => calculateScore(b) - calculateScore(a));
-        }
-
+        // Authentication logic
         onAuthStateChanged(auth, async u => {
             if(u) { user = u; const s = await getDoc(doc(db, "users", u.uid)); currentUserData = s.data() || {}; startApp(); }
             else location.href = "index.html";
@@ -121,15 +101,15 @@
             renderFeed(); loadProfile(); checkNotif(); loadStories();
         }
 
+        // 🔥 Real-time Sync Feed
         function renderFeed() {
             const feed = document.getElementById('feed');
-            onSnapshot(collection(db, "posts"), snap => {
-                const rawPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                const sortedPosts = getSortedFeed(rawPosts, { uid: user.uid, ...currentUserData });
-
-                feed.innerHTML = sortedPosts.map(p => {
+            // orderBy "createdAt" ensures real-time updates and proper syncing with admin deletions
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
+                feed.innerHTML = snap.docs.map(docSnap => {
+                    const p = docSnap.data();
+                    const pid = docSnap.id;
                     const isLiked = p.likedBy?.includes(user.uid);
-                    // এডমিন প্যানেলের সাথে মনিটাইজড আইডি চেক
                     const adBadge = p.isCreatorMonetized ? `<div class="ad-tag"><i class="fa-solid fa-certificate mr-1"></i> Sponsored</div>` : '';
                     
                     return `
@@ -140,39 +120,35 @@
                                 <img src="${p.userPic}" class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm">
                                 <div>
                                     <h4 class="font-extrabold text-[15px]">@${p.userName}</h4>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase">${getFameTime(p.createdAt)}</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">সদ্য</p>
                                 </div>
                             </div>
                             <i class="fa-solid fa-ellipsis text-gray-300"></i>
                         </div>
                         <div class="px-6 pb-4 text-[14px] font-medium text-gray-800">${p.text || ''}</div>
-                        <div class="post-tracker" data-id="${p.id}" data-creator="${p.userId}" data-monetized="${p.isCreatorMonetized || false}">
+                        <div class="post-tracker" data-id="${pid}" data-creator="${p.userId}" data-monetized="${p.isCreatorMonetized || false}">
                             ${p.fileUrl ? `
                                 <div class="px-4">
                                     <div class="video-box shadow-xl shadow-gray-200/50">
                                         ${p.fileType === 'video' ? `
-                                            <video id="vid-${p.id}" src="${p.fileUrl}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video>
+                                            <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video>
                                             <div class="vid-controls">
-                                                <button onclick="toggleSound('${p.id}')" class="control-btn"><i id="vol-${p.id}" class="fas fa-volume-mute"></i></button>
-                                                <button onclick="location.href='reels.html?id=${p.id}'" class="control-btn"><i class="fas fa-expand"></i></button>
+                                                <button onclick="toggleSound('${pid}')" class="control-btn"><i id="vol-${pid}" class="fas fa-volume-mute"></i></button>
+                                                <button onclick="location.href='reels.html?id=${pid}'" class="control-btn"><i class="fas fa-expand"></i></button>
                                             </div>
                                         ` : `<img src="${p.fileUrl}" class="w-full object-cover">`}
                                     </div>
                                 </div>` : ''}
                         </div>
-                        
                         <div class="px-6 py-4 flex justify-between items-center mt-2">
                             <div class="flex gap-6">
-                                <button onclick="handleLike('${p.id}', '${p.userId}')" class="flex items-center gap-2 ${isLiked?'text-blue-600':'text-gray-400'}">
+                                <button onclick="handleLike('${pid}', '${p.userId}')" class="flex items-center gap-2 ${isLiked?'text-blue-600':'text-gray-400'}">
                                     <i class="fa-${isLiked?'solid':'regular'} fa-heart text-2xl"></i>
                                     <span class="text-xs font-black">${p.likedBy?.length || 0}</span>
                                 </button>
-                                <button onclick="openComments('${p.id}')" class="flex items-center gap-2 text-gray-400">
+                                <button onclick="openComments('${pid}')" class="flex items-center gap-2 text-gray-400">
                                     <i class="fa-regular fa-comment-dots text-2xl"></i>
                                     <span class="text-xs font-black">${p.commentCount || 0}</span>
-                                </button>
-                                <button onclick="sharePost('${p.id}')" class="flex items-center gap-2 text-gray-400">
-                                    <i class="fa-regular fa-paper-plane text-2xl"></i>
                                 </button>
                             </div>
                             <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full">
@@ -186,7 +162,7 @@
             });
         }
 
-        // VIEW & INCOME LOGIC
+        // View logic (5 seconds check)
         function initSmartObserver() {
             const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
@@ -210,11 +186,87 @@
             if(cid === user.uid) return;
             const pRef = doc(db, "posts", pid);
             const pSnap = await getDoc(pRef);
-            if(!pSnap.exists() || pSnap.data().viewedBy?.includes(user.uid)) return;
-            await updateDoc(pRef, { views: increment(1), viewedBy: arrayUnion(user.uid) });
+            if(!pSnap.exists()) return;
+            await updateDoc(pRef, { views: increment(1) });
             if(isMon) await updateDoc(doc(db, "users", cid), { balance: increment(globalCPM) });
         }
 
+        // 🔥 Advanced Commenting (Likes & Replies)
+        window.openComments = (id) => {
+            activePostId = id; cancelReply();
+            document.getElementById('commentSheet').classList.add('active');
+            document.getElementById('overlay').style.display = "block";
+            
+            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
+                document.getElementById('commentList').innerHTML = sn.docs.map(cDoc => {
+                    const c = cDoc.data();
+                    const cid = cDoc.id;
+                    const isCLiked = c.likedBy?.includes(user.uid);
+                    return `
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-3">
+                            <img src="${c.userPic}" class="w-8 h-8 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="bg-gray-100 p-3 rounded-2xl">
+                                    <p class="text-[10px] font-black text-blue-600">@${c.userName}</p>
+                                    <p class="text-[12px] font-bold text-gray-800">${c.text}</p>
+                                </div>
+                                <div class="flex gap-4 mt-1 ml-2">
+                                    <button onclick="likeComment('${cid}')" class="text-[10px] font-black ${isCLiked?'text-blue-600':'text-gray-400'}">Like (${c.likedBy?.length || 0})</button>
+                                    <button onclick="setReply('${cid}', '${c.userName}')" class="text-[10px] font-black text-gray-400">Reply</button>
+                                </div>
+                                ${c.replies ? c.replies.map(r => `
+                                    <div class="reply-box">
+                                        <p class="text-[9px] font-black text-indigo-500">@${r.userName}</p>
+                                        <p class="text-[11px] font-bold text-gray-700">${r.text}</p>
+                                    </div>
+                                `).join('') : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            });
+        };
+
+        window.likeComment = async (cid) => {
+            const ref = doc(db, "posts", activePostId, "comments", cid);
+            const snap = await getDoc(ref);
+            const liked = snap.data().likedBy?.includes(user.uid);
+            await updateDoc(ref, { likedBy: liked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+        };
+
+        window.setReply = (id, name) => {
+            replyToId = id;
+            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyTargetName').innerText = name;
+            document.getElementById('cInput').focus();
+        };
+
+        window.cancelReply = () => {
+            replyToId = null;
+            document.getElementById('replyIndicator').classList.add('hidden');
+        };
+
+        window.postComment = async () => {
+            const i = document.getElementById('cInput'); if(!i.value.trim()) return;
+            if(replyToId) {
+                // Handle Reply
+                await updateDoc(doc(db, "posts", activePostId, "comments", replyToId), {
+                    replies: arrayUnion({ text: i.value, userId: user.uid, userName: currentUserData.name, time: new Date().getTime() })
+                });
+                cancelReply();
+            } else {
+                // Handle Main Comment
+                await addDoc(collection(db, "posts", activePostId, "comments"), { 
+                    text: i.value, userId: user.uid, userName: currentUserData.name, 
+                    userPic: currentUserData.profilePic, time: serverTimestamp(), likedBy: [] 
+                });
+                await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
+            }
+            i.value = "";
+        };
+
+        // Utility functions
         window.toggleSound = (id) => {
             const v = document.getElementById(`vid-${id}`);
             const i = document.getElementById(`vol-${id}`);
@@ -225,27 +277,6 @@
             const r = doc(db, "posts", id); const s = await getDoc(r);
             const l = s.data().likedBy?.includes(user.uid);
             await updateDoc(r, { likedBy: l ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-            if(!l && oid !== user.uid) addDoc(collection(db, "notifications"), { targetUserId: oid, senderName: currentUserData.name, type: "like", timestamp: serverTimestamp(), read: false });
-        };
-
-        window.openComments = (id) => {
-            activePostId = id; document.getElementById('commentSheet').classList.add('active');
-            document.getElementById('overlay').style.display = "block";
-            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
-                document.getElementById('commentList').innerHTML = sn.docs.map(c => `<div class="flex gap-4"><img src="${c.data().userPic}" class="w-10 h-10 rounded-2xl object-cover border"><div class="bg-gray-50 p-4 rounded-2xl flex-1"><p class="text-[11px] font-black text-blue-600">@${c.data().userName}</p><p class="text-sm font-bold text-gray-800">${c.data().text}</p></div></div>`).join('');
-            });
-        };
-
-        window.postComment = async () => {
-            const i = document.getElementById('cInput'); if(!i.value.trim()) return;
-            await addDoc(collection(db, "posts", activePostId, "comments"), { text: i.value, userId: user.uid, userName: currentUserData.name, userPic: currentUserData.profilePic, time: serverTimestamp() });
-            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) }); i.value = "";
-        };
-
-        window.sharePost = (id) => {
-            const url = window.location.href + "?post=" + id;
-            navigator.clipboard.writeText(url);
-            Swal.fire({ title: 'লিঙ্ক কপি হয়েছে!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
         };
 
         function loadProfile() { if(currentUserData?.profilePic) document.getElementById('navPic').src = currentUserData.profilePic; }
