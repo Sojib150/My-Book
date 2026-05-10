@@ -3,83 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>My Book - Pro Layout</title>
+    <title>My Book - Engine V3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f7fa; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fafafa; color: #1a1a1a; }
         
-        .premium-card { background: white; border-radius: 30px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 40px rgba(0,0,0,0.02); overflow: hidden; position: relative; }
-        .ad-tag { background: linear-gradient(90deg, #1877f2, #00d2ff); color: white; padding: 4px 12px; border-radius: 0 0 15px 0; font-size: 10px; font-weight: 800; text-transform: uppercase; position: absolute; top: 0; left: 0; z-index: 10; }
+        /* Instagram Style Vertical Video */
+        .insta-post { background: white; border-bottom: 1px solid #efefef; margin-bottom: 10px; }
+        .video-container { position: relative; width: 100%; aspect-ratio: 4/5; background: #000; overflow: hidden; border-radius: 4px; }
+        video { width: 100%; height: 100%; object-fit: cover; }
         
-        .video-box { position: relative; width: 100%; background: #000; border-radius: 20px; overflow: hidden; margin-top: 10px; }
-        video { width: 100%; max-height: 75vh; }
+        .ad-banner { background: #f0f7ff; border: 1px dashed #1877f2; padding: 10px; margin: 10px; border-radius: 12px; font-size: 11px; text-align: center; color: #1877f2; font-weight: 800; }
         
-        .vid-controls { position: absolute; bottom: 15px; right: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .control-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); color: white; width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); font-size: 18px; }
+        .story-ring { width: 68px; height: 68px; padding: 2px; border: 2px solid #ff3040; border-radius: 50%; }
+        .story-add { background: #1877f2; color: white; border: 2px solid white; position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
 
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 420px; background: #000; border-radius: 35px; padding: 12px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .nav-item { color: rgba(255,255,255,0.4); font-size: 1.4rem; transition: 0.3s; }
-        .nav-item.active { color: white; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #efefef; padding: 12px 0; display: flex; justify-content: space-around; z-index: 1000; }
+        .nav-icon { font-size: 1.5rem; color: #262626; }
 
-        .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.5s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; }
-        .drawer.active { transform: translateY(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: none; z-index: 1500; }
-        
-        .reply-box { border-left: 2px solid #e2e8f0; margin-left: 15px; padding-left: 10px; margin-top: 10px; }
+        .comment-btn { transition: transform 0.2s; }
+        .comment-btn:active { transform: scale(0.9); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-36">
+<body class="pb-20">
 
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-lg px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-        <h1 class="text-2xl font-black text-blue-600 italic tracking-tighter">My Book</h1>
-        <div class="flex gap-5 items-center">
-            <div class="relative cursor-pointer" onclick="location.href='notifications.html'">
-                <i class="fa-solid fa-bell text-xl text-gray-800"></i>
-                <span id="notifDot" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full hidden border-2 border-white"></span>
-            </div>
-            <img id="navPic" onclick="location.href='profile.html'" class="w-10 h-10 rounded-full border-2 border-blue-500 p-0.5 object-cover bg-gray-50">
+    <nav class="sticky top-0 z-50 bg-white border-b px-4 py-3 flex justify-between items-center">
+        <h1 class="text-2xl font-bold tracking-tighter italic text-blue-600">My Book</h1>
+        <div class="flex gap-4 items-center">
+            <i class="fa-regular fa-heart text-2xl" onclick="location.href='notifications.html'"></i>
+            <i class="fa-regular fa-paper-plane text-2xl"></i>
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto p-4">
-        <div class="bg-white p-4 rounded-2xl mb-6 shadow-sm flex items-center gap-3 border border-gray-50" onclick="location.href='search.html'">
-            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-            <span class="text-gray-400 font-bold text-sm">Search friends or videos...</span>
+    <div class="max-w-md mx-auto">
+        <div class="bg-white py-4 border-b overflow-x-auto no-scrollbar flex gap-4 px-4">
+            <div class="relative shrink-0" onclick="location.href='post.html?type=story'">
+                <div class="w-[66px] h-[66px] rounded-full border-2 border-gray-200 p-0.5">
+                    <img id="myStoryPic" src="https://via.placeholder.com/100" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div class="story-add"><i class="fas fa-plus"></i></div>
+                <p class="text-[10px] text-center mt-1 font-medium">Your Story</p>
+            </div>
+            <div id="storyList" class="flex gap-4"></div>
         </div>
-        <div id="storyList" class="flex gap-4 overflow-x-auto no-scrollbar mb-8 py-2"></div>
-        <div id="feed" class="space-y-6"></div>
+
+        <div id="globalAdSpace" class="hidden"></div>
+
+        <div id="feed" class="space-y-2"></div>
     </div>
 
     <div class="bottom-nav">
-        <a href="home.html" class="nav-item active"><i class="fas fa-house"></i></a>
-        <a href="search.html" class="nav-item"><i class="fas fa-search"></i></a>
-        <div onclick="location.href='post.html'" class="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center -mt-8 border-4 border-[#f4f7fa] shadow-lg"><i class="fas fa-plus text-xl"></i></div>
-        <a href="reels.html" class="nav-item"><i class="fas fa-play"></i></a>
-        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i></a>
-    </div>
-
-    <div id="overlay" class="overlay" onclick="closeAll()"></div>
-    <div id="commentSheet" class="drawer h-[85vh] flex flex-col p-6">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-        <h3 class="font-black text-center mb-4">Comments</h3>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-4"></div>
-        <div id="replyIndicator" class="hidden px-4 py-2 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-t-xl flex justify-between">
-            <span>Replying to <span id="replyTargetName"></span></span>
-            <button onclick="cancelReply()"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="flex gap-3 pt-4 border-t">
-            <input id="cInput" type="text" placeholder="মতামত জানান..." class="flex-1 bg-gray-100 p-4 rounded-2xl outline-none font-bold text-sm">
-            <button onclick="postComment()" class="bg-blue-600 text-white px-6 rounded-2xl shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
+        <i class="fas fa-home nav-icon" onclick="location.href='home.html'"></i>
+        <i class="fas fa-search nav-icon" onclick="location.href='search.html'"></i>
+        <i class="far fa-plus-square nav-icon" onclick="location.href='post.html'"></i>
+        <i class="fas fa-play nav-icon" onclick="location.href='reels.html'"></i>
+        <img id="navPic" onclick="location.href='profile.html'" class="w-7 h-7 rounded-full border border-gray-300">
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, deleteDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -87,202 +74,144 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let user = null; let currentUserData = null; let activePostId = null; 
-        let replyToId = null; let globalCPM = 0.0001; let viewTimers = {};
+        let user = null; let currentUserData = null; let globalCPM = 0.0001;
 
-        // Authentication logic
-        onAuthStateChanged(auth, async u => {
-            if(u) { user = u; const s = await getDoc(doc(db, "users", u.uid)); currentUserData = s.data() || {}; startApp(); }
-            else location.href = "index.html";
-        });
-
-        function startApp() {
-            onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
-            renderFeed(); loadProfile(); checkNotif(); loadStories();
+        // 🕒 Advanced Time Logic
+        function formatFameTime(timestamp) {
+            if(!timestamp) return "Just now";
+            const seconds = Math.floor((new Date() - timestamp.toDate()) / 1000);
+            if(seconds < 60) return seconds + "s ago";
+            if(seconds < 3600) return Math.floor(seconds/60) + "m ago";
+            if(seconds < 86400) return Math.floor(seconds/3600) + "h ago";
+            return Math.floor(seconds/86400) + "d ago";
         }
 
-        // 🔥 Real-time Sync Feed
+        onAuthStateChanged(auth, async u => {
+            if(u) { user = u; 
+                const s = await getDoc(doc(db, "users", u.uid)); 
+                currentUserData = s.data() || {};
+                document.getElementById('navPic').src = currentUserData.profilePic || 'https://via.placeholder.com/100';
+                document.getElementById('myStoryPic').src = currentUserData.profilePic || 'https://via.placeholder.com/100';
+                startEngine(); 
+            } else { location.href = "index.html"; }
+        });
+
+        function startEngine() {
+            // Load Global Ads
+            onSnapshot(doc(db, "appSettings", "ads"), s => {
+                if(s.exists() && s.data().code) {
+                    const adBox = document.getElementById('globalAdSpace');
+                    adBox.innerHTML = s.data().code;
+                    adBox.classList.remove('hidden');
+                }
+            });
+
+            onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
+
+            renderFeed();
+            loadStories();
+        }
+
         function renderFeed() {
             const feed = document.getElementById('feed');
-            // orderBy "createdAt" ensures real-time updates and proper syncing with admin deletions
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 feed.innerHTML = snap.docs.map(docSnap => {
                     const p = docSnap.data();
                     const pid = docSnap.id;
                     const isLiked = p.likedBy?.includes(user.uid);
-                    const adBadge = p.isCreatorMonetized ? `<div class="ad-tag"><i class="fa-solid fa-certificate mr-1"></i> Sponsored</div>` : '';
                     
                     return `
-                    <div class="premium-card">
-                        ${adBadge}
-                        <div class="p-5 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <img src="${p.userPic}" class="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm">
-                                <div>
-                                    <h4 class="font-extrabold text-[15px]">@${p.userName}</h4>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase">সদ্য</p>
+                    <div class="insta-post">
+                        <div class="flex items-center justify-between p-3">
+                            <div class="flex items-center gap-3">
+                                <img src="${p.userPic}" class="w-9 h-9 rounded-full object-cover border border-gray-100">
+                                <span class="font-bold text-sm tracking-tight">${p.userName}</span>
+                                <span class="text-gray-400 text-xs">• ${formatFameTime(p.createdAt)}</span>
+                            </div>
+                            <i class="fas fa-ellipsis-h text-gray-400"></i>
+                        </div>
+
+                        <div class="video-container" onclick="handleAdView('${pid}', '${p.userId}', ${p.isCreatorMonetized})">
+                            ${p.fileType === 'video' ? `
+                                <video id="v-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="togglePlay('${pid}')"></video>
+                                <div class="absolute bottom-4 right-4 bg-black/40 p-2 rounded-full text-white text-[10px]" id="vol-icon-${pid}">
+                                    <i class="fas fa-volume-mute"></i>
                                 </div>
-                            </div>
-                            <i class="fa-solid fa-ellipsis text-gray-300"></i>
+                            ` : `<img src="${p.fileUrl}" class="w-full h-full object-cover">`}
                         </div>
-                        <div class="px-6 pb-4 text-[14px] font-medium text-gray-800">${p.text || ''}</div>
-                        <div class="post-tracker" data-id="${pid}" data-creator="${p.userId}" data-monetized="${p.isCreatorMonetized || false}">
-                            ${p.fileUrl ? `
-                                <div class="px-4">
-                                    <div class="video-box shadow-xl shadow-gray-200/50">
-                                        ${p.fileType === 'video' ? `
-                                            <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video>
-                                            <div class="vid-controls">
-                                                <button onclick="toggleSound('${pid}')" class="control-btn"><i id="vol-${pid}" class="fas fa-volume-mute"></i></button>
-                                                <button onclick="location.href='reels.html?id=${pid}'" class="control-btn"><i class="fas fa-expand"></i></button>
-                                            </div>
-                                        ` : `<img src="${p.fileUrl}" class="w-full object-cover">`}
-                                    </div>
-                                </div>` : ''}
-                        </div>
-                        <div class="px-6 py-4 flex justify-between items-center mt-2">
-                            <div class="flex gap-6">
-                                <button onclick="handleLike('${pid}', '${p.userId}')" class="flex items-center gap-2 ${isLiked?'text-blue-600':'text-gray-400'}">
-                                    <i class="fa-${isLiked?'solid':'regular'} fa-heart text-2xl"></i>
-                                    <span class="text-xs font-black">${p.likedBy?.length || 0}</span>
-                                </button>
-                                <button onclick="openComments('${pid}')" class="flex items-center gap-2 text-gray-400">
-                                    <i class="fa-regular fa-comment-dots text-2xl"></i>
-                                    <span class="text-xs font-black">${p.commentCount || 0}</span>
-                                </button>
+
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex gap-4">
+                                    <i class="fa-${isLiked?'solid text-red-500':'regular'} fa-heart text-2xl cursor-pointer" onclick="handleLike('${pid}')"></i>
+                                    <i class="fa-regular fa-comment text-2xl" onclick="location.href='post_view.html?id=${pid}'"></i>
+                                    <i class="fa-regular fa-paper-plane text-2xl"></i>
+                                </div>
+                                <i class="fa-regular fa-bookmark text-2xl"></i>
                             </div>
-                            <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full">
-                                <i class="fa-solid fa-chart-simple text-[10px]"></i>
-                                <span class="text-[11px] font-black">${p.views || 0} VIEWS</span>
-                            </div>
+                            <p class="font-bold text-sm">${p.likedBy?.length || 0} likes</p>
+                            <p class="text-sm mt-1">
+                                <span class="font-bold">${p.userName}</span> ${p.text || ''}
+                            </p>
+                            <p class="text-gray-400 text-xs mt-2 cursor-pointer" onclick="location.href='post_view.html?id=${pid}'">
+                                View all ${p.commentCount || 0} comments
+                            </p>
                         </div>
+                        
+                        ${p.isCreatorMonetized ? `<div class="ad-banner">✨ Monetized Content • Earnings Active</div>` : ''}
                     </div>`;
                 }).join('');
-                initSmartObserver();
+                initObserver();
             });
         }
 
-        // View logic (5 seconds check)
-        function initSmartObserver() {
-            const obs = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    const pid = entry.target.dataset.id;
-                    const cid = entry.target.dataset.creator;
-                    const isMon = entry.target.dataset.monetized === "true";
-                    const vid = entry.target.querySelector('video');
-                    if (entry.isIntersecting) {
-                        if(vid) vid.play().catch(()=>{});
-                        viewTimers[pid] = setTimeout(() => recordView(pid, cid, isMon), 5000);
-                    } else {
-                        if(vid) vid.pause();
-                        clearTimeout(viewTimers[pid]);
-                    }
-                });
-            }, { threshold: 0.8 });
-            document.querySelectorAll('.post-tracker').forEach(el => obs.observe(el));
-        }
-
-        async function recordView(pid, cid, isMon) {
-            if(cid === user.uid) return;
-            const pRef = doc(db, "posts", pid);
-            const pSnap = await getDoc(pRef);
-            if(!pSnap.exists()) return;
-            await updateDoc(pRef, { views: increment(1) });
-            if(isMon) await updateDoc(doc(db, "users", cid), { balance: increment(globalCPM) });
-        }
-
-        // 🔥 Advanced Commenting (Likes & Replies)
-        window.openComments = (id) => {
-            activePostId = id; cancelReply();
-            document.getElementById('commentSheet').classList.add('active');
-            document.getElementById('overlay').style.display = "block";
-            
-            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
-                document.getElementById('commentList').innerHTML = sn.docs.map(cDoc => {
-                    const c = cDoc.data();
-                    const cid = cDoc.id;
-                    const isCLiked = c.likedBy?.includes(user.uid);
-                    return `
-                    <div class="flex flex-col gap-2">
-                        <div class="flex gap-3">
-                            <img src="${c.userPic}" class="w-8 h-8 rounded-full object-cover">
-                            <div class="flex-1">
-                                <div class="bg-gray-100 p-3 rounded-2xl">
-                                    <p class="text-[10px] font-black text-blue-600">@${c.userName}</p>
-                                    <p class="text-[12px] font-bold text-gray-800">${c.text}</p>
-                                </div>
-                                <div class="flex gap-4 mt-1 ml-2">
-                                    <button onclick="likeComment('${cid}')" class="text-[10px] font-black ${isCLiked?'text-blue-600':'text-gray-400'}">Like (${c.likedBy?.length || 0})</button>
-                                    <button onclick="setReply('${cid}', '${c.userName}')" class="text-[10px] font-black text-gray-400">Reply</button>
-                                </div>
-                                ${c.replies ? c.replies.map(r => `
-                                    <div class="reply-box">
-                                        <p class="text-[9px] font-black text-indigo-500">@${r.userName}</p>
-                                        <p class="text-[11px] font-bold text-gray-700">${r.text}</p>
-                                    </div>
-                                `).join('') : ''}
-                            </div>
-                        </div>
-                    </div>`;
-                }).join('');
-            });
+        // Ads Income Logic
+        window.handleAdView = async (pid, creatorId, isMonetized) => {
+            if(creatorId === user.uid || !isMonetized) return;
+            // এই ফাংশনটি ভিউ কাউন্ট করবে এবং ইউজারের অ্যাকাউন্টে টাকা যোগ করবে
+            await updateDoc(doc(db, "posts", pid), { views: increment(1) });
+            await updateDoc(doc(db, "users", creatorId), { balance: increment(globalCPM) });
         };
 
-        window.likeComment = async (cid) => {
-            const ref = doc(db, "posts", activePostId, "comments", cid);
-            const snap = await getDoc(ref);
-            const liked = snap.data().likedBy?.includes(user.uid);
+        window.togglePlay = (id) => {
+            const v = document.getElementById(`v-${id}`);
+            const vol = document.getElementById(`vol-icon-${id}`);
+            if(v.paused) { v.play(); v.muted = false; vol.innerHTML = '<i class="fas fa-volume-up"></i>'; }
+            else { v.pause(); }
+        };
+
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const vid = entry.target.querySelector('video');
+                    if(vid) {
+                        if(entry.isIntersecting) vid.play().catch(()=>{});
+                        else vid.pause();
+                    }
+                });
+            }, { threshold: 0.7 });
+            document.querySelectorAll('.video-container').forEach(el => obs.observe(el));
+        }
+
+        window.handleLike = async (id) => {
+            const ref = doc(db, "posts", id);
+            const s = await getDoc(ref);
+            const liked = s.data().likedBy?.includes(user.uid);
             await updateDoc(ref, { likedBy: liked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
         };
 
-        window.setReply = (id, name) => {
-            replyToId = id;
-            document.getElementById('replyIndicator').classList.remove('hidden');
-            document.getElementById('replyTargetName').innerText = name;
-            document.getElementById('cInput').focus();
-        };
-
-        window.cancelReply = () => {
-            replyToId = null;
-            document.getElementById('replyIndicator').classList.add('hidden');
-        };
-
-        window.postComment = async () => {
-            const i = document.getElementById('cInput'); if(!i.value.trim()) return;
-            if(replyToId) {
-                // Handle Reply
-                await updateDoc(doc(db, "posts", activePostId, "comments", replyToId), {
-                    replies: arrayUnion({ text: i.value, userId: user.uid, userName: currentUserData.name, time: new Date().getTime() })
-                });
-                cancelReply();
-            } else {
-                // Handle Main Comment
-                await addDoc(collection(db, "posts", activePostId, "comments"), { 
-                    text: i.value, userId: user.uid, userName: currentUserData.name, 
-                    userPic: currentUserData.profilePic, time: serverTimestamp(), likedBy: [] 
-                });
-                await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
-            }
-            i.value = "";
-        };
-
-        // Utility functions
-        window.toggleSound = (id) => {
-            const v = document.getElementById(`vid-${id}`);
-            const i = document.getElementById(`vol-${id}`);
-            v.muted = !v.muted; i.className = v.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
-        };
-
-        window.handleLike = async (id, oid) => {
-            const r = doc(db, "posts", id); const s = await getDoc(r);
-            const l = s.data().likedBy?.includes(user.uid);
-            await updateDoc(r, { likedBy: l ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-        };
-
-        function loadProfile() { if(currentUserData?.profilePic) document.getElementById('navPic').src = currentUserData.profilePic; }
-        function checkNotif() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? "block" : "none"; }); }
-        function loadStories() { onSnapshot(collection(db, "stories"), s => { document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="shrink-0 w-16 h-16 rounded-full p-1 border-2 border-blue-600"><img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover"></div>`).join(''); }); }
-        window.closeAll = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('overlay').style.display = "none"; };
+        function loadStories() {
+            onSnapshot(collection(db, "stories"), s => {
+                document.getElementById('storyList').innerHTML = s.docs.map(d => `
+                    <div class="shrink-0 text-center">
+                        <div class="story-ring">
+                            <img src="${d.data().userPic}" class="w-full h-full rounded-full object-cover border-2 border-white">
+                        </div>
+                        <p class="text-[10px] mt-1 font-medium truncate w-16">${d.data().userName}</p>
+                    </div>
+                `).join('');
+            });
+        }
     </script>
 </body>
 </html>
