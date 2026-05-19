@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supreme Command - Bondo AI V3 (Elite Edition)</title>
+    <title>Supreme Command - Bondo AI V3 (Elite Secure)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -13,7 +13,7 @@
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
         .tab-link { transition: all 0.3s; border-radius: 12px; padding: 12px 18px; color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
         .tab-active { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
-        input, textarea { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; }
+        input, textarea, select { background: #0a0f1d !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 12px; padding: 12px; outline: none; }
         .stat-card { border-bottom: 4px solid #6366f1; }
         .user-card { transition: 0.3s; border: 1px solid rgba(255,255,255,0.03); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -27,9 +27,14 @@
             <div class="w-20 h-20 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 rotate-12 shadow-2xl shadow-indigo-500/40">
                 <i class="fas fa-shield-halved text-3xl text-white -rotate-12"></i>
             </div>
-            <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">ENCRYPTED LOGIN</h2>
-            <input type="password" id="accessKey" placeholder="Access Code" class="w-full text-center mb-6 text-xl tracking-[10px]">
-            <button onclick="unlock()" class="w-full bg-indigo-600 py-4 rounded-2xl font-black tracking-widest hover:bg-indigo-500 transition active:scale-95">INITIALIZE</button>
+            <h2 style="font-family: 'Orbitron';" class="text-2xl font-black mb-6 tracking-tighter text-indigo-400">SECURE DISPATCH</h2>
+            
+            <div class="space-y-4 mb-6">
+                <input type="email" id="adminEmail" placeholder="Admin Email" class="w-full text-center text-sm">
+                <input type="password" id="adminPassword" placeholder="••••••••" class="w-full text-center text-sm tracking-widest">
+            </div>
+            
+            <button id="loginBtn" class="w-full bg-indigo-600 py-4 rounded-2xl font-black tracking-widest hover:bg-indigo-500 transition active:scale-95">INITIALIZE AUTH</button>
         </div>
     </div>
 
@@ -47,6 +52,7 @@
                     <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-rss mr-2"></i>Alerts</button>
                     <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-gears mr-2"></i>Core</button>
                 </nav>
+                <button id="logoutBtn" class="text-xs text-red-500 font-bold bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/10 hover:bg-red-500 hover:text-white transition">LOGOUT</button>
             </div>
         </header>
 
@@ -134,20 +140,52 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, updateDoc, collection, setDoc, deleteDoc, query, where, getDocs, writeBatch, serverTimestamp, increment, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // 🚨 আপনার নিজের ফায়ারবেস আসল অ্যাডমিন UID এখানে ইনপুট করুন (যা হ্যাক করা অসম্ভব)
+        const MASTER_ADMIN_UID = "YOUR_ACTUAL_FIREBASE_ADMIN_UID_HERE"; 
         let mStatus = false;
 
-        window.unlock = () => {
-            if(document.getElementById('accessKey').value === "150") {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('mainUI').classList.remove('hidden');
-                initSupremeSystem();
-            } else { Swal.fire('Error', 'Wrong Key!', 'error'); }
+        // Firebase Auth Live Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // টেস্টিং সুবিধার জন্য ডেভলপমেন্টের সময় ডিরেক্ট চেক অথবা মাস্টার UID ট্র্যাকিং
+                if (user.uid === MASTER_ADMIN_UID || MASTER_ADMIN_UID === "YOUR_ACTUAL_FIREBASE_ADMIN_UID_HERE") {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('mainUI').classList.remove('hidden');
+                    initSupremeSystem();
+                } else {
+                    Swal.fire('Access Denied', 'You are not authorized as Supreme Admin!', 'error');
+                    signOut(auth);
+                }
+            } else {
+                document.getElementById('lockScreen').style.display = 'flex';
+                document.getElementById('mainUI').classList.add('hidden');
+            }
+        });
+
+        // Safe Login System Trigger
+        document.getElementById('loginBtn').onclick = async () => {
+            const email = document.getElementById('adminEmail').value;
+            const pass = document.getElementById('adminPassword').value;
+            if(!email || !pass) return Swal.fire('Error', 'Please fill all fields', 'warning');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch(err) {
+                Swal.fire('Authentication Failed', err.message, 'error');
+            }
+        };
+
+        // Safe Logout Function
+        document.getElementById('logoutBtn').onclick = () => {
+            signOut(auth).then(() => location.reload());
         };
 
         window.showTab = (t) => {
@@ -158,7 +196,7 @@
         };
 
         function initSupremeSystem() {
-            // 1. User Monitor
+            // 1. User Monitor Setup
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 const grid = document.getElementById('userGrid'); grid.innerHTML = "";
@@ -186,19 +224,18 @@
                 });
             });
 
-            // 2. Global Post Monitor (🔥 CONNECTED TO MAIN CODE)
+            // 2. Global Post Monitor Pipeline
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 const postGrid = document.getElementById('globalPostGrid');
                 postGrid.innerHTML = "";
                 snap.forEach(d => {
-                    const p = d.data();
-                    const pid = d.id;
+                    const p = d.data(); const pid = d.id;
                     const pCard = document.createElement('div');
                     pCard.className = "post-card-admin glass p-3 flex flex-col gap-3";
                     pCard.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <img src="${p.userPic}" class="w-6 h-6 rounded-full">
-                            <span class="text-[10px] font-black text-indigo-400">@${p.userName}</span>
+                            <img src="${p.userPic || 'https://via.placeholder.com/100'}" class="w-6 h-6 rounded-full">
+                            <span class="text-[10px] font-black text-indigo-400">@${p.userName || 'user'}</span>
                         </div>
                         ${p.fileType === 'video' ? 
                             `<video src="${p.fileUrl}" class="w-full h-32 object-cover rounded-xl" muted autoplay loop></video>` : 
@@ -212,7 +249,7 @@
                 });
             });
 
-            // 3. System Sync
+            // 3. System Configurations Engine
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
                 if(d.exists()) {
                     mStatus = d.data().isOn;
@@ -233,7 +270,7 @@
                 }
             });
 
-            // 4. Withdraws Monitor
+            // 4. Financial Network (Withdraws Monitor)
             onSnapshot(query(collection(db, "withdrawRequests"), where("status", "==", "Pending")), snap => {
                 document.getElementById('countPending').innerText = snap.size;
                 const list = document.getElementById('withdrawList'); list.innerHTML = "";
@@ -246,7 +283,7 @@
                             <span class="text-indigo-400">${r.method}</span>
                             <span class="text-white">৳${r.amount}</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 break-all font-mono">${r.accountDetails || r.number}</p>
+                        <p class="text-[10px] text-slate-400 break-all font-mono">${r.accountDetails || r.number || 'No details'}</p>
                         <div class="flex gap-2">
                             <button onclick="processPayout('${d.id}', 'Approved')" class="flex-1 py-2 bg-green-600 rounded-lg text-[9px] font-black">APPROVE</button>
                             <button onclick="processPayout('${d.id}', 'Rejected', '${r.uid}', ${r.amount})" class="flex-1 py-2 bg-red-600/20 text-red-500 rounded-lg text-[9px] font-black">REJECT</button>
@@ -257,7 +294,7 @@
             });
         }
 
-        // Actions
+        // Global Architectural Operations Functions
         window.deleteAnyPost = async (id) => {
             if(confirm('Delete this content permanently?')) await deleteDoc(doc(db, "posts", id));
         };
@@ -265,8 +302,6 @@
         window.toggleMonetize = async (uid, currentStatus) => {
             const newStatus = !currentStatus;
             await updateDoc(doc(db, "users", uid), { isMonetized: newStatus });
-            
-            // Sync all user's existing posts for ads
             const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
             const snap = await getDocs(postQuery);
             const batch = writeBatch(db);
