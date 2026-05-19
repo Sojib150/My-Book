@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>My Book - Premium Social Network</title>
+    <title>My Book - Ultimate Ad Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,8 +20,8 @@
         .video-ad-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 50; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         .skip-ad-btn { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.4); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 13px; display: none; cursor: pointer; backdrop-filter: blur(5px); z-index: 60; }
 
-        /* 🏢 প্রিমিয়াম ইনলাইন মনিটাইজড অ্যাড ডিজাইন */
-        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 14px; overflow: hidden; }
+        /* 🏢 রিয়াল ব্যানার অ্যাড কন্টেইনার ডিজাইন */
+        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 12px; overflow: hidden; }
         
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-icon { font-size: 1.45rem; color: #4b5563; transition: 0.2s; cursor: pointer; }
@@ -33,9 +33,7 @@
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: none; z-index: 1500; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 🔵 স্টোরি রিং স্টাইল ফিক্স */
         .story-circle { width: 62px; height: 62px; border-radius: 50%; padding: 2px; border: 2.5px solid #1877f2; }
-
         .like-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; text-shadow: 0 0 20px rgba(0,0,0,0.4); font-size: 5rem; pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
         .like-pop.animate { animation: heartPop 0.8s ease-out; }
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 80% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; } }
@@ -67,7 +65,7 @@
                         <img id="myStoryPic" src="https://via.placeholder.com/150" class="w-full h-full rounded-full object-cover bg-gray-50">
                         <div class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center border-2 border-white text-[10px]"><i class="fas fa-plus"></i></div>
                     </div>
-                    <span class="text-[11px] font-bold text-gray-500 mt-0.5">Your Story</span>
+                    <span class="text-[11px] font-bold text-gray-600 mt-0.5">Your Story</span>
                 </div>
                 <div id="storyList" class="flex gap-4"></div>
             </div>
@@ -83,9 +81,7 @@
     <div class="bottom-nav">
         <i class="fas fa-home nav-icon active" onclick="location.href='home.html'"></i>
         <i class="fa-regular fa-comment-dots nav-icon" onclick="location.href='messages.html'"></i>
-        
         <div onclick="location.href='post.html'" class="w-13 h-13 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white -mt-5 shadow-lg shadow-blue-500/30 transform transition active:scale-90"><i class="fas fa-plus text-lg"></i></div>
-        
         <i class="fas fa-play nav-icon" onclick="location.href='reels.html'"></i>
         <img id="navPic" src="https://via.placeholder.com/150" onclick="location.href='profile.html'" class="w-7 h-7 rounded-full border border-gray-200 object-cover bg-gray-50 cursor-pointer">
     </div>
@@ -93,7 +89,9 @@
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
     <div id="commentSheet" class="drawer h-[82vh] flex flex-col p-5">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeAll()"></div>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar py-2"></div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar py-2">
+            <div class="text-center py-10 text-gray-400 text-xs">কমেন্ট লোড হচ্ছে...</div>
+        </div>
         <div class="flex gap-2 pt-3 border-t border-gray-100">
             <input id="cInput" type="text" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-50 border border-gray-200 p-3.5 rounded-2xl outline-none text-sm">
             <button onclick="window.postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
@@ -102,7 +100,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, getDocs, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -115,6 +113,7 @@
         let activeWatchTimers = {};
         let triggeredVideoAds = {}; 
         let viewLogsTrack = {}; 
+        let commentUnsubscribe = null;
 
         function getTimeAgo(ts) {
             if(!ts) return "সদ্য";
@@ -138,7 +137,7 @@
                             document.getElementById('mindBoxPic').src = currentUserData.profilePic;
                         }
                     }
-                } catch(err) { console.log("Profile check bypassed"); }
+                } catch(err) { console.log("Profile sync bypassed"); }
                 initApp();
             } else { window.location.href = "index.html"; }
         });
@@ -148,32 +147,33 @@
                 const adSnap = await getDoc(doc(db, "appSettings", "ads"));
                 if(adSnap.exists()) {
                     const adData = adSnap.data();
+                    // 🏢 রিয়াল স্ক্রিপ্ট বা এইচটিএমএল অ্যাড ইনজেকশন মেকানিজম
                     currentAdminAdHtml = adData.code || adData.shortsBannerCode || '';
                     currentLongVideoAdCode = adData.longVideoCode || ''; 
                     document.getElementById('globalAdArea').innerHTML = adData.code || '';
                 }
                 const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
                 if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
-            } catch(e) { console.log("Ad configurations bypassed"); }
+            } catch(e) { console.log("Ads config exception"); }
 
             renderFeed();
             checkNotifications();
             loadStories();
         }
 
-        // 🚀 রি-রেন্ডারিং গ্লিচ ছাড়া লাইভ লিসেনার ফিড মেকানিজম (বিজ্ঞাপন এবং লাইক-কমেন্ট ১০০% ফিক্সড)
-        function renderFeed() {
+        // 🚀 সুপার অপ্টিমাইজড ফিড রেন্ডারার (লাইক ও তাত্ক্ষণিক রি-রেন্ডার গ্লিচ ফিক্সড)
+        async function renderFeed() {
             const feed = document.getElementById('feed');
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-            
-            // onSnapshot ব্যবহারের ফলে ডাইনামিক লাইভ আপডেট পাওয়া যাবে কোনো রকম পেজ সাদা হওয়া ছাড়া
-            onSnapshot(q, (snap) => {
+            try {
+                // অন-স্ন্যাপশটের বদলে ফিক্সড রেন্ডারিং করা হলো যাতে লাইক দিলে ফ্লিকার বা আনলাইক না হয়ে যায়
+                const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+                
                 if(snap.empty) {
                     feed.innerHTML = '<div class="text-center py-20 text-gray-400 text-xs">ফিডে কোনো পোস্ট পাওয়া যায়নি।</div>';
                     return;
                 }
 
-                // পুরো ফিড ক্লিয়ার না করে নতুন এলিমেন্ট ইনজেক্ট বা আপডেট করা হবে
                 let currentPostHtml = '';
                 snap.forEach((docSnap) => {
                     const p = docSnap.data();
@@ -219,48 +219,157 @@
                             <div class="flex justify-between items-center">
                                 <div class="flex gap-6 items-center">
                                     <button id="like-btn-${pid}" onclick="window.handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
-                                        <i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i>
-                                        <span class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span>
+                                        <i class="${isLiked ? 'fa-solid text-red-500' : 'fa-regular text-gray-700'} fa-heart text-2xl" id="like-icon-${pid}"></i>
+                                        <span class="text-xs font-bold text-gray-800" id="like-count-${pid}">${p.likedBy?.length || 0}</span>
                                     </button>
                                     <button onclick="window.openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
                                         <i class="fa-regular fa-comment text-2xl text-gray-700"></i>
-                                        <span class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span>
+                                        <span class="text-xs font-bold text-gray-800" id="comm-count-${pid}">${p.commentCount || 0}</span>
                                     </button>
-                                    <button onclick="window.sharePost('${pid}')" class="flex items-center gap-2 text-gray-700 transform active:scale-90 transition-all">
-                                        <i class="fa-regular fa-paper-plane text-2xl"></i>
-                                        <span class="text-xs font-bold text-gray-500">Share Link</span>
+                                    
+                                    <button onclick="window.sharePost('${pid}', '${p.text || 'MyBook Post'}')" class="flex items-center gap-2 text-gray-700 transform active:scale-90 transition-all">
+                                        <i class="fa-regular fa-share-from-square text-2xl text-blue-600"></i>
+                                        <span class="text-xs font-bold text-gray-500">Share</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         <div id="banner-ad-slot-${pid}" class="inline-ad-card ${isMonetized ? '' : 'hidden'}">
-                            <div class="flex justify-between text-[9px] font-black tracking-widest text-gray-400 mb-1 uppercase"><span>Sponsored Ad (Revenue Shared)</span><i class="fas fa-circle-info"></i></div>
-                            <div class="rounded-xl overflow-hidden shadow-sm bg-white p-2 border border-gray-100 text-center text-xs text-gray-700">
-                                ${currentAdminAdHtml ? currentAdminAdHtml : `<div class="py-2 text-blue-500 font-bold animate-pulse">MyBook Premium Native Ads Network</div>`}
-                            </div>
+                            <div class="flex justify-between text-[9px] font-black tracking-widest text-gray-400 mb-2 uppercase"><span>Sponsored Ad (Revenue Shared)</span><i class="fas fa-circle-info"></i></div>
+                            <div class="rounded-xl overflow-hidden shadow-sm bg-white p-3 border border-gray-100 flex items-center justify-center min-h-[60px]" id="ad-injector-${pid}">
+                                </div>
                         </div>
                     </div>`;
                 });
 
                 feed.innerHTML = currentPostHtml;
+                
+                // রেন্ডার হওয়ার পর প্রতিটি মনিটাইজড স্লটে সত্যিকারের অ্যাড কোড ইনজেক্ট করা হচ্ছে
+                snap.forEach((docSnap) => {
+                    const pid = docSnap.id;
+                    const p = docSnap.data();
+                    if(p.isCreatorMonetized && currentAdminAdHtml) {
+                        const slot = document.getElementById(`ad-injector-${pid}`);
+                        if(slot) {
+                            slot.innerHTML = currentAdminAdHtml;
+                            // যদি স্ক্রিপ্ট ট্যাগ থাকে তবে তা এক্সিকিউট করানোর জন্য রি-ইনজেকশন মেকানিজম
+                            const scripts = slot.getElementsByTagName('script');
+                            for (let script of scripts) {
+                                const newScript = document.createElement('script');
+                                if(script.src) newScript.src = script.src;
+                                else newScript.textContent = script.textContent;
+                                script.parentNode.replaceChild(newScript, script);
+                            }
+                        }
+                    }
+                });
+
                 setTimeout(initObserver, 300);
-            }, (error) => {
-                console.log("Feed Snapshot bypassed:", error);
-            });
+            } catch(e) {
+                console.error("Feed render error:", e);
+                feed.innerHTML = '<div class="text-center py-20 text-red-500 text-xs">ফিড রেন্ডার করতে সমস্যা হয়েছে।</div>';
+            }
         }
 
-        window.sharePost = (pid) => {
-            // প্রতিটি পোস্টের জন্য একদম আলাদা ও ইউনিক আইডি লিংক জেনারেট হবে
-            const uniquePostUrl = window.location.origin + "/post-view.html?id=" + pid;
-            navigator.clipboard.writeText(uniquePostUrl);
-            Swal.fire({
-                title: 'লিংক কপি হয়েছে!',
-                text: 'ইউনিক পোস্ট লিংকটি সফলভাবে ক্লিপবোর্ডে কপি করা হয়েছে।',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
+        // 📲 গ্লোবাল সিস্টেম নেটিভ শেয়ার শিট ফিক্স (পরবর্তীতে ১০০% কাজ করবে)
+        window.sharePost = async (pid, postText) => {
+            // সাবডোমেইন বা গিটহাব পেজের জন্য ডাইনামিক রিয়াল লিংক মেকানিজম ফিক্স
+            const cleanOrigin = window.location.origin + window.location.pathname.replace('home.html', '');
+            const uniquePostUrl = `${cleanOrigin}post-view.html?id=${pid}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'My Book Premium Post',
+                        text: postText,
+                        url: uniquePostUrl,
+                    });
+                } catch (err) { console.log("Share sheet bypassed or dismissed"); }
+            } else {
+                // ব্রাউজার নেটিভ শেয়ার সাপোর্ট না করলে ব্যাকআপ কপি অপশন
+                navigator.clipboard.writeText(uniquePostUrl);
+                Swal.fire({ title: 'লিংক কপি হয়েছে!', text: 'আপনার মোবাইলে সরাসরি শেয়ার শিট না থাকায় লিংকটি ক্লিপবোর্ডে কপি করা হলো।', icon: 'success', timer: 2000, showConfirmButton: false });
+            }
+        };
+
+        // 💬 রিয়েল-টাইম কমেন্ট ফিক্স ও কমেন্ট রিড লোডার
+        window.openComments = (id) => {
+            activePostId = id; 
+            document.getElementById('commentSheet').classList.add('active');
+            document.getElementById('overlay').style.display = "block";
+            
+            const cList = document.getElementById('commentList');
+            cList.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs animate-pulse">কমেন্ট লোড হচ্ছে...</div>';
+
+            if(commentUnsubscribe) commentUnsubscribe();
+
+            // নির্দিষ্ট পোস্টের কমেন্ট সাবকলেকশন থেকে রিয়াল ডাটা রিড করা হচ্ছে
+            commentUnsubscribe = onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
+                if(sn.empty) {
+                    cList.innerHTML = '<div class="text-center py-10 text-gray-400 text-xs">কোনো মন্তব্য পাওয়া যায়নি। প্রথম মন্তব্যটি আপনি করুন!</div>';
+                    return;
+                }
+                cList.innerHTML = sn.docs.map(cDoc => {
+                    const c = cDoc.data();
+                    return `
+                    <div class="flex gap-3 px-1 animate-fadeIn">
+                        <img src="${c.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover border">
+                        <div class="flex-1">
+                            <div class="bg-gray-100 p-3 rounded-2xl inline-block max-w-[85%]">
+                                <p class="text-[11px] font-black text-blue-600">@${c.userName || 'User'}</p>
+                                <p class="text-[13px] font-semibold text-gray-700 mt-0.5">${c.text}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
             });
+        };
+
+        window.postComment = async () => {
+            const i = document.getElementById('cInput'); 
+            if(!i.value.trim()) return;
+            const targetId = activePostId;
+            const commentText = i.value;
+            i.value = "";
+
+            try {
+                await addDoc(collection(db, "posts", targetId, "comments"), { 
+                    text: commentText, 
+                    userName: currentUserData.name, 
+                    userPic: currentUserData.profilePic || '', 
+                    time: serverTimestamp() 
+                });
+                await updateDoc(doc(db, "posts", targetId), { commentCount: increment(1) });
+                
+                const cc = document.getElementById(`comm-count-${targetId}`);
+                if(cc) cc.innerText = parseInt(cc.innerText) + 1;
+            } catch(err) {
+                console.error("Comment submit error:", err);
+            }
+        };
+
+        // ❤️ ইনস্ট্যান্ট গ্লিচ-ফ্রি লাইক/আনলাইক মেকানিজম (রিফ্রেশ ছাড়া)
+        window.handleLike = async (id) => {
+            const ref = doc(db, "posts", id); 
+            const icon = document.getElementById(`like-icon-${id}`);
+            const countSpan = document.getElementById(`like-count-${id}`);
+            
+            if(!icon || !countSpan) return;
+
+            // ডাটাবেস রেস কন্ডিশন এড়াতে ক্লায়েন্ট সাইডে তাৎক্ষণিক ইউআই আপডেট (Optimistic UI)
+            const isCurrentlyLiked = icon.classList.contains('fa-solid');
+            let currentCount = parseInt(countSpan.innerText);
+
+            if(isCurrentlyLiked) {
+                icon.className = "fa-regular fa-heart text-2xl text-gray-700";
+                countSpan.innerText = Math.max(0, currentCount - 1);
+                await updateDoc(ref, { likedBy: arrayRemove(user.uid) });
+            } else {
+                icon.className = "fa-solid fa-heart text-2xl text-red-500";
+                countSpan.innerText = currentCount + 1;
+                await updateDoc(ref, { likedBy: arrayUnion(user.uid) });
+            }
         };
 
         window.checkVideoDuration = function(pid) {
@@ -314,7 +423,7 @@
                                     type: "mid-roll-long-video",
                                     timestamp: serverTimestamp()
                                 });
-                            } catch(e) { console.log("Log fail bypass"); }
+                            } catch(e) { console.log("Impression skip log bypassed"); }
                         }
                     }
                 }, 1000);
@@ -354,15 +463,13 @@
                                     viewLogsTrack[pid] = true;
                                     await updateDoc(doc(db, "posts", pid), { views: increment(1) });
                                 }
-                                
-                                const isVideo = vid ? true : false;
                                 if (isMonetized) {
                                     await addDoc(collection(db, "adImpressions"), {
                                         viewerUid: user.uid,
                                         creatorUid: cid,
                                         postId: pid,
                                         amount: globalCPM,
-                                        type: isVideo ? "banner-shorts-post" : "banner-image-post",
+                                        type: vid ? "banner-shorts-post" : "banner-image-post",
                                         timestamp: serverTimestamp()
                                     });
                                 }
@@ -389,56 +496,9 @@
             lastTapTime = currentTime;
         };
 
-        window.openComments = (id) => {
-            activePostId = id; document.getElementById('commentSheet').classList.add('active');
-            document.getElementById('overlay').style.display = "block";
-            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
-                document.getElementById('commentList').innerHTML = sn.docs.map(cDoc => {
-                    const c = cDoc.data();
-                    return `<div class="flex gap-3 px-1"><img src="${c.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover border"><div><div class="bg-gray-100 p-3 rounded-2xl"><p class="text-[11px] font-black text-blue-600">@${c.userName}</p><p class="text-[13px] font-semibold text-gray-700 mt-0.5">${c.text}</p></div></div></div>`;
-                }).join('');
-            });
-        };
-
-        window.postComment = async () => {
-            const i = document.getElementById('cInput'); if(!i.value.trim()) return;
-            await addDoc(collection(db, "posts", activePostId, "comments"), { text: i.value, userName: currentUserData.name, userPic: currentUserData.profilePic || '', time: serverTimestamp() });
-            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
-            i.value = "";
-        };
-
-        window.handleLike = async (id) => {
-            const ref = doc(db, "posts", id); const s = await getDoc(ref); if(!s.exists()) return;
-            const likedArr = s.data().likedBy || [];
-            const isLiked = likedArr.includes(user.uid);
-            if(isLiked) {
-                await updateDoc(ref, { likedBy: arrayRemove(user.uid) });
-            } else {
-                await updateDoc(ref, { likedBy: arrayUnion(user.uid) });
-            }
-        };
-
         function checkNotifications() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? "block" : "none"; }); }
-        
-        // 🔵 Your Story এবং গ্লোবাল স্টোরি ফিড রিয়েল-টাইম ফিক্স
-        function loadStories() { 
-            onSnapshot(collection(db, "stories"), s => { 
-                if(s.empty) {
-                    document.getElementById('storyList').innerHTML = '<span class="text-xs text-gray-400 self-center pl-2 font-medium">No recent stories</span>';
-                    return;
-                }
-                document.getElementById('storyList').innerHTML = s.docs.map(d => `
-                    <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='story-view.html?id=${d.id}'">
-                        <div class="story-circle">
-                            <img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full object-cover bg-gray-100">
-                        </div>
-                        <span class="text-[11px] font-bold text-gray-600">@${d.data().userName || 'user'}</span>
-                    </div>
-                `).join(''); 
-            }); 
-        }
-
-        window.closeAll = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('overlay').style.display = "none"; };
+        function loadStories() { onSnapshot(collection(db, "stories"), s => { if(s.empty) { document.getElementById('storyList').innerHTML = '<span class="text-xs text-gray-400 self-center pl-2 font-medium">No recent stories</span>'; return; } document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='story-view.html?id=${d.id}'"><div class="story-circle"><img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full object-cover bg-gray-100"></div><span class="text-[11px] font-bold text-gray-600">@${d.data().userName || 'user'}</span></div>`).join(''); }); }
+        window.closeAll = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('overlay').style.display = "none"; if(commentUnsubscribe) { commentUnsubscribe(); commentUnsubscribe = null; } };
     </script>
 </body>
 </html>
