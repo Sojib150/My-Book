@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2 family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; -webkit-tap-highlight-color: transparent; }
         
         .fb-header-card { background: white; border-radius: 0 0 20px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -22,9 +22,13 @@
         .story-circle { width: 68px; height: 68px; padding: 2.5px; background: linear-gradient(45deg, #1877f2, #00d2ff, #6366f1); border-radius: 50%; transition: transform 0.3s ease; }
         .story-circle:active { transform: scale(0.92); }
         
+        /* 📱 বটম ন্যাভ এবং ফিক্সড স্টিকি অ্যাড পজিশনিং */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-icon { font-size: 1.45rem; color: #4b5563; transition: 0.2s; cursor: pointer; }
         .nav-icon:hover, .nav-icon.active { color: #1877f2; }
+
+        /* 🛡️ স্টিকি স্মুথ বটম অ্যাড কন্টেইনার (ন্যাভিগেশনের ঠিক উপরে শো হবে) */
+        .sticky-bottom-ad { position: fixed; bottom: 65px; left: 0; right: 0; z-index: 999; max-width: 440px; margin: 0 auto; padding: 4px 12px; background: transparent; }
 
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; box-shadow: 0 -15px 50px rgba(0,0,0,0.15); }
         .drawer.active { transform: translateY(0); }
@@ -38,7 +42,7 @@
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 80% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; } }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-44">
 
     <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-3.5 flex justify-between items-center">
         <h1 class="text-2.5xl font-black italic tracking-tighter text-blue-600 cursor-pointer" onclick="location.href='home.html'">My Book</h1>
@@ -75,10 +79,10 @@
             </div>
         </div>
 
-        <div id="globalAdArea" class="px-4"></div>
-
         <div id="feed" class="px-3 space-y-4"></div>
     </div>
+
+    <div id="globalAdArea" class="sticky-bottom-ad"></div>
 
     <div class="bottom-nav">
         <i class="fas fa-home nav-icon active" onclick="location.href='home.html'"></i>
@@ -140,7 +144,7 @@
         });
 
         function initApp() {
-            // 🛡️ ফিক্সড স্ক্রিপ্ট এক্সিকিউটর লজিক (যা Ad Code সচল করবে)
+            // 🛡️ গ্লোবাল স্ক্রিপ্ট ব্যানার এক্সিকিউটর
             onSnapshot(doc(db, "appSettings", "ads"), s => {
                 if(s.exists() && s.data().code) {
                     const adArea = document.getElementById('globalAdArea');
@@ -282,21 +286,26 @@
             document.querySelectorAll('.video-container').forEach(el => obs.observe(el));
         }
 
-        // 🧠 সিকিউরড আর্নিং পাইপলাইন
+        // 🧠 সিকিউরড আর্নিং ইঞ্জিন (ফায়ারবেস সিকিউরিটি ফ্রেন্ডলি লজিক)
         async function executeRetentionPayout(pid, cid, isMonetized) {
             if(!user || cid === user.uid) return;
             try {
+                // ১. ভিউ কাউন্ট রিয়েল-টাইমে বাড়ানো (এটি ডিফোল্ট রুলসে অ্যালাউড)
                 const postRef = doc(db, "posts", pid);
                 await updateDoc(postRef, { views: increment(1) });
                 
-                // 🚨 ইউজার প্রোফাইল রুলস ব্লক এড়াতে এই আর্নিং ডেটা সরাসরি অন্য ইউজারের ব্যালেন্সে পুশ না করে 
-                // একটি গ্লোবাল ট্র্যাকার নোডে অথবা ক্লাউড ফাংশনের আর্কিটেকচারে হ্যান্ডেল করা উচিত। 
-                // তবে সাময়িকভাবে রুলস পারমিশন যদি অ্যালাউ করে, তবে এই রিকোয়েস্ট সফল হবে।
+                // ২. সিকিউরড আর্নিং পুশ লজিক: সরাসরি ব্যালেন্স ডাটাবেসে এডিট না করে ইমপ্রেশন কালেকশনে রিকোয়েস্ট পাঠানো
                 if(isMonetized) {
-                    const creatorRef = doc(db, "users", cid);
-                    await updateDoc(creatorRef, { balance: increment(globalCPM) });
+                    await addDoc(collection(db, "adImpressions"), {
+                        viewerUid: user.uid,
+                        creatorUid: cid,
+                        postId: pid,
+                        amount: globalCPM,
+                        timestamp: serverTimestamp()
+                    });
+                    console.log("Impression logged securely for backend processing!");
                 }
-            } catch (err) { console.error("Ad Transaction Fail Checked:", err); }
+            } catch (err) { console.error("Ad Transaction Handled Safely:", err); }
         }
 
         window.handleImgClick = (id) => { handleDoubleTap(id); };
@@ -331,7 +340,7 @@
                         <div class="flex-1">
                             <div class="bg-gray-100 p-3.5 rounded-2xl relative">
                                 <p class="text-[11px] font-black text-blue-600">@${c.userName}</p>
-                                <p class="text-[13px] font-semibold text-gray-800 mt-0.5">${c.text}</p>
+                                <p class="text-[13px] font-semibold text-gray-700 mt-0.5">${c.text}</p>
                                 <button onclick="likeComment('${cid}')" class="absolute -right-2.5 -bottom-2.5 bg-white shadow-md border border-gray-100 rounded-full px-2 py-1 text-[10px] font-extrabold flex items-center gap-1 transition ${liked?'text-red-500':'text-gray-400'} active:scale-90">
                                     <i class="fas fa-heart text-[10px]"></i> ${c.likedBy?.length || 0}
                                 </button>
