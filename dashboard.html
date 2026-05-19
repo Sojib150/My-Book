@@ -2,99 +2,131 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Elite Dashboard - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
-        .stat-card { background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.03) 100%); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .stat-card:hover { border-color: rgba(99, 102, 241, 0.3); }
-        .nav-btn { transition: 0.3s; }
-        .nav-btn:active { transform: scale(0.9); }
-        .progress-bar { height: 8px; border-radius: 12px; background: #1e293b; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); width: 0%; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .wallet-gradient { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #080c14; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        
+        /* Advanced Glassmorphic UI Components */
+        .glass-panel { background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); }
+        .glass-sticky { background: rgba(8, 12, 20, 0.85); backdrop-filter: blur(20px); border-b: 1px solid rgba(255, 255, 255, 0.04); }
+        
+        /* Creator Hub Luxury Card */
+        .premium-vault-card { background: linear-gradient(135deg, #1877f2 0%, #0052cc 50%, #00c6ff 100%); box-shadow: 0 20px 40px rgba(24, 119, 242, 0.18); position: relative; overflow: hidden; }
+        .premium-vault-card::before { content: ''; position: absolute; top: -20%; right: -20%; width: 180px; height: 180px; background: rgba(255, 255, 255, 0.12); border-radius: 50px; transform: rotate(45deg); pointer-events: none; }
+        
+        /* Interactive Metric Pods */
+        .metric-pod { background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .metric-pod:active { transform: scale(0.96); border-color: rgba(24, 119, 242, 0.3); background: rgba(30, 41, 59, 0.5); }
+        
+        /* Meta Dynamic Progress Layout */
+        .meta-progress-track { height: 7px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+        .meta-progress-fill { height: 100%; background: linear-gradient(90deg, #1877f2, #00c6ff); width: 0%; transition: 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .action-btn { transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .action-btn:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-28">
 
-    <header class="p-6 flex justify-between items-center max-w-md mx-auto">
+    <header class="sticky top-0 z-50 glass-sticky px-6 py-4 flex justify-between items-center max-w-md mx-auto">
         <div class="flex items-center gap-3">
             <div class="relative">
-                <img id="userPic" src="https://via.placeholder.com/100" class="w-12 h-12 rounded-2xl border-2 border-indigo-500/30 object-cover">
-                <div id="verifyBadge" class="hidden absolute -bottom-1 -right-1 bg-blue-500 text-[8px] p-1 rounded-full border-2 border-[#05070a]">
+                <img id="userPic" src="https://via.placeholder.com/100" class="w-11 h-11 rounded-2xl border-2 border-blue-500/30 object-cover bg-slate-800">
+                <div id="verifyBadge" class="hidden absolute -bottom-1 -right-1 bg-blue-500 text-[8px] p-1 rounded-full border-2 border-[#080c14] text-white flex items-center justify-center w-4 h-4 shadow-lg">
                     <i class="fas fa-check"></i>
                 </div>
             </div>
             <div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">Creator Hub</p>
-                <h1 id="userName" class="text-lg font-black tracking-tight italic uppercase">Citizen...</h1>
+                <p class="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest leading-none mb-1.5">Meta Studio</p>
+                <h1 id="userName" class="text-base font-black tracking-tight italic uppercase text-white">Citizen...</h1>
             </div>
         </div>
-        <button onclick="location.href='profile.html'" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-slate-400">
-            <i class="fas fa-cog"></i>
+        <button onclick="location.href='edit-profile.html'" class="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-gray-400 action-btn">
+            <i class="fas fa-sliders-h text-sm"></i>
         </button>
     </header>
 
-    <main class="px-6 space-y-6 max-w-md mx-auto">
-        <div class="wallet-gradient p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl shadow-indigo-500/20">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-            <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-2 opacity-80">Total Balance</p>
-            <h2 class="text-4xl font-black tracking-tighter text-white">৳<span id="userBalance">0.0000</span></h2>
+    <main class="px-5 mt-4 space-y-5 max-w-md mx-auto">
+        
+        <div class="premium-vault-card p-6 rounded-[2.2rem] shadow-xl">
+            <div class="flex justify-between items-center mb-1">
+                <div class="flex items-center gap-1.5 text-white/80">
+                    <i class="fa-solid fa-shield-halved text-xs text-white/90"></i>
+                    <p class="text-[9px] font-black uppercase tracking-[0.18em]">Creator Vault Balance</p>
+                </div>
+                <div class="bg-black/15 text-white/90 text-[8px] font-black px-2.5 py-0.5 rounded-md backdrop-blur-md border border-white/5 uppercase">Secure</div>
+            </div>
             
-            <div class="mt-8 flex gap-3 relative z-10">
-                <button onclick="window.location.href='Withdraw.html'" class="flex-1 bg-white text-indigo-600 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest nav-btn shadow-xl">Withdraw</button>
-                <button onclick="Swal.fire({title:'Coming Soon', text:'History feature will be added soon!', icon:'info', customClass:{popup:'glass', title:'text-white'}})" class="bg-indigo-900/40 backdrop-blur-md text-white px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest nav-btn border border-white/10">History</button>
+            <div class="my-3">
+                <h2 class="text-3xl font-black tracking-tight text-white flex items-baseline gap-1">
+                    <span class="text-xl font-bold opacity-90">৳</span>
+                    <span id="userBalance" class="font-mono tracking-tighter">0.0000</span>
+                </h2>
+            </div>
+            
+            <div class="mt-6 flex gap-3 relative z-10">
+                <button onclick="window.location.href='Withdraw.html'" class="flex-1 bg-white text-blue-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest action-btn shadow-md">
+                    <i class="fa-solid fa-money-bill-transfer mr-1"></i> Withdraw
+                </button>
+                <button onclick="window.location.href='withdraw-history.html'" class="bg-black/20 backdrop-blur-md text-white px-5 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest action-btn border border-white/10">
+                    <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
+                </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="stat-card p-6 rounded-[2rem]">
-                <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-4">
-                    <i class="fas fa-users text-indigo-400"></i>
+        <div class="grid grid-cols-2 gap-3.5">
+            <div class="metric-pod p-5 rounded-3xl">
+                <div class="w-9 h-9 bg-blue-500/10 rounded-xl flex items-center justify-center mb-3">
+                    <i class="fas fa-users text-blue-400 text-sm"></i>
                 </div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Followers</p>
-                <h3 id="userFollowers" class="text-2xl font-black mt-1">0</h3>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Audience Base</p>
+                <h3 id="userFollowers" class="text-xl font-black mt-0.5 tracking-tight text-white">0</h3>
             </div>
-            <div class="stat-card p-6 rounded-[2rem]">
-                <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
-                    <i class="fas fa-chart-line text-purple-400"></i>
+            <div class="metric-pod p-5 rounded-3xl">
+                <div class="w-9 h-9 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-3">
+                    <i class="fas fa-chart-line text-cyan-400 text-sm"></i>
                 </div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Impressions</p>
-                <h3 id="userViews" class="text-2xl font-black mt-1">0</h3>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Impressions</p>
+                <h3 id="userViews" class="text-xl font-black mt-0.5 tracking-tight text-white">0</h3>
             </div>
         </div>
 
-        <div id="monetizationBox" class="glass p-7 rounded-[2.5rem] space-y-5">
-            <div class="flex justify-between items-center">
-                <h3 class="font-black text-[11px] uppercase tracking-[2px]">Revenue Status</h3>
-                <span id="mStatusText" class="text-[9px] font-black bg-slate-800 px-4 py-1.5 rounded-full text-slate-400 uppercase tracking-tighter">Inactive</span>
+        <div id="monetizationBox" class="glass-panel p-6 rounded-[2.2rem] space-y-4">
+            <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-certificate text-blue-500 text-xs"></i>
+                    <h3 class="font-black text-gray-200 text-[11px] uppercase tracking-[1.5px]">Monetization Policy</h3>
+                </div>
+                <span id="mStatusText" class="text-[8px] font-black bg-slate-800 px-3 py-1 rounded-full text-gray-400 uppercase tracking-wider border border-white/5">Inactive</span>
             </div>
             
-            <div id="mProgressArea">
-                <div class="flex justify-between text-[10px] font-bold mb-3">
-                    <span class="text-slate-500 uppercase tracking-widest">Goal: 100 Followers</span>
-                    <span id="progressPercent" class="text-indigo-400">0%</span>
+            <div id="mProgressArea" class="space-y-2">
+                <div class="flex justify-between text-[10px] font-bold">
+                    <span class="text-gray-400 uppercase tracking-wider">Goal: 100 Followers</span>
+                    <span id="progressPercent" class="text-blue-400 font-mono">0%</span>
                 </div>
-                <div class="progress-bar">
-                    <div id="mProgressBar" class="progress-fill"></div>
+                <div class="meta-progress-track">
+                    <div id="mProgressBar" class="meta-progress-fill"></div>
                 </div>
             </div>
-            <p id="mInfo" class="text-[11px] text-slate-400 leading-relaxed font-medium italic">Reach the follower goal to unlock professional monetization tools.</p>
+            <p id="mInfo" class="text-[11px] text-gray-400 leading-relaxed font-medium italic pt-1"></p>
             
-            <button id="applyBtn" style="display: none;" class="w-full py-3 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20">Apply for Monetization</button>
+            <button id="applyBtn" style="display: none;" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 action-btn">
+                Apply for Creator Toolset
+            </button>
         </div>
     </main>
 
-    <nav class="fixed bottom-6 left-6 right-6 glass rounded-[2.5rem] p-3 flex justify-around items-center z-50 max-w-[400px] mx-auto border border-white/10">
-        <a href="home.html" class="p-4 text-slate-500 nav-btn"><i class="fas fa-home"></i></a>
-        <a href="search.html" class="p-4 text-slate-500 nav-btn"><i class="fas fa-search"></i></a>
-        <button onclick="window.location.href='post.html'" class="w-12 h-12 bg-indigo-600 rounded-2xl text-white shadow-lg shadow-indigo-500/40 nav-btn"><i class="fas fa-plus"></i></button>
-        <a href="dashboard.html" class="p-4 text-indigo-400 nav-btn"><i class="fas fa-chart-pie"></i></a>
-        <a href="profile.html" class="p-4 text-slate-500 nav-btn"><i class="fas fa-user"></i></a>
+    <nav class="fixed bottom-5 left-5 right-5 glass-panel rounded-full p-2 flex justify-around items-center z-50 max-w-[400px] mx-auto shadow-2xl">
+        <div onclick="location.href='home.html'" class="p-3.5 text-gray-500 action-btn text-lg"><i class="fas fa-home"></i></div>
+        <div onclick="location.href='search.html'" class="p-3.5 text-gray-500 action-btn text-lg"><i class="fas fa-search"></i></div>
+        <button onclick="location.href='post.html'" class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-cyan-500 text-white rounded-xl shadow-lg shadow-blue-500/30 action-btn flex items-center justify-center"><i class="fas fa-plus"></i></button>
+        <div onclick="location.href='dashboard.html'" class="p-3.5 text-blue-400 action-btn text-lg"><i class="fas fa-chart-pie"></i></div>
+        <div onclick="location.href='profile.html'" class="p-3.5 text-gray-500 action-btn text-lg"><i class="fas fa-user"></i></div>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -128,19 +160,18 @@
                         document.getElementById('userPic').src = data.profilePic || "https://via.placeholder.com/100";
                         if(data.isVerified) document.getElementById('verifyBadge').classList.remove('hidden');
 
-                        // ২. প্রিসাইজ ব্যালেন্স (যদি খুব ছোট সংখ্যা হয় তাও দেখাবে)
+                        // ২. প্রিসাইজ ব্যালেন্স (মাইক্রো ইনক্রিমেন্ট লজিক অটুট)
                         const rawBalance = data.balance || 0;
                         document.getElementById('userBalance').innerText = rawBalance < 0.0001 && rawBalance > 0 ? rawBalance.toFixed(6) : rawBalance.toFixed(4);
                         
                         // ৩. ফলোয়ার কাউন্ট
-                        const followersCount = data.followers ? (Array.isArray(data.followers) ? data.followers.length : data.followers) : 0;
+                        const followersCount = data.followers ? (Array.isArray(data.followers) ? d.followers.length : data.followers) : 0;
                         document.getElementById('userFollowers').innerText = followersCount;
                         
-                        // ৪. ইম্প্রেশন (আপনার ভিউ লজিক অনুযায়ী 'views' বা 'totalImpressions')
-                        // যদি ডাটাবেসে views ফিল্ডে ভিউ জমা হয়, তবে সেটা এখানে দেখাবে
+                        // ৪. ইম্প্রেশন ট্র্যাকার
                         document.getElementById('userViews').innerText = data.totalImpressions || data.views || 0;
 
-                        // ৫. মনিটাইজেশন লজিক আপডেট
+                        // ৫. মেটা স্টাইল মনিটাইজেশন প্রো লাইফসাইকেল ইন্টিগ্রেশন
                         const goal = 100;
                         const percent = Math.min((followersCount / goal) * 100, 100);
                         document.getElementById('mProgressBar').style.width = percent + "%";
@@ -151,24 +182,26 @@
 
                         if(data.isMonetized) {
                             statusBtn.innerText = "Verified Creator";
-                            statusBtn.className = "text-[9px] font-black bg-green-500/20 px-4 py-1.5 rounded-full text-green-400 uppercase tracking-tighter";
-                            document.getElementById('mInfo').innerText = "Congratulations! Your account is active for revenue sharing.";
+                            statusBtn.className = "text-[8px] font-black bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full text-green-400 uppercase tracking-wider";
+                            document.getElementById('mInfo').innerText = "Congratulations! Your digital profile is active for real-time video revenue sharing rewards.";
                             document.getElementById('mProgressArea').style.display = "none";
                             applyBtn.style.display = "none";
                         } else {
                             if(followersCount >= goal) {
                                 statusBtn.innerText = "Eligible";
-                                statusBtn.className = "text-[9px] font-black bg-indigo-500/20 px-4 py-1.5 rounded-full text-indigo-400 uppercase tracking-tighter";
+                                statusBtn.className = "text-[8px] font-black bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-blue-400 uppercase tracking-wider";
                                 applyBtn.style.display = "block";
-                                document.getElementById('mInfo').innerText = "You have reached the goal! Click below to apply.";
+                                document.getElementById('mInfo').innerText = "You have met all audience milestones! Request immediate activation below.";
                                 
                                 applyBtn.onclick = async () => {
-                                    await updateDoc(doc(db, "users", user.uid), { isMonetized: true }); // আপাতত সরাসরি ট্রু করে দেওয়া হয়েছে, আপনি চাইলে 'pending' রাখতে পারেন
-                                    Swal.fire({ title: 'Success!', text: 'Monetization Activated!', icon: 'success', customClass: {popup: 'glass'} });
+                                    await updateDoc(doc(db, "users", user.uid), { isMonetized: true });
+                                    Swal.fire({ title: 'Success!', text: 'Monetization Tools Unlocked!', icon: 'success', customClass: {popup: 'glass'} });
                                 };
                             } else {
                                 statusBtn.innerText = "Inactive";
+                                statusBtn.className = "text-[8px] font-black bg-slate-800 px-3 py-1 rounded-full text-gray-400 uppercase tracking-wider border border-white/5";
                                 applyBtn.style.display = "none";
+                                document.getElementById('mInfo').innerText = "Reach the baseline follower milestones to unlock digital video sharing revenue distributions.";
                             }
                         }
                     }
