@@ -22,12 +22,10 @@
         .story-circle { width: 68px; height: 68px; padding: 2.5px; background: linear-gradient(45deg, #1877f2, #00d2ff, #6366f1); border-radius: 50%; transition: transform 0.3s ease; }
         .story-circle:active { transform: scale(0.92); }
         
-        /* 📱 বটম ন্যাভ এবং ফিক্সড স্টিকি অ্যাড পজিশনিং */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-icon { font-size: 1.45rem; color: #4b5563; transition: 0.2s; cursor: pointer; }
         .nav-icon:hover, .nav-icon.active { color: #1877f2; }
 
-        /* 🛡️ স্টিকি স্মুথ বটম অ্যাড কন্টেইনার (ন্যাভিগেশনের ঠিক উপরে শো হবে) */
         .sticky-bottom-ad { position: fixed; bottom: 65px; left: 0; right: 0; z-index: 999; max-width: 440px; margin: 0 auto; padding: 4px 12px; background: transparent; }
 
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; box-shadow: 0 -15px 50px rgba(0,0,0,0.15); }
@@ -120,6 +118,7 @@
         let user = null; let currentUserData = null; let activePostId = null;
         let replyToId = null; let globalCPM = 0.0001;
         let activeWatchTimers = {};
+        let currentAdminAdHtml = ''; // 🛡️ অ্যাডমিন প্যানেলের অ্যাড কোড রাখার ভেরিয়েবল
 
         function getTimeAgo(ts) {
             if(!ts) return "সদ্য";
@@ -144,13 +143,16 @@
         });
 
         function initApp() {
-            // 🛡️ গ্লোবাল স্ক্রিপ্ট ব্যানার এক্সিকিউটর
+            // 🛡️ স্টিকি অ্যাডের জন্য ফায়ারস্টোর লিসেনার এবং ফিড অ্যাড ভেরিয়েবল সিঙ্ক
             onSnapshot(doc(db, "appSettings", "ads"), s => {
                 if(s.exists() && s.data().code) {
+                    currentAdminAdHtml = s.data().code;
+                    
+                    // নিচের স্টিকি ব্যানার আপডেট
                     const adArea = document.getElementById('globalAdArea');
                     adArea.innerHTML = ''; 
                     const range = document.createRange();
-                    const fragment = range.createContextualFragment(s.data().code);
+                    const fragment = range.createContextualFragment(currentAdminAdHtml);
                     adArea.appendChild(fragment);
                 }
             });
@@ -162,6 +164,7 @@
             loadStories();
         }
 
+        // 🎬 ডাইনামিক রিয়েল-টাইম ফিড বিল্ডার
         function renderFeed() {
             const feed = document.getElementById('feed');
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
@@ -229,16 +232,17 @@
                         </div>` : ''}
                     </div>`;
 
+                    // ⚡ ৩টি পোস্ট পর পর এখন আসল অ্যাডমিন প্যানেলের কোড ডাইনামিক লোড হবে
                     if(postCounter % 3 === 0) {
+                        const currentAdCode = currentAdminAdHtml || `<div class="text-blue-500 font-extrabold animate-pulse">Loading Premium Ads...</div>`;
                         currentPostHtml += `
                         <div class="inline-ad-card">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="bg-blue-600 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded-md uppercase shadow-sm">Sponsored</span>
                                 <i class="fas fa-info-circle text-gray-300 text-xs"></i>
                             </div>
-                            <div class="text-[12px] font-bold text-gray-500 text-center py-4 bg-white/60 border border-dashed border-gray-200 rounded-xl">
-                                <p class="text-gray-400 text-[11px] font-medium mb-1">Ad Unit Space #${postCounter/3}</p>
-                                <div class="text-blue-500 font-extrabold animate-pulse">Loading Premium Ads Slot...</div>
+                            <div class="text-[12px] font-bold text-gray-500 text-center py-2 bg-white/60 border border-dashed border-gray-200 rounded-xl overflow-hidden">
+                                ${currentAdCode}
                             </div>
                         </div>`;
                     }
@@ -286,15 +290,13 @@
             document.querySelectorAll('.video-container').forEach(el => obs.observe(el));
         }
 
-        // 🧠 সিকিউরড আর্নিং ইঞ্জিন (ফায়ারবেস সিকিউরিটি ফ্রেন্ডলি লজিক)
+        // 🧠 সিকিউরড আর্নিং ইঞ্জিন 
         async function executeRetentionPayout(pid, cid, isMonetized) {
             if(!user || cid === user.uid) return;
             try {
-                // ১. ভিউ কাউন্ট রিয়েল-টাইমে বাড়ানো (এটি ডিফোল্ট রুলসে অ্যালাউড)
                 const postRef = doc(db, "posts", pid);
                 await updateDoc(postRef, { views: increment(1) });
                 
-                // ২. সিকিউরড আর্নিং পুশ লজিক: সরাসরি ব্যালেন্স ডাটাবেসে এডিট না করে ইমপ্রেশন কালেকশনে রিকোয়েস্ট পাঠানো
                 if(isMonetized) {
                     await addDoc(collection(db, "adImpressions"), {
                         viewerUid: user.uid,
@@ -303,7 +305,7 @@
                         amount: globalCPM,
                         timestamp: serverTimestamp()
                     });
-                    console.log("Impression logged securely for backend processing!");
+                    console.log("Impression logged securely!");
                 }
             } catch (err) { console.error("Ad Transaction Handled Safely:", err); }
         }
