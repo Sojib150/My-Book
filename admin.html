@@ -49,6 +49,7 @@
                     <button onclick="showTab('citizens')" class="tab-link tab-active"><i class="fas fa-users mr-2"></i>Users</button>
                     <button onclick="showTab('intelligence')" class="tab-link"><i class="fas fa-eye mr-2"></i>Content</button>
                     <button onclick="showTab('economy')" class="tab-link"><i class="fas fa-chart-line mr-2"></i>Economy</button>
+                    <button onclick="showTab('complaints')" class="tab-link"><i class="fas fa-triangle-exclamation mr-2"></i>Complaints <span id="complaintBadge" class="hidden bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">0</span></button>
                     <button onclick="showTab('engine')" class="tab-link"><i class="fas fa-rss mr-2"></i>Alerts</button>
                     <button onclick="showTab('safety')" class="tab-link"><i class="fas fa-gears mr-2"></i>Core</button>
                 </nav>
@@ -61,7 +62,7 @@
                 <div class="glass p-5 rounded-3xl stat-card"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Users</p><h3 id="countUsers" class="text-2xl font-black mt-1">0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-indigo-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Global CPM</p><h3 id="displayCPM" class="text-2xl font-black mt-1 text-indigo-400">৳0</h3></div>
                 <div class="glass p-5 rounded-3xl stat-card border-red-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Withdrawals</p><h3 id="countPending" class="text-2xl font-black mt-1 text-red-500">0</h3></div>
-                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">System</p><h3 id="systemLiveStatus" class="text-2xl font-black mt-1 text-green-400">LIVE</h3></div>
+                <div class="glass p-5 rounded-3xl stat-card border-green-500"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Pending Reports</p><h3 id="countComplaints" class="text-2xl font-black mt-1 text-amber-400">0</h3></div>
             </div>
 
             <div id="tab-citizens" class="tab-content space-y-6">
@@ -81,22 +82,36 @@
             </div>
 
             <div id="tab-economy" class="hidden tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500">
-                        <h3 class="font-black text-indigo-400 text-[10px] uppercase tracking-widest">Global Ad Code</h3>
-                        <textarea id="adCodeInput" class="w-full h-40 text-[11px] font-mono" placeholder="Paste Ad Code..."></textarea>
-                        <button onclick="saveAd()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update Ads</button>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-indigo-500 col-span-1 lg:col-span-2">
+                        <h3 class="font-black text-indigo-400 text-[10px] uppercase tracking-widest"><i class="fa-solid fa-video mr-1"></i> 1. Long Video In-Stream Ad (MP4 URL / Code)</h3>
+                        <input type="text" id="longVideoAdInput" class="w-full text-xs font-mono" placeholder="https://example.com/ad-video.mp4">
+                        
+                        <h3 class="font-black text-purple-400 text-[10px] uppercase tracking-widest pt-2"><i class="fa-solid fa-rectangle-ad mr-1"></i> 2. Shorts/Reels Banner Ad (HTML / Image Code)</h3>
+                        <textarea id="shortsAdCodeInput" class="w-full h-28 text-[11px] font-mono" placeholder="Paste Banner HTML or script code here..."></textarea>
+                        
+                        <button onclick="saveFacebookStyleAds()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition">Update Facebook Ad Pipeline</button>
                     </div>
-                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500">
-                        <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate (৳)</h3>
-                        <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black">
-                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Update CPM</button>
+                    <div class="glass p-6 rounded-[2.5rem] space-y-4 border-l-4 border-green-500 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-black text-green-400 text-[10px] uppercase tracking-widest">CPM Rate (৳)</h3>
+                            <input type="number" id="cpmRateInput" step="0.0001" class="w-full text-center text-3xl font-black mt-4">
+                        </div>
+                        <button onclick="updateCPM()" class="w-full bg-green-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-500 transition">Update CPM</button>
                     </div>
                 </div>
                 <div class="glass p-8 rounded-[2.5rem]">
                     <h3 class="font-black text-lg mb-6"><i class="fas fa-wallet mr-2"></i> Pending Withdrawals</h3>
                     <div id="withdrawList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
+            </div>
+
+            <div id="tab-complaints" class="hidden tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-black italic tracking-tighter">CITIZEN <span class="text-amber-500">REPORTS & COMPLAINTS</span></h2>
+                    <span class="bg-amber-500/10 text-amber-400 px-4 py-1 rounded-full text-[10px] font-black uppercase">User Help Desk</span>
+                </div>
+                <div id="complaintGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
             <div id="tab-safety" class="hidden tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -150,9 +165,8 @@
 
         const MASTER_ADMIN_UID = "EV18nmlS4vaq3tuPFmUTvf0wHe13"; 
         let mStatus = false;
-        let activeTargetUserId = null; // মেমোরি লিক বন্ধ করার গ্লোবাল ট্র্যাকার স্টেট
+        let activeTargetUserId = null; 
 
-        // Firebase Auth Live Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (user.uid === MASTER_ADMIN_UID) {
@@ -169,7 +183,6 @@
             }
         });
 
-        // Safe Login System Trigger
         document.getElementById('loginBtn').onclick = async () => {
             const email = document.getElementById('adminEmail').value;
             const pass = document.getElementById('adminPassword').value;
@@ -182,7 +195,6 @@
             }
         };
 
-        // Safe Logout Function
         document.getElementById('logoutBtn').onclick = () => {
             signOut(auth).then(() => location.reload());
         };
@@ -261,7 +273,14 @@
                 }
             });
 
-            onSnapshot(doc(db, "appSettings", "ads"), d => { if(d.exists()) document.getElementById('adCodeInput').value = d.data().code; });
+            // 📺 ফেসবুক স্টাইল্ড অ্যাড ডাটা রিডিং পাইপলাইন
+            onSnapshot(doc(db, "appSettings", "ads"), d => { 
+                if(d.exists()) {
+                    document.getElementById('longVideoAdInput').value = d.data().longVideoCode || '';
+                    document.getElementById('shortsAdCodeInput').value = d.data().shortsBannerCode || '';
+                } 
+            });
+
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { 
                 if(d.exists()) {
                     document.getElementById('displayCPM').innerText = "৳" + d.data().trendBoost;
@@ -289,6 +308,57 @@
                         </div>
                     `;
                     list.appendChild(card);
+                });
+            });
+
+            // 🚨 5. ইউজার কমপ্লেন বা রিপোর্ট লাইভ লিসেনার ইঞ্জিন
+            onSnapshot(query(collection(db, "complaints"), orderBy("timestamp", "desc")), snap => {
+                const pendingComplaints = snap.docs.filter(doc => doc.data().status === 'pending');
+                document.getElementById('countComplaints').innerText = pendingComplaints.length;
+                
+                const badge = document.getElementById('complaintBadge');
+                if (pendingComplaints.length > 0) {
+                    badge.innerText = pendingComplaints.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                const grid = document.getElementById('complaintGrid');
+                grid.innerHTML = "";
+
+                if(snap.size === 0) {
+                    grid.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-10">No complaints registered yet.</p>`;
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const c = d.data(); const cid = d.id;
+                    const card = document.createElement('div');
+                    const dateStr = c.timestamp ? new Date(c.timestamp.toDate()).toLocaleString() : 'Just now';
+                    
+                    card.className = `glass p-5 rounded-[2rem] border-t-4 ${c.status === 'resolved' ? 'border-green-500 opacity-60' : 'border-amber-500'}`;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-sm text-white">@${c.userName || 'Anonymous'}</h4>
+                                <p class="text-[9px] text-slate-400 font-mono">${dateStr}</p>
+                            </div>
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${c.status === 'resolved' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}">
+                                ${c.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-xl border border-white/5 mb-4">
+                            <p class="text-[10px] uppercase font-black text-indigo-400 mb-1">Issue: ${c.issueType || 'General'}</p>
+                            <p class="text-xs text-slate-300 font-medium leading-relaxed">${c.message || 'No description'}</p>
+                        </div>
+                        ${c.status === 'pending' ? `
+                            <button onclick="resolveComplaint('${cid}')" class="w-full py-2 bg-green-600 rounded-xl text-[10px] font-black text-white hover:bg-green-500 transition">RESOLVE COMPLAINT</button>
+                        ` : `
+                            <button onclick="deleteComplaint('${cid}')" class="w-full py-2 bg-red-600/10 rounded-xl text-[10px] font-black text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition">DELETE LOG</button>
+                        `}
+                    `;
+                    grid.appendChild(card);
                 });
             });
         }
@@ -319,9 +389,17 @@
             await setDoc(doc(db, "appSettings", "maintenance"), { isOn: !mStatus }, { merge: true });
         };
 
-        window.saveAd = async () => {
-            await setDoc(doc(db, "appSettings", "ads"), { code: document.getElementById('adCodeInput').value }, { merge: true });
-            Swal.fire('Success', 'Ad Code Globalized', 'success');
+        // 📺 ফেসবুক স্টাইল মাল্টি-অ্যাড সিস্টেম ডেডিকেটেড সেভার
+        window.saveFacebookStyleAds = async () => {
+            const longAd = document.getElementById('longVideoAdInput').value;
+            const shortsAd = document.getElementById('shortsAdCodeInput').value;
+            
+            await setDoc(doc(db, "appSettings", "ads"), { 
+                longVideoCode: longAd, 
+                shortsBannerCode: shortsAd 
+            }, { merge: true });
+            
+            Swal.fire('Success', 'Facebook-style Ad Settings Saved!', 'success');
         };
 
         window.updateCPM = async () => {
@@ -330,25 +408,34 @@
             Swal.fire('Success', 'CPM Updated', 'success');
         };
 
-        // 🛡️ ফিক্সড ও রি-অপ্টিমাইজড ওপেন ম্যাজিক মডাল লজিক
+        // 🚨 কমপ্লেন রিজলভ ও ডিলিট করার মেকানিজম ফাংশনস
+        window.resolveComplaint = async (cid) => {
+            await updateDoc(doc(db, "complaints", cid), { status: "resolved" });
+            Swal.fire('Resolved', 'Complaint marked as resolved!', 'success');
+        };
+
+        window.deleteComplaint = async (cid) => {
+            if(confirm('Permanently delete this complaint log?')) {
+                await deleteDoc(doc(db, "complaints", cid));
+                Swal.fire('Deleted', 'Complaint log erased.', 'success');
+            }
+        };
+
         window.openMagic = (id, name, bal, views) => {
-            activeTargetUserId = id; // গ্লোবাল স্টেটে আইডি লক করা হলো
+            activeTargetUserId = id; 
             document.getElementById('targetUserName').innerText = name;
             document.getElementById('addBalanceInput').value = bal;
             document.getElementById('fakeViewInput').value = views;
             document.getElementById('magicModal').classList.remove('hidden');
         };
 
-        // গ্লোবাল ডিরেক্ট ক্লিক লিসেনার (কোনো মাল্টিপল বাবলিং ইভেন্ট জেনারেট হবে না)
         document.getElementById('saveMagicBtn').onclick = async () => {
             if (!activeTargetUserId) return;
             
             try {
-                // ভ্যালুগুলোকে খাঁটি সংখ্যায় (Number Format) রূপান্তর করা হলো
                 const updatedBalance = parseFloat(document.getElementById('addBalanceInput').value) || 0;
                 const updatedFakeViews = parseInt(document.getElementById('fakeViewInput').value) || 0;
 
-                // ফায়ারস্টোর ডাটাবেস পুশ পাইপলাইন
                 await updateDoc(doc(db, "users", activeTargetUserId), { 
                     balance: updatedBalance,
                     fakeViews: updatedFakeViews
@@ -364,7 +451,7 @@
 
         window.closeMagic = () => {
             document.getElementById('magicModal').classList.add('hidden');
-            activeTargetUserId = null; // রিসেট স্টেট
+            activeTargetUserId = null; 
         };
 
         window.hardBanUser = async (id) => { if(confirm('Ban this citizen permanently?')) await updateDoc(doc(db, "users", id), { isBanned: true }); };
