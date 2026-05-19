@@ -148,14 +148,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 🚨 আপনার আসল ফায়ারবেস অ্যাডমিন UID এখানে পুশ করা হলো
         const MASTER_ADMIN_UID = "EV18nmlS4vaq3tuPFmUTvf0wHe13"; 
         let mStatus = false;
+        let activeTargetUserId = null; // মেমোরি লিক বন্ধ করার গ্লোবাল ট্র্যাকার স্টেট
 
         // Firebase Auth Live Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // কঠোরভাবে আইডি ম্যাচ করা হচ্ছে, কোনো বাইপাস কন্ডিশন রাখা হয়নি
                 if (user.uid === MASTER_ADMIN_UID) {
                     document.getElementById('lockScreen').style.display = 'none';
                     document.getElementById('mainUI').classList.remove('hidden');
@@ -331,22 +330,43 @@
             Swal.fire('Success', 'CPM Updated', 'success');
         };
 
+        // 🛡️ ফিক্সড ও রি-অপ্টিমাইজড ওপেন ম্যাজিক মডাল লজিক
         window.openMagic = (id, name, bal, views) => {
+            activeTargetUserId = id; // গ্লোবাল স্টেটে আইডি লক করা হলো
             document.getElementById('targetUserName').innerText = name;
             document.getElementById('addBalanceInput').value = bal;
             document.getElementById('fakeViewInput').value = views;
             document.getElementById('magicModal').classList.remove('hidden');
-            document.getElementById('saveMagicBtn').onclick = async () => {
-                await updateDoc(doc(db, "users", id), { 
-                    balance: parseFloat(document.getElementById('addBalanceInput').value),
-                    fakeViews: parseInt(document.getElementById('fakeViewInput').value)
-                });
-                closeMagic();
-                Swal.fire('Saved', 'Citizen data updated', 'success');
-            };
         };
 
-        window.closeMagic = () => document.getElementById('magicModal').classList.add('hidden');
+        // গ্লোবাল ডিরেক্ট ক্লিক লিসেনার (কোনো মাল্টিপল বাবলিং ইভেন্ট জেনারেট হবে না)
+        document.getElementById('saveMagicBtn').onclick = async () => {
+            if (!activeTargetUserId) return;
+            
+            try {
+                // ভ্যালুগুলোকে খাঁটি সংখ্যায় (Number Format) রূপান্তর করা হলো
+                const updatedBalance = parseFloat(document.getElementById('addBalanceInput').value) || 0;
+                const updatedFakeViews = parseInt(document.getElementById('fakeViewInput').value) || 0;
+
+                // ফায়ারস্টোর ডাটাবেস পুশ পাইপলাইন
+                await updateDoc(doc(db, "users", activeTargetUserId), { 
+                    balance: updatedBalance,
+                    fakeViews: updatedFakeViews
+                });
+                
+                closeMagic();
+                Swal.fire('Saved', 'User profile and balance synchronized!', 'success');
+            } catch (error) {
+                console.error("Critical Firestore Error: ", error);
+                Swal.fire('Update Blocked', error.message, 'error');
+            }
+        };
+
+        window.closeMagic = () => {
+            document.getElementById('magicModal').classList.add('hidden');
+            activeTargetUserId = null; // রিসেট স্টেট
+        };
+
         window.hardBanUser = async (id) => { if(confirm('Ban this citizen permanently?')) await updateDoc(doc(db, "users", id), { isBanned: true }); };
 
         window.sendBroadcast = async () => {
