@@ -148,15 +148,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 🚨 আপনার নিজের ফায়ারবেস আসল অ্যাডমিন UID এখানে ইনপুট করুন (যা হ্যাক করা অসম্ভব)
-        const MASTER_ADMIN_UID = "YOUR_ACTUAL_FIREBASE_ADMIN_UID_HERE"; 
+        // 🚨 আপনার আসল ফায়ারবেস অ্যাডমিন UID এখানে পুশ করা হলো
+        const MASTER_ADMIN_UID = "QkJixaO9pJYVytMvrc20THO63J13"; 
         let mStatus = false;
 
         // Firebase Auth Live Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // টেস্টিং সুবিধার জন্য ডেভলপমেন্টের সময় ডিরেক্ট চেক অথবা মাস্টার UID ট্র্যাকিং
-                if (user.uid === MASTER_ADMIN_UID || MASTER_ADMIN_UID === "YOUR_ACTUAL_FIREBASE_ADMIN_UID_HERE") {
+                // কঠোরভাবে আইডি ম্যাচ করা হচ্ছে, কোনো বাইপাস কন্ডিশন রাখা হয়নি
+                if (user.uid === MASTER_ADMIN_UID) {
                     document.getElementById('lockScreen').style.display = 'none';
                     document.getElementById('mainUI').classList.remove('hidden');
                     initSupremeSystem();
