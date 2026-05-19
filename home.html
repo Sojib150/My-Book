@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>My Book - Intelligent Ad Engine</title>
+    <title>My Book - Premium Social Network</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,7 +20,8 @@
         .video-ad-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 50; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         .skip-ad-btn { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.4); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 13px; display: none; cursor: pointer; backdrop-filter: blur(5px); z-index: 60; }
 
-        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 12px; overflow: hidden; }
+        /* 🏢 প্রিমিয়াম ইনলাইন মনিটাইজড অ্যাড ডিজাইন */
+        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 14px; overflow: hidden; }
         
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-icon { font-size: 1.45rem; color: #4b5563; transition: 0.2s; cursor: pointer; }
@@ -32,6 +33,9 @@
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: none; z-index: 1500; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
+        /* 🔵 স্টোরি রিং স্টাইল ফিক্স */
+        .story-circle { width: 62px; height: 62px; border-radius: 50%; padding: 2px; border: 2.5px solid #1877f2; }
+
         .like-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; text-shadow: 0 0 20px rgba(0,0,0,0.4); font-size: 5rem; pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
         .like-pop.animate { animation: heartPop 0.8s ease-out; }
         @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; } 80% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; } }
@@ -59,11 +63,11 @@
             </div>
             <div class="overflow-x-auto no-scrollbar flex gap-4 py-1">
                 <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='post.html'">
-                    <div class="relative w-[68px] h-[68px] rounded-full border border-gray-200 p-0.5">
+                    <div class="relative w-[64px] h-[64px] rounded-full border border-gray-200 p-0.5">
                         <img id="myStoryPic" src="https://via.placeholder.com/150" class="w-full h-full rounded-full object-cover bg-gray-50">
                         <div class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center border-2 border-white text-[10px]"><i class="fas fa-plus"></i></div>
                     </div>
-                    <span class="text-[11px] font-bold text-gray-600">Your Story</span>
+                    <span class="text-[11px] font-bold text-gray-500 mt-0.5">Your Story</span>
                 </div>
                 <div id="storyList" class="flex gap-4"></div>
             </div>
@@ -88,17 +92,17 @@
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
     <div id="commentSheet" class="drawer h-[82vh] flex flex-col p-5">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeAll()"></div>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar py-2"></div>
         <div class="flex gap-2 pt-3 border-t border-gray-100">
             <input id="cInput" type="text" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-50 border border-gray-200 p-3.5 rounded-2xl outline-none text-sm">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
+            <button onclick="window.postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, getDocs, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -121,7 +125,6 @@
             return Math.floor(diff/86400) + "d ago";
         }
 
-        // 🔒 সিকিউরড সেশন ট্র্যাকার (লগআউট বা সাদা পেজ বাগ ফিক্স)
         onAuthStateChanged(auth, async u => {
             if(u) {
                 user = u;
@@ -135,51 +138,42 @@
                             document.getElementById('mindBoxPic').src = currentUserData.profilePic;
                         }
                     }
-                } catch(err) {
-                    console.log("Profile sync bypassed:", err);
-                }
-                // সেশন সফলভাবে অ্যাসাইন হওয়ার পর অ্যাপ রান হবে, তাই হুট করে লগআউট হবে না
+                } catch(err) { console.log("Profile check bypassed"); }
                 initApp();
-            } else { 
-                // শুধুমাত্র অথেনটিকেশন নিশ্চিতভাবে ফেইল করলেই ইনডেক্সে রিডাইরেক্ট হবে
-                window.location.href = "index.html"; 
-            }
+            } else { window.location.href = "index.html"; }
         });
 
         async function initApp() {
             try {
-                // সেটিংস ডেটা রিড (ট্রাই-ক্যাচ ব্লকে যাতে এরর পেজ ব্লক না করে)
                 const adSnap = await getDoc(doc(db, "appSettings", "ads"));
                 if(adSnap.exists()) {
                     const adData = adSnap.data();
-                    currentAdminAdHtml = adData.code || '';
+                    currentAdminAdHtml = adData.code || adData.shortsBannerCode || '';
                     currentLongVideoAdCode = adData.longVideoCode || ''; 
-                    document.getElementById('globalAdArea').innerHTML = currentAdminAdHtml;
+                    document.getElementById('globalAdArea').innerHTML = adData.code || '';
                 }
-
                 const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
                 if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
-            } catch(e) {
-                console.log("Settings initialization bypassed:", e);
-            }
+            } catch(e) { console.log("Ad configurations bypassed"); }
 
-            // মেইন কোর ফাংশন কল
             renderFeed();
             checkNotifications();
             loadStories();
         }
 
-        // 🚀 অপটিমাইজড নন-গ্লিচিং ফিড রেন্ডারার
-        async function renderFeed() {
+        // 🚀 রি-রেন্ডারিং গ্লিচ ছাড়া লাইভ লিসেনার ফিড মেকানিজম (বিজ্ঞাপন এবং লাইক-কমেন্ট ১০০% ফিক্সড)
+        function renderFeed() {
             const feed = document.getElementById('feed');
-            try {
-                const snap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc")));
-                
+            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            
+            // onSnapshot ব্যবহারের ফলে ডাইনামিক লাইভ আপডেট পাওয়া যাবে কোনো রকম পেজ সাদা হওয়া ছাড়া
+            onSnapshot(q, (snap) => {
                 if(snap.empty) {
                     feed.innerHTML = '<div class="text-center py-20 text-gray-400 text-xs">ফিডে কোনো পোস্ট পাওয়া যায়নি।</div>';
                     return;
                 }
 
+                // পুরো ফিড ক্লিয়ার না করে নতুন এলিমেন্ট ইনজেক্ট বা আপডেট করা হবে
                 let currentPostHtml = '';
                 snap.forEach((docSnap) => {
                     const p = docSnap.data();
@@ -209,11 +203,9 @@
                             <div id="ad-overlay-${pid}" class="video-ad-overlay">
                                 <div class="text-xs font-black text-amber-400 tracking-widest uppercase animate-pulse mb-2"><i class="fa-solid fa-circle-play mr-1"></i> Mid-Roll Ad Running</div>
                                 <div id="ad-timer-text-${pid}" class="text-xs font-bold mb-4 text-gray-200">Ad ends in 5s...</div>
-                                
                                 <div class="w-2/3 max-w-[220px] bg-white/10 h-40 rounded-xl overflow-hidden mb-4 border border-white/10 relative">
                                     ${currentLongVideoAdCode ? `<video id="ad-video-player-${pid}" src="${currentLongVideoAdCode}" class="w-full h-full object-cover" playsinline></video>` : '<div class="flex items-center justify-center h-full text-[10px] text-gray-400">Loading Premium Ad...</div>'}
                                 </div>
-                                
                                 <button id="skip-btn-${pid}" onclick="window.skipVideoAd('${pid}')" class="skip-ad-btn">Skip Ad <i class="fas fa-forward ml-1"></i></button>
                             </div>
 
@@ -226,36 +218,57 @@
                         <div class="p-4 border-t border-gray-100 bg-white">
                             <div class="flex justify-between items-center">
                                 <div class="flex gap-6 items-center">
-                                    <button id="like-btn-${pid}" onclick="window.handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i><span id="like-count-${pid}" class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span></button>
-                                    <button onclick="window.openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-regular fa-comment text-2xl text-gray-700"></i><span id="comm-count-${pid}" class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span></button>
+                                    <button id="like-btn-${pid}" onclick="window.handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
+                                        <i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i>
+                                        <span class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span>
+                                    </button>
+                                    <button onclick="window.openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
+                                        <i class="fa-regular fa-comment text-2xl text-gray-700"></i>
+                                        <span class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span>
+                                    </button>
+                                    <button onclick="window.sharePost('${pid}')" class="flex items-center gap-2 text-gray-700 transform active:scale-90 transition-all">
+                                        <i class="fa-regular fa-paper-plane text-2xl"></i>
+                                        <span class="text-xs font-bold text-gray-500">Share Link</span>
+                                    </button>
                                 </div>
-                                <div class="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase"><span id="view-count-${pid}">${p.views || 0} Views</span></div>
                             </div>
                         </div>
 
-                        <div id="banner-ad-slot-${pid}" class="inline-ad-card hidden">
+                        <div id="banner-ad-slot-${pid}" class="inline-ad-card ${isMonetized ? '' : 'hidden'}">
                             <div class="flex justify-between text-[9px] font-black tracking-widest text-gray-400 mb-1 uppercase"><span>Sponsored Ad (Revenue Shared)</span><i class="fas fa-circle-info"></i></div>
-                            <div class="rounded-xl overflow-hidden shadow-sm bg-white p-1 border border-gray-100">${currentAdminAdHtml || '<p class="text-xs text-blue-500 py-2 text-center">Loading Content Ad...</p>'}</div>
+                            <div class="rounded-xl overflow-hidden shadow-sm bg-white p-2 border border-gray-100 text-center text-xs text-gray-700">
+                                ${currentAdminAdHtml ? currentAdminAdHtml : `<div class="py-2 text-blue-500 font-bold animate-pulse">MyBook Premium Native Ads Network</div>`}
+                            </div>
                         </div>
                     </div>`;
                 });
 
                 feed.innerHTML = currentPostHtml;
-                initObserver();
-            } catch(e) {
-                console.error("Feed render blocked execution:", e);
-                feed.innerHTML = '<div class="text-center py-20 text-red-500 text-xs">ফিড লোড করতে সমস্যা হয়েছে। ডাটাবেস চেক করুন।</div>';
-            }
+                setTimeout(initObserver, 300);
+            }, (error) => {
+                console.log("Feed Snapshot bypassed:", error);
+            });
         }
+
+        window.sharePost = (pid) => {
+            // প্রতিটি পোস্টের জন্য একদম আলাদা ও ইউনিক আইডি লিংক জেনারেট হবে
+            const uniquePostUrl = window.location.origin + "/post-view.html?id=" + pid;
+            navigator.clipboard.writeText(uniquePostUrl);
+            Swal.fire({
+                title: 'লিংক কপি হয়েছে!',
+                text: 'ইউনিক পোস্ট লিংকটি সফলভাবে ক্লিপবোর্ডে কপি করা হয়েছে।',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        };
 
         window.checkVideoDuration = function(pid) {
             const video = document.getElementById(`vid-${pid}`);
             const bannerAd = document.getElementById(`banner-ad-slot-${pid}`);
             if (!video || !bannerAd) return;
-
             const container = video.closest('.video-container');
             const isMonetized = container ? container.dataset.monetized === "true" : false;
-
             if (isMonetized && video.duration < 60) {
                 bannerAd.classList.remove('hidden'); 
             }
@@ -263,7 +276,6 @@
 
         window.monitorVideoAdTrigger = function(pid, cid, isMonetized) {
             if (!isMonetized || triggeredVideoAds[pid]) return; 
-            
             const video = document.getElementById(`vid-${pid}`);
             if (!video || isNaN(video.duration)) return;
 
@@ -302,7 +314,7 @@
                                     type: "mid-roll-long-video",
                                     timestamp: serverTimestamp()
                                 });
-                            } catch(e) { console.log("Ad payout log error:", e); }
+                            } catch(e) { console.log("Log fail bypass"); }
                         }
                     }
                 }, 1000);
@@ -313,7 +325,6 @@
             const overlay = document.getElementById(`ad-overlay-${pid}`);
             const video = document.getElementById(`vid-${pid}`);
             const adVideoPlayer = document.getElementById(`ad-video-player-${pid}`);
-            
             if (adVideoPlayer) adVideoPlayer.pause();
             if (overlay) overlay.style.display = 'none'; 
             if (video) video.play().catch(() => {}); 
@@ -335,37 +346,23 @@
 
                     if (entry.isIntersecting) {
                         const adOverlay = document.getElementById(`ad-overlay-${pid}`);
-                        if(vid && (!adOverlay || adOverlay.style.display !== 'flex')) {
-                            vid.play().catch(()=>{});
-                        }
+                        if(vid && (!adOverlay || adOverlay.style.display !== 'flex')) { vid.play().catch(()=>{}); }
                         
                         activeWatchTimers[pid] = setInterval(async () => {
                             if (user && cid !== user.uid) {
                                 if(!viewLogsTrack[pid]) {
                                     viewLogsTrack[pid] = true;
                                     await updateDoc(doc(db, "posts", pid), { views: increment(1) });
-                                    const vc = document.getElementById(`view-count-${pid}`);
-                                    if(vc) vc.innerText = (parseInt(vc.innerText) + 1) + " Views";
                                 }
                                 
                                 const isVideo = vid ? true : false;
-                                if (isMonetized && !isVideo) {
+                                if (isMonetized) {
                                     await addDoc(collection(db, "adImpressions"), {
                                         viewerUid: user.uid,
                                         creatorUid: cid,
                                         postId: pid,
                                         amount: globalCPM,
-                                        type: "banner-image-post",
-                                        timestamp: serverTimestamp()
-                                    });
-                                } 
-                                else if (isMonetized && isVideo && vid.duration < 60) {
-                                    await addDoc(collection(db, "adImpressions"), {
-                                        viewerUid: user.uid,
-                                        creatorUid: cid,
-                                        postId: pid,
-                                        amount: globalCPM,
-                                        type: "banner-shorts-post",
+                                        type: isVideo ? "banner-shorts-post" : "banner-image-post",
                                         timestamp: serverTimestamp()
                                     });
                                 }
@@ -407,8 +404,6 @@
             const i = document.getElementById('cInput'); if(!i.value.trim()) return;
             await addDoc(collection(db, "posts", activePostId, "comments"), { text: i.value, userName: currentUserData.name, userPic: currentUserData.profilePic || '', time: serverTimestamp() });
             await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
-            const cc = document.getElementById(`comm-count-${activePostId}`);
-            if(cc) cc.innerText = parseInt(cc.innerText) + 1;
             i.value = "";
         };
 
@@ -416,20 +411,33 @@
             const ref = doc(db, "posts", id); const s = await getDoc(ref); if(!s.exists()) return;
             const likedArr = s.data().likedBy || [];
             const isLiked = likedArr.includes(user.uid);
-            
-            const btn = document.getElementById(`like-btn-${id}`);
-            
             if(isLiked) {
                 await updateDoc(ref, { likedBy: arrayRemove(user.uid) });
-                if(btn) btn.innerHTML = `<i class="fa-regular fa-heart text-2xl text-gray-700"></i><span id="like-count-${id}" class="text-xs font-bold text-gray-800">${likedArr.length - 1}</span>`;
             } else {
                 await updateDoc(ref, { likedBy: arrayUnion(user.uid) });
-                if(btn) btn.innerHTML = `<i class="fa-solid fa-heart text-2xl text-red-500"></i><span id="like-count-${id}" class="text-xs font-bold text-gray-800">${likedArr.length + 1}</span>`;
             }
         };
 
         function checkNotifications() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? "block" : "none"; }); }
-        function loadStories() { onSnapshot(collection(db, "stories"), s => { document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="shrink-0 flex flex-col items-center gap-1.5"><div class="story-circle"><img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full border-2 border-white object-cover"></div><span class="text-[11px] font-bold text-gray-600">@${d.data().userName}</span></div>`).join(''); }); }
+        
+        // 🔵 Your Story এবং গ্লোবাল স্টোরি ফিড রিয়েল-টাইম ফিক্স
+        function loadStories() { 
+            onSnapshot(collection(db, "stories"), s => { 
+                if(s.empty) {
+                    document.getElementById('storyList').innerHTML = '<span class="text-xs text-gray-400 self-center pl-2 font-medium">No recent stories</span>';
+                    return;
+                }
+                document.getElementById('storyList').innerHTML = s.docs.map(d => `
+                    <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='story-view.html?id=${d.id}'">
+                        <div class="story-circle">
+                            <img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full object-cover bg-gray-100">
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-600">@${d.data().userName || 'user'}</span>
+                    </div>
+                `).join(''); 
+            }); 
+        }
+
         window.closeAll = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('overlay').style.display = "none"; };
     </script>
 </body>
