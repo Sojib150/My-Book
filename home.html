@@ -17,11 +17,9 @@
         .video-container { position: relative; width: 100%; aspect-ratio: 4/5; background: #000; overflow: hidden; cursor: pointer; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 📺 লং ভিডিওর ইন-স্ট্রিম ভিডিও অ্যাড লেয়ার */
         .video-ad-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 50; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         .skip-ad-btn { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.4); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 13px; display: none; cursor: pointer; backdrop-filter: blur(5px); z-index: 60; }
 
-        /* 📱 শর্টস/রিলস এবং ইমেজের নিচের ব্যানার অ্যাড */
         .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 12px; overflow: hidden; }
         
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
@@ -49,20 +47,20 @@
                 <i class="fa-regular fa-bell text-gray-700 text-xl"></i>
                 <span id="notifDot" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden border-2 border-white"></span>
             </div>
-            <i class="fa-regular fa-paper-plane text-2xl text-gray-700 cursor-pointer"></i>
+            <i class="fa-regular fa-paper-plane text-2xl text-gray-700 cursor-pointer" onclick="location.href='messages.html'"></i>
         </div>
     </nav>
 
     <div class="max-w-md mx-auto space-y-3">
         <div class="fb-header-card p-4 space-y-4">
             <div class="flex items-center gap-3 border-b border-gray-100 pb-3" onclick="location.href='post.html'">
-                <img id="mindBoxPic" src="" class="w-10 h-10 rounded-full object-cover bg-gray-100 border">
+                <img id="mindBoxPic" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover bg-gray-100 border">
                 <div class="flex-1 bg-gray-100 px-4 py-2.5 rounded-full text-gray-500 font-medium text-sm">What's on your mind?</div>
             </div>
             <div class="overflow-x-auto no-scrollbar flex gap-4 py-1">
                 <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='post.html'">
                     <div class="relative w-[68px] h-[68px] rounded-full border border-gray-200 p-0.5">
-                        <img id="myStoryPic" src="" class="w-full h-full rounded-full object-cover bg-gray-50">
+                        <img id="myStoryPic" src="https://via.placeholder.com/150" class="w-full h-full rounded-full object-cover bg-gray-50">
                         <div class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center border-2 border-white text-[10px]"><i class="fas fa-plus"></i></div>
                     </div>
                     <span class="text-[11px] font-bold text-gray-600">Your Story</span>
@@ -71,17 +69,21 @@
             </div>
         </div>
 
-        <div id="feed" class="px-3 space-y-4"></div>
+        <div id="feed" class="px-3 space-y-4">
+            <div id="feedLoader" class="text-center py-20 text-gray-400 text-xs tracking-widest animate-pulse">LOADING MY BOOK FEED...</div>
+        </div>
     </div>
 
     <div id="globalAdArea" class="sticky-bottom-ad"></div>
 
     <div class="bottom-nav">
         <i class="fas fa-home nav-icon active" onclick="location.href='home.html'"></i>
-        <i class="fas fa-search nav-icon" onclick="location.href='search.html'"></i>
+        <i class="fa-regular fa-comment-dots nav-icon" onclick="location.href='messages.html'"></i>
+        
         <div onclick="location.href='post.html'" class="w-13 h-13 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white -mt-5 shadow-lg shadow-blue-500/30 transform transition active:scale-90"><i class="fas fa-plus text-lg"></i></div>
+        
         <i class="fas fa-play nav-icon" onclick="location.href='reels.html'"></i>
-        <img id="navPic" onclick="location.href='profile.html'" class="w-7 h-7 rounded-full border border-gray-200 object-cover bg-gray-50 cursor-pointer">
+        <img id="navPic" src="https://via.placeholder.com/150" onclick="location.href='profile.html'" class="w-7 h-7 rounded-full border border-gray-200 object-cover bg-gray-50 cursor-pointer">
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
@@ -108,7 +110,7 @@
         let globalCPM = 0.0001; let currentAdminAdHtml = ''; let currentLongVideoAdCode = '';
         let activeWatchTimers = {};
         let triggeredVideoAds = {}; 
-        let viewLogsTrack = {}; // ডাবল ভিউ কাউন্ট প্রটেক্টর
+        let viewLogsTrack = {}; 
 
         function getTimeAgo(ts) {
             if(!ts) return "সদ্য";
@@ -119,7 +121,7 @@
             return Math.floor(diff/86400) + "d ago";
         }
 
-        // 🔒 সেশন সিকিউরড স্টেবল অথ ট্র্যাকার
+        // 🔒 সিকিউরড সেশন ট্র্যাকার (লগআউট বা সাদা পেজ বাগ ফিক্স)
         onAuthStateChanged(auth, async u => {
             if(u) {
                 user = u;
@@ -127,49 +129,62 @@
                     const s = await getDoc(doc(db, "users", u.uid));
                     if(s.exists()) {
                         currentUserData = s.data();
-                        document.getElementById('navPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
-                        document.getElementById('myStoryPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
-                        document.getElementById('mindBoxPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
+                        if(currentUserData.profilePic) {
+                            document.getElementById('navPic').src = currentUserData.profilePic;
+                            document.getElementById('myStoryPic').src = currentUserData.profilePic;
+                            document.getElementById('mindBoxPic').src = currentUserData.profilePic;
+                        }
                     }
-                    initApp();
                 } catch(err) {
-                    console.log("Session temporary protected", err);
+                    console.log("Profile sync bypassed:", err);
                 }
+                // সেশন সফলভাবে অ্যাসাইন হওয়ার পর অ্যাপ রান হবে, তাই হুট করে লগআউট হবে না
+                initApp();
             } else { 
-                // শুধুমাত্র ভ্যালিড সেশন লস্ট হলেই ইনডেক্সে যাবে, লাইভ স্ন্যাপশট আপডেটে ছিটকে যাবে না
-                if(!user) location.href = "index.html"; 
+                // শুধুমাত্র অথেনটিকেশন নিশ্চিতভাবে ফেইল করলেই ইনডেক্সে রিডাইরেক্ট হবে
+                window.location.href = "index.html"; 
             }
         });
 
         async function initApp() {
-            // অ্যাডমিন সেটিংস আলাদা সিঙ্গেল রিড লোড
-            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            if(adSnap.exists()) {
-                const adData = adSnap.data();
-                currentAdminAdHtml = adData.code || '';
-                currentLongVideoAdCode = adData.longVideoCode || ''; // অ্যাডমিন প্যানেলের ইন-স্ট্রিম অ্যাড কোড সোর্স
-                document.getElementById('globalAdArea').innerHTML = currentAdminAdHtml;
+            try {
+                // সেটিংস ডেটা রিড (ট্রাই-ক্যাচ ব্লকে যাতে এরর পেজ ব্লক না করে)
+                const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+                if(adSnap.exists()) {
+                    const adData = adSnap.data();
+                    currentAdminAdHtml = adData.code || '';
+                    currentLongVideoAdCode = adData.longVideoCode || ''; 
+                    document.getElementById('globalAdArea').innerHTML = currentAdminAdHtml;
+                }
+
+                const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+                if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
+            } catch(e) {
+                console.log("Settings initialization bypassed:", e);
             }
 
-            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
-            if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
-
+            // মেইন কোর ফাংশন কল
             renderFeed();
             checkNotifications();
             loadStories();
         }
 
-        // 🚀 অপটিমাইজড মেমরি ফিড রেন্ডারার (getDocs মেকানিজম—ঝাঁকি থেকে মুক্তি)
+        // 🚀 অপটিমাইজড নন-গ্লিচিং ফিড রেন্ডারার
         async function renderFeed() {
             const feed = document.getElementById('feed');
             try {
                 const snap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc")));
-                let currentPostHtml = '';
+                
+                if(snap.empty) {
+                    feed.innerHTML = '<div class="text-center py-20 text-gray-400 text-xs">ফিডে কোনো পোস্ট পাওয়া যায়নি।</div>';
+                    return;
+                }
 
+                let currentPostHtml = '';
                 snap.forEach((docSnap) => {
                     const p = docSnap.data();
                     const pid = docSnap.id;
-                    const isLiked = p.likedBy?.includes(user.uid);
+                    const isLiked = p.likedBy?.includes(user?.uid);
                     const isMonetized = p.isCreatorMonetized === true; 
 
                     currentPostHtml += `
@@ -188,7 +203,7 @@
                         ${p.text ? `<div class="px-4 pt-3 pb-2 text-[14px] font-medium text-gray-800">${p.text}</div>` : ''}
 
                         ${p.fileUrl ? `
-                        <div class="video-container" data-post-id="${pid}" data-creator-id="${p.userId}" data-monetized="${isMonetized}" ondblclick="handleDoubleTap('${pid}')">
+                        <div class="video-container" data-post-id="${pid}" data-creator-id="${p.userId}" data-monetized="${isMonetized}" ondblclick="window.handleDoubleTap('${pid}')">
                             <i class="fas fa-heart like-pop" id="pop-${pid}"></i>
                             
                             <div id="ad-overlay-${pid}" class="video-ad-overlay">
@@ -199,20 +214,20 @@
                                     ${currentLongVideoAdCode ? `<video id="ad-video-player-${pid}" src="${currentLongVideoAdCode}" class="w-full h-full object-cover" playsinline></video>` : '<div class="flex items-center justify-center h-full text-[10px] text-gray-400">Loading Premium Ad...</div>'}
                                 </div>
                                 
-                                <button id="skip-btn-${pid}" onclick="skipVideoAd('${pid}')" class="skip-ad-btn">Skip Ad <i class="fas fa-forward ml-1"></i></button>
+                                <button id="skip-btn-${pid}" onclick="window.skipVideoAd('${pid}')" class="skip-ad-btn">Skip Ad <i class="fas fa-forward ml-1"></i></button>
                             </div>
 
                             ${p.fileType === 'video' ? `
-                                <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="toggleVideoSound('${pid}')" onloadedmetadata="checkVideoDuration('${pid}')" ontimeupdate="monitorVideoAdTrigger('${pid}', '${p.userId}', ${isMonetized})"></video>
+                                <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="window.toggleVideoSound('${pid}')" onloadedmetadata="window.checkVideoDuration('${pid}')" ontimeupdate="window.monitorVideoAdTrigger('${pid}', '${p.userId}', ${isMonetized})"></video>
                                 <div class="absolute bottom-4 right-4 w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-xs shadow-lg"><i id="icon-${pid}" class="fas fa-volume-mute text-sm"></i></div>
-                            ` : `<img src="${p.fileUrl}" class="w-full h-full object-cover" onclick="handleImgClick('${pid}')">`}
+                            ` : `<img src="${p.fileUrl}" class="w-full h-full object-cover" onclick="window.handleImgClick('${pid}')">`}
                         </div>` : ''}
 
                         <div class="p-4 border-t border-gray-100 bg-white">
                             <div class="flex justify-between items-center">
                                 <div class="flex gap-6 items-center">
-                                    <button id="like-btn-${pid}" onclick="handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i><span id="like-count-${pid}" class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span></button>
-                                    <button onclick="openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-regular fa-comment text-2xl text-gray-700"></i><span id="comm-count-${pid}" class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span></button>
+                                    <button id="like-btn-${pid}" onclick="window.handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i><span id="like-count-${pid}" class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span></button>
+                                    <button onclick="window.openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-regular fa-comment text-2xl text-gray-700"></i><span id="comm-count-${pid}" class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span></button>
                                 </div>
                                 <div class="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase"><span id="view-count-${pid}">${p.views || 0} Views</span></div>
                             </div>
@@ -228,15 +243,13 @@
                 feed.innerHTML = currentPostHtml;
                 initObserver();
             } catch(e) {
-                console.error("Feed error protected:", e);
+                console.error("Feed render blocked execution:", e);
+                feed.innerHTML = '<div class="text-center py-20 text-red-500 text-xs">ফিড লোড করতে সমস্যা হয়েছে। ডাটাবেস চেক করুন।</div>';
             }
         }
 
         window.checkVideoDuration = function(pid) {
             const video = document.getElementById(`vid-${pid}`);
-            const bannerAdSlot = document.getElementById------------
-
-            // ব্যানার অ্যাড স্লট হ্যান্ডলিং
             const bannerAd = document.getElementById(`banner-ad-slot-${pid}`);
             if (!video || !bannerAd) return;
 
@@ -244,21 +257,19 @@
             const isMonetized = container ? container.dataset.monetized === "true" : false;
 
             if (isMonetized && video.duration < 60) {
-                bannerAd.classList.remove('hidden'); // শর্টস হলে নিচে ব্যানার অ্যাড একটিভ হবে
+                bannerAd.classList.remove('hidden'); 
             }
         };
 
-        // 📺 ইন-স্ট্রিম ভিডিও অ্যাড পজ/প্লে সিকিউর কন্ট্রোলার
         window.monitorVideoAdTrigger = function(pid, cid, isMonetized) {
             if (!isMonetized || triggeredVideoAds[pid]) return; 
             
             const video = document.getElementById(`vid-${pid}`);
             if (!video || isNaN(video.duration)) return;
 
-            // ভিডিওর ডিউরেশন ১ মিনিট বা তার বেশি এবং ১০ সেকেন্ড দেখা হলে ইন-স্ট্রিম অ্যাড লোড হবে
             if (video.duration >= 60 && video.currentTime >= 10) { 
                 triggeredVideoAds[pid] = true; 
-                video.pause(); // মেইন ভিডিও স্টপ বা পজ
+                video.pause(); 
 
                 const overlay = document.getElementById(`ad-overlay-${pid}`);
                 const timerText = document.getElementById(`ad-timer-text-${pid}`);
@@ -267,7 +278,7 @@
                 
                 if (overlay) overlay.style.display = 'flex';
                 if (adVideoPlayer) {
-                    adVideoPlayer.muted = false; // অ্যাড সাউন্ড লাউড প্লে হবে
+                    adVideoPlayer.muted = false; 
                     adVideoPlayer.play().catch(()=>{});
                 }
 
@@ -281,7 +292,6 @@
                         if (timerText) timerText.innerText = "Ad ready to skip!";
                         if (skipBtn) skipBtn.style.display = 'block';
 
-                        // 💰 ক্রিয়েটরের ওয়ালেট রেভিনিউ লগ সাবমিশন
                         if (user && cid !== user.uid) {
                             try {
                                 await addDoc(collection(db, "adImpressions"), {
@@ -306,7 +316,7 @@
             
             if (adVideoPlayer) adVideoPlayer.pause();
             if (overlay) overlay.style.display = 'none'; 
-            if (video) video.play().catch(() => {}); // মেইন ভিডিও রিজিউম প্লে হবে
+            if (video) video.play().catch(() => {}); 
         };
 
         window.toggleVideoSound = (id) => {
@@ -324,7 +334,6 @@
                     const vid = entry.target.querySelector('video');
 
                     if (entry.isIntersecting) {
-                        // স্ক্রিনে আসলে প্লে হবে (যদি কোনো রানিং অ্যাড না থাকে)
                         const adOverlay = document.getElementById(`ad-overlay-${pid}`);
                         if(vid && (!adOverlay || adOverlay.style.display !== 'flex')) {
                             vid.play().catch(()=>{});
@@ -332,7 +341,6 @@
                         
                         activeWatchTimers[pid] = setInterval(async () => {
                             if (user && cid !== user.uid) {
-                                // প্রতি পোস্টে মাত্র একবার ভিউ কাউন্ট প্রটেকশন মেকানিজম
                                 if(!viewLogsTrack[pid]) {
                                     viewLogsTrack[pid] = true;
                                     await updateDoc(doc(db, "posts", pid), { views: increment(1) });
@@ -372,14 +380,14 @@
             document.querySelectorAll('.video-container').forEach(el => obs.observe(el));
         }
 
-        window.handleImgClick = (id) => { handleDoubleTap(id); };
+        window.handleImgClick = (id) => { window.handleDoubleTap(id); };
         let lastTapTime = 0;
         window.handleDoubleTap = (id) => {
             const currentTime = new Date().getTime();
             if ((currentTime - lastTapTime) < 300) {
                 const popHeart = document.getElementById(`pop-${id}`);
                 if(popHeart) { popHeart.classList.add('animate'); setTimeout(() => popHeart.classList.remove('animate'), 800); }
-                handleLike(id);
+                window.handleLike(id);
             }
             lastTapTime = currentTime;
         };
@@ -409,9 +417,7 @@
             const likedArr = s.data().likedBy || [];
             const isLiked = likedArr.includes(user.uid);
             
-            // ডাইনামিক রিয়েল-টাইম UI আপডেট (পেজ রিলোড বা ঝাঁকি ছাড়া)
             const btn = document.getElementById(`like-btn-${id}`);
-            const countSpan = document.getElementById(`like-count-${id}`);
             
             if(isLiked) {
                 await updateDoc(ref, { likedBy: arrayRemove(user.uid) });
