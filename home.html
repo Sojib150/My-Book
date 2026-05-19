@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>My Book - Elite Hybrid Engine</title>
+    <title>My Book - Intelligent Ad Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -12,27 +12,26 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; -webkit-tap-highlight-color: transparent; }
         
         .fb-header-card { background: white; border-radius: 0 0 20px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .hybrid-post { background: white; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); overflow: hidden; }
+        .hybrid-post { background: white; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); overflow: hidden; position: relative; }
         
         .video-container { position: relative; width: 100%; aspect-ratio: 4/5; background: #000; overflow: hidden; cursor: pointer; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border: 1px dashed #1877f2; border-radius: 24px; padding: 15px; margin: 15px 0; overflow: hidden; }
-        
-        .story-circle { width: 68px; height: 68px; padding: 2.5px; background: linear-gradient(45deg, #1877f2, #00d2ff, #6366f1); border-radius: 50%; transition: transform 0.3s ease; }
-        .story-circle:active { transform: scale(0.92); }
+        /* 📺 লং ভিডিওর ইন-স্ট্রিম ভিডিও অ্যাড লেয়ার */
+        .video-ad-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        .skip-ad-btn { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.4); padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 13px; display: none; cursor: pointer; backdrop-filter: blur(5px); }
+
+        /* 📱 শর্টস/রিলস এবং ইমেজের নিচের ব্যানার অ্যাড */
+        .inline-ad-card { background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%); border-top: 1px dashed #1877f2; border-bottom: 1px dashed #1877f2; padding: 12px; overflow: hidden; }
         
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-icon { font-size: 1.45rem; color: #4b5563; transition: 0.2s; cursor: pointer; }
         .nav-icon:hover, .nav-icon.active { color: #1877f2; }
 
         .sticky-bottom-ad { position: fixed; bottom: 65px; left: 0; right: 0; z-index: 999; max-width: 440px; margin: 0 auto; padding: 4px 12px; background: transparent; }
-
         .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: white; transform: translateY(100%); transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 2000; border-radius: 35px 35px 0 0; box-shadow: 0 -15px 50px rgba(0,0,0,0.15); }
         .drawer.active { transform: translateY(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: none; z-index: 1500; }
-        
-        .reply-box { border-left: 2.5px solid #1877f2; margin-left: 12px; padding-left: 12px; margin-top: 8px; background: #f8fafc; border-radius: 12px; padding: 6px 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
         .like-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: white; text-shadow: 0 0 20px rgba(0,0,0,0.4); font-size: 5rem; pointer-events: none; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
@@ -45,9 +44,7 @@
     <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-3.5 flex justify-between items-center">
         <h1 class="text-2.5xl font-black italic tracking-tighter text-blue-600 cursor-pointer" onclick="location.href='home.html'">My Book</h1>
         <div class="flex gap-4 items-center">
-            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer" onclick="location.href='search.html'">
-                <i class="fa-solid fa-magnifying-glass text-gray-600 text-lg"></i>
-            </div>
+            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer" onclick="location.href='search.html'"><i class="fa-solid fa-magnifying-glass text-gray-600 text-lg"></i></div>
             <div class="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer" onclick="location.href='notifications.html'">
                 <i class="fa-regular fa-bell text-gray-700 text-xl"></i>
                 <span id="notifDot" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden border-2 border-white"></span>
@@ -60,11 +57,8 @@
         <div class="fb-header-card p-4 space-y-4">
             <div class="flex items-center gap-3 border-b border-gray-100 pb-3" onclick="location.href='post.html'">
                 <img id="mindBoxPic" src="" class="w-10 h-10 rounded-full object-cover bg-gray-100 border">
-                <div class="flex-1 bg-gray-100 px-4 py-2.5 rounded-full text-gray-500 font-medium text-sm">
-                    What's on your mind?
-                </div>
+                <div class="flex-1 bg-gray-100 px-4 py-2.5 rounded-full text-gray-500 font-medium text-sm">What's on your mind?</div>
             </div>
-            
             <div class="overflow-x-auto no-scrollbar flex gap-4 py-1">
                 <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer" onclick="location.href='post.html'">
                     <div class="relative w-[68px] h-[68px] rounded-full border border-gray-200 p-0.5">
@@ -94,14 +88,9 @@
     <div id="commentSheet" class="drawer h-[82vh] flex flex-col p-5">
         <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-5 no-scrollbar py-2"></div>
-        
-        <div id="replyTag" class="hidden px-4 py-2 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-t-xl flex justify-between items-center">
-            <span>Replying to <span id="replyName" class="text-blue-700 underline"></span></span>
-            <button onclick="cancelReply()"><i class="fas fa-times text-xs"></i></button>
-        </div>
         <div class="flex gap-2 pt-3 border-t border-gray-100">
-            <input id="cInput" type="text" placeholder="একটি চমৎকার মন্তব্য লিখুন..." class="flex-1 bg-gray-50 border border-gray-200 p-3.5 rounded-2xl outline-none font-semibold text-sm focus:border-blue-500 focus:bg-white transition-all">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-md shadow-blue-500/20 active:scale-95 transition-all"><i class="fa-solid fa-paper-plane"></i></button>
+            <input id="cInput" type="text" placeholder="মন্তব্য লিখুন..." class="flex-1 bg-gray-50 border border-gray-200 p-3.5 rounded-2xl outline-none text-sm">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -116,9 +105,9 @@
         const auth = getAuth(app);
 
         let user = null; let currentUserData = null; let activePostId = null;
-        let replyToId = null; let globalCPM = 0.0001;
+        let globalCPM = 0.0001; let currentAdminAdHtml = '';
         let activeWatchTimers = {};
-        let currentAdminAdHtml = ''; // 🛡️ অ্যাডমিন প্যানেলের অ্যাড কোড রাখার ভেরিয়েবল
+        let triggeredVideoAds = {}; 
 
         function getTimeAgo(ts) {
             if(!ts) return "সদ্য";
@@ -134,132 +123,169 @@
                 user = u;
                 const s = await getDoc(doc(db, "users", u.uid));
                 currentUserData = s.data() || {};
-                const userImage = currentUserData.profilePic || 'https://via.placeholder.com/150';
-                document.getElementById('navPic').src = userImage;
-                document.getElementById('myStoryPic').src = userImage;
-                document.getElementById('mindBoxPic').src = userImage;
+                document.getElementById('navPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
+                document.getElementById('myStoryPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
+                document.getElementById('mindBoxPic').src = currentUserData.profilePic || 'https://via.placeholder.com/150';
                 initApp();
             } else { location.href = "index.html"; }
         });
 
         function initApp() {
-            // 🛡️ স্টিকি অ্যাডের জন্য ফায়ারস্টোর লিসেনার এবং ফিড অ্যাড ভেরিয়েবল সিঙ্ক
             onSnapshot(doc(db, "appSettings", "ads"), s => {
                 if(s.exists() && s.data().code) {
                     currentAdminAdHtml = s.data().code;
-                    
-                    // নিচের স্টিকি ব্যানার আপডেট
-                    const adArea = document.getElementById('globalAdArea');
-                    adArea.innerHTML = ''; 
-                    const range = document.createRange();
-                    const fragment = range.createContextualFragment(currentAdminAdHtml);
-                    adArea.appendChild(fragment);
+                    document.getElementById('globalAdArea').innerHTML = currentAdminAdHtml;
                 }
             });
-            
             onSnapshot(doc(db, "appSettings", "algorithm"), s => { if(s.exists()) globalCPM = s.data().trendBoost || 0.0001; });
-
             renderFeed();
             checkNotifications();
             loadStories();
         }
 
-        // 🎬 ডাইনামিক রিয়েল-টাইম ফিড বিল্ডার
         function renderFeed() {
             const feed = document.getElementById('feed');
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 let currentPostHtml = '';
-                let postCounter = 0;
 
                 snap.docs.forEach((docSnap) => {
                     const p = docSnap.data();
                     const pid = docSnap.id;
                     const isLiked = p.likedBy?.includes(user.uid);
-                    postCounter++;
+                    const isMonetized = p.isCreatorMonetized === true; 
 
                     currentPostHtml += `
-                    <div class="hybrid-post">
+                    <div class="hybrid-post" id="post-card-${pid}">
                         <div class="flex items-center justify-between p-4 border-b border-gray-50">
                             <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='profile.html?uid=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover">
                                 <div class="flex flex-col">
-                                    <span class="font-bold text-sm tracking-tight text-gray-900">@${p.userName}</span>
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${getTimeAgo(p.createdAt)}</span>
+                                    <span class="font-bold text-sm text-gray-900">@${p.userName}</span>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">${getTimeAgo(p.createdAt)}</span>
                                 </div>
                             </div>
-                            <div class="text-gray-400 p-2 active:scale-90"><i class="fas fa-ellipsis-h"></i></div>
+                            ${isMonetized ? `<span class="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm"><i class="fa-solid fa-star mr-1"></i>MONETIZED</span>` : ''}
                         </div>
 
-                        ${p.text ? `<div class="px-4 pt-3 pb-2 text-[14px] leading-relaxed font-medium text-gray-800">${p.text}</div>` : ''}
+                        ${p.text ? `<div class="px-4 pt-3 pb-2 text-[14px] font-medium text-gray-800">${p.text}</div>` : ''}
 
                         ${p.fileUrl ? `
-                        <div class="video-container" data-post-id="${pid}" data-creator-id="${p.userId}" data-monetized="${p.isCreatorMonetized || false}" ondblclick="handleDoubleTap('${pid}')">
+                        <div class="video-container" data-post-id="${pid}" data-creator-id="${p.userId}" data-monetized="${isMonetized}" ondblclick="handleDoubleTap('${pid}')">
                             <i class="fas fa-heart like-pop" id="pop-${pid}"></i>
+                            
+                            <div id="ad-overlay-${pid}" class="video-ad-overlay">
+                                <div class="text-xs font-bold text-amber-400 tracking-wider uppercase animate-pulse mb-1"><i class="fa-solid fa-circle-play mr-1"></i> Mid-Roll Ad Running</div>
+                                <div id="ad-timer-text-${pid}" class="text-sm font-semibold mb-4">Ad ends in 5s...</div>
+                                <div class="w-3/4 max-w-[200px] bg-white/20 h-1 rounded-full overflow-hidden mb-4"><div id="ad-progress-${pid}" class="bg-amber-400 h-full w-0 transition-all duration-1000"></div></div>
+                                <button id="skip-btn-${pid}" onclick="skipVideoAd('${pid}')" class="skip-ad-btn">Skip Ad <i class="fas fa-forward ml-1"></i></button>
+                            </div>
+
                             ${p.fileType === 'video' ? `
-                                <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="toggleVideoSound('${pid}')"></video>
-                                <div class="absolute bottom-4 right-4 w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-xs shadow-lg transition active:scale-95">
-                                    <i id="icon-${pid}" class="fas fa-volume-mute text-sm"></i>
-                                </div>
+                                <video id="vid-${pid}" src="${p.fileUrl}" loop muted playsinline onclick="toggleVideoSound('${pid}')" onloadedmetadata="checkVideoDuration('${pid}')" ontimeupdate="monitorVideoAdTrigger('${pid}', '${p.userId}', ${isMonetized})"></video>
+                                <div class="absolute bottom-4 right-4 w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-xs shadow-lg"><i id="icon-${pid}" class="fas fa-volume-mute text-sm"></i></div>
                             ` : `<img src="${p.fileUrl}" class="w-full h-full object-cover" onclick="handleImgClick('${pid}')">`}
                         </div>` : ''}
 
-                        <div class="p-4 border-t border-gray-50 bg-white">
+                        <div class="p-4 border-t border-gray-100 bg-white">
                             <div class="flex justify-between items-center">
                                 <div class="flex gap-6 items-center">
-                                    <button onclick="handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
-                                        <i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i>
-                                        <span class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span>
-                                    </button>
-                                    <button onclick="openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
-                                        <i class="fa-regular fa-comment text-2xl text-gray-700"></i>
-                                        <span class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span>
-                                    </button>
-                                    <button onclick="sharePost('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all">
-                                        <i class="fa-regular fa-paper-plane text-2xl text-gray-700"></i>
-                                    </button>
+                                    <button onclick="handleLike('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-${isLiked?'solid text-red-500':'regular text-gray-700'} fa-heart text-2xl"></i><span class="text-xs font-bold text-gray-800">${p.likedBy?.length || 0}</span></button>
+                                    <button onclick="openComments('${pid}')" class="flex items-center gap-2 transform active:scale-90 transition-all"><i class="fa-regular fa-comment text-2xl text-gray-700"></i><span class="text-xs font-bold text-gray-800">${p.commentCount || 0}</span></button>
                                 </div>
-                                <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100/50">
-                                    <i class="fas fa-bolt text-[10px]"></i>
-                                    <span class="text-[11px] font-extrabold uppercase tracking-tight">${p.views || 0} Views</span>
-                                </div>
+                                <div class="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-extrabold uppercase"><span>${p.views || 0} Views</span></div>
                             </div>
                         </div>
 
-                        ${p.isCreatorMonetized ? `
-                        <div class="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 px-4 py-2.5 border-t border-blue-100/30 flex items-center justify-between">
-                            <div class="flex items-center gap-1.5 text-blue-700"><i class="fa-solid fa-certificate text-xs"></i><span class="text-[10px] font-extrabold tracking-widest uppercase">Verified Ad Content</span></div>
-                            <span class="text-[9px] font-black text-indigo-600 bg-white px-2 py-0.5 rounded-full shadow-sm border border-indigo-100">EARNING ON</span>
-                        </div>` : ''}
+                        <div id="banner-ad-slot-${pid}" class="inline-ad-card hidden">
+                            <div class="flex justify-between text-[9px] font-black tracking-widest text-gray-400 mb-1 uppercase"><span>Sponsored Ad (Revenue Shared)</span><i class="fas fa-circle-info"></i></div>
+                            <div class="rounded-xl overflow-hidden shadow-sm bg-white p-1 border border-gray-100">${currentAdminAdHtml || '<p class="text-xs text-blue-500 py-2 animate-pulse text-center">Loading Content Ad...</p>'}</div>
+                        </div>
                     </div>`;
-
-                    // ⚡ ৩টি পোস্ট পর পর এখন আসল অ্যাডমিন প্যানেলের কোড ডাইনামিক লোড হবে
-                    if(postCounter % 3 === 0) {
-                        const currentAdCode = currentAdminAdHtml || `<div class="text-blue-500 font-extrabold animate-pulse">Loading Premium Ads...</div>`;
-                        currentPostHtml += `
-                        <div class="inline-ad-card">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="bg-blue-600 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded-md uppercase shadow-sm">Sponsored</span>
-                                <i class="fas fa-info-circle text-gray-300 text-xs"></i>
-                            </div>
-                            <div class="text-[12px] font-bold text-gray-500 text-center py-2 bg-white/60 border border-dashed border-gray-200 rounded-xl overflow-hidden">
-                                ${currentAdCode}
-                            </div>
-                        </div>`;
-                    }
                 });
 
                 feed.innerHTML = currentPostHtml;
                 initObserver();
-            } , error => { console.log("Post Stream Error Controlled safely:", error); });
+            });
         }
+
+        // ⏱️ ভিডিওর ডিউরেশন মেপে টাইপ সিলেক্ট করার লজিক
+        window.checkVideoDuration = function(pid) {
+            const video = document.getElementById(`vid-${pid}`);
+            const bannerAdSlot = document.getElementById(`banner-ad-slot-${pid}`);
+            if (!video) return;
+
+            // যদি ভিডিও মনিটাইজড পোস্টের আন্ডারে হয়
+            const container = video.closest('.video-container');
+            const isMonetized = container ? container.dataset.monetized === "true" : false;
+
+            if (isMonetized) {
+                if (video.duration < 60) {
+                    // 60 সেকেন্ডের নিচে = শর্টস! তাই নিচে ব্যানার অ্যাড একটিভ হবে
+                    if (bannerAdSlot) bannerAdSlot.classList.remove('hidden');
+                }
+            }
+        };
+
+        // 📺 লং ভিডিওর মাঝখানে (ইন-স্ট্রিম) অ্যাড রান করার ইঞ্জিন
+        window.monitorVideoAdTrigger = function(pid, cid, isMonetized) {
+            if (!isMonetized || triggeredVideoAds[pid]) return; 
+            
+            const video = document.getElementById(`vid-${pid}`);
+            if (!video || isNaN(video.duration)) return;
+
+            // লজিক: ভিডিও মনিটাইজড এবং ১ মিনিট বা তার বেশি হলেই কেবল মাঝখানে অ্যাড আসবে
+            if (video.duration >= 60 && video.currentTime >= 10) { 
+                triggeredVideoAds[pid] = true; 
+                video.pause(); 
+
+                const overlay = document.getElementById(`ad-overlay-${pid}`);
+                const timerText = document.getElementById(`ad-timer-text-${pid}`);
+                const skipBtn = document.getElementById(`skip-btn-${pid}`);
+                const progressBar = document.getElementById(`ad-progress-${pid}`);
+                
+                if (overlay) overlay.style.display = 'flex';
+
+                let timeLeft = 5; 
+                if (progressBar) progressBar.style.width = '100%'; 
+
+                const countdown = setInterval(async () => {
+                    timeLeft--;
+                    if (timerText) timerText.innerText = `Ad ends in ${timeLeft}s...`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        if (timerText) timerText.innerText = "Ad ready to skip!";
+                        if (skipBtn) skipBtn.style.display = 'block';
+
+                        // 💰 ক্রিয়েটরের জন্য ইন-স্ট্রিম ভিডিও অ্যাড রেভিনিউ লগ
+                        if (user && cid !== user.uid) {
+                            try {
+                                await addDoc(collection(db, "adImpressions"), {
+                                    viewerUid: user.uid,
+                                    creatorUid: cid,
+                                    postId: pid,
+                                    amount: globalCPM * 2, 
+                                    type: "mid-roll-long-video",
+                                    timestamp: serverTimestamp()
+                                });
+                            } catch(e) { console.log("Ad payout error:", e); }
+                        }
+                    }
+                }, 1000);
+            }
+        };
+
+        window.skipVideoAd = function(pid) {
+            const overlay = document.getElementById(`ad-overlay-${pid}`);
+            const video = document.getElementById(`vid-${pid}`);
+            if (overlay) overlay.style.display = 'none'; 
+            if (video) video.play().catch(() => {}); 
+        };
 
         window.toggleVideoSound = (id) => {
             const v = document.getElementById(`vid-${id}`);
             const i = document.getElementById(`icon-${id}`);
-            if(v) {
-                v.muted = !v.muted;
-                i.className = v.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
-            }
+            if(v) { v.muted = !v.muted; i.className = v.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
         };
 
         function initObserver() {
@@ -271,161 +297,85 @@
                     const vid = entry.target.querySelector('video');
 
                     if (entry.isIntersecting) {
-                        if(vid) vid.play().catch(()=>{});
+                        if(vid && (!triggeredVideoAds[pid] || document.getElementById(`ad-overlay-${pid}`).style.display !== 'flex')) {
+                            vid.play().catch(()=>{});
+                        }
                         
-                        activeWatchTimers[pid] = setInterval(() => {
-                            executeRetentionPayout(pid, cid, isMonetized);
+                        activeWatchTimers[pid] = setInterval(async () => {
+                            if (user && cid !== user.uid) {
+                                updateDoc(doc(db, "posts", pid), { views: increment(1) });
+                                
+                                // যদি এটি নরমাল ইমেজ পোস্ট বা টেক্সট পোস্ট হয় (যেটার নিচে ব্যানার অ্যাড চালু আছে)
+                                const isVideo = vid ? true : false;
+                                if (isMonetized && !isVideo) {
+                                    await addDoc(collection(db, "adImpressions"), {
+                                        viewerUid: user.uid,
+                                        creatorUid: cid,
+                                        postId: pid,
+                                        amount: globalCPM,
+                                        type: "banner-image-post",
+                                        timestamp: serverTimestamp()
+                                    });
+                                } 
+                                // যদি এটি শর্টস ভিডিও হয় এবং ইউজার ৫ সেকেন্ডের বেশি সময় দেখে (ব্যানার অ্যাড ইমপ্রেশন)
+                                else if (isMonetized && isVideo && vid.duration < 60) {
+                                    await addDoc(collection(db, "adImpressions"), {
+                                        viewerUid: user.uid,
+                                        creatorUid: cid,
+                                        postId: pid,
+                                        amount: globalCPM,
+                                        type: "banner-shorts-post",
+                                        timestamp: serverTimestamp()
+                                    });
+                                }
+                            }
                         }, 5000);
-
                     } else {
                         if(vid) vid.pause();
-                        if(activeWatchTimers[pid]) {
-                            clearInterval(activeWatchTimers[pid]);
-                            delete activeWatchTimers[pid];
-                        }
+                        if(activeWatchTimers[pid]) { clearInterval(activeWatchTimers[pid]); delete activeWatchTimers[pid]; }
                     }
                 });
             }, { threshold: 0.75 });
-
             document.querySelectorAll('.video-container').forEach(el => obs.observe(el));
         }
 
-        // 🧠 সিকিউরড আর্নিং ইঞ্জিন 
-        async function executeRetentionPayout(pid, cid, isMonetized) {
-            if(!user || cid === user.uid) return;
-            try {
-                const postRef = doc(db, "posts", pid);
-                await updateDoc(postRef, { views: increment(1) });
-                
-                if(isMonetized) {
-                    await addDoc(collection(db, "adImpressions"), {
-                        viewerUid: user.uid,
-                        creatorUid: cid,
-                        postId: pid,
-                        amount: globalCPM,
-                        timestamp: serverTimestamp()
-                    });
-                    console.log("Impression logged securely!");
-                }
-            } catch (err) { console.error("Ad Transaction Handled Safely:", err); }
-        }
-
         window.handleImgClick = (id) => { handleDoubleTap(id); };
-        
         let lastTapTime = 0;
         window.handleDoubleTap = (id) => {
             const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            if (tapLength < 300 && tapLength > 0) {
+            if ((currentTime - lastTapTime) < 300) {
                 const popHeart = document.getElementById(`pop-${id}`);
-                if(popHeart) {
-                    popHeart.classList.add('animate');
-                    setTimeout(() => popHeart.classList.remove('animate'), 800);
-                }
+                if(popHeart) { popHeart.classList.add('animate'); setTimeout(() => popHeart.classList.remove('animate'), 800); }
                 handleLike(id);
             }
             lastTapTime = currentTime;
         };
 
         window.openComments = (id) => {
-            activePostId = id; cancelReply();
-            document.getElementById('commentSheet').classList.add('active');
+            activePostId = id; document.getElementById('commentSheet').classList.add('active');
             document.getElementById('overlay').style.display = "block";
-            
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("time", "asc")), sn => {
                 document.getElementById('commentList').innerHTML = sn.docs.map(cDoc => {
-                    const c = cDoc.data(); const cid = cDoc.id;
-                    const liked = c.likedBy?.includes(user.uid);
-                    return `
-                    <div class="flex gap-3 items-start px-1">
-                        <img src="${c.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover border">
-                        <div class="flex-1">
-                            <div class="bg-gray-100 p-3.5 rounded-2xl relative">
-                                <p class="text-[11px] font-black text-blue-600">@${c.userName}</p>
-                                <p class="text-[13px] font-semibold text-gray-700 mt-0.5">${c.text}</p>
-                                <button onclick="likeComment('${cid}')" class="absolute -right-2.5 -bottom-2.5 bg-white shadow-md border border-gray-100 rounded-full px-2 py-1 text-[10px] font-extrabold flex items-center gap-1 transition ${liked?'text-red-500':'text-gray-400'} active:scale-90">
-                                    <i class="fas fa-heart text-[10px]"></i> ${c.likedBy?.length || 0}
-                                </button>
-                            </div>
-                            <div class="flex gap-4 mt-1.5 ml-2.5">
-                                <button onclick="setReply('${cid}', '${c.userName}')" class="text-[11px] font-extrabold text-blue-600/80 hover:underline uppercase tracking-tight">Reply</button>
-                            </div>
-                            ${c.replies ? c.replies.map(r => `
-                                <div class="reply-box">
-                                    <p class="text-[10px] font-black text-indigo-600">@${r.userName}</p>
-                                    <p class="text-[12px] font-semibold text-gray-700 mt-0.5">${r.text}</p>
-                                </div>
-                            `).join('') : ''}
-                        </div>
-                    </div>`;
+                    const c = cDoc.data();
+                    return `<div class="flex gap-3 px-1"><img src="${c.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover border"><div><div class="bg-gray-100 p-3 rounded-2xl"><p class="text-[11px] font-black text-blue-600">@${c.userName}</p><p class="text-[13px] font-semibold text-gray-700 mt-0.5">${c.text}</p></div></div></div>`;
                 }).join('');
             });
         };
 
-        window.likeComment = async (cid) => {
-            const ref = doc(db, "posts", activePostId, "comments", cid);
-            const s = await getDoc(ref);
-            if(!s.exists()) return;
-            const liked = s.data().likedBy?.includes(user.uid);
-            await updateDoc(ref, { likedBy: liked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
-        };
-
-        window.setReply = (id, name) => {
-            replyToId = id; document.getElementById('replyTag').classList.remove('hidden');
-            document.getElementById('replyName').innerText = name; document.getElementById('cInput').focus();
-        };
-
-        window.cancelReply = () => { replyToId = null; document.getElementById('replyTag').classList.add('hidden'); };
-
         window.postComment = async () => {
             const i = document.getElementById('cInput'); if(!i.value.trim()) return;
-            if(replyToId) {
-                await updateDoc(doc(db, "posts", activePostId, "comments", replyToId), {
-                    replies: arrayUnion({ text: i.value, userName: currentUserData.name, time: Date.now() })
-                });
-                cancelReply();
-            } else {
-                await addDoc(collection(db, "posts", activePostId, "comments"), { 
-                    text: i.value, userName: currentUserData.name, userPic: currentUserData.profilePic || '', 
-                    time: serverTimestamp(), likedBy: [] 
-                });
-                await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
-            }
+            await addDoc(collection(db, "posts", activePostId, "comments"), { text: i.value, userName: currentUserData.name, userPic: currentUserData.profilePic || '', time: serverTimestamp() });
+            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
             i.value = "";
         };
 
-        window.sharePost = (id) => {
-            const link = window.location.origin + "/post_view.html?id=" + id;
-            navigator.clipboard.writeText(link);
-            Swal.fire({ title: 'লিঙ্ক কপি হয়েছে!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-        };
-
         window.handleLike = async (id) => {
-            const ref = doc(db, "posts", id); const s = await getDoc(ref);
-            if(!s.exists()) return;
-            const liked = s.data().likedBy?.includes(user.uid);
-            await updateDoc(ref, { likedBy: liked ? arrayRemove(user.uid) : arrayUnion(user.uid) });
+            const ref = doc(db, "posts", id); const s = await getDoc(ref); if(!s.exists()) return;
+            await updateDoc(ref, { likedBy: s.data().likedBy?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) });
         };
 
-        function checkNotifications() {
-            onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => {
-                document.getElementById('notifDot').style.display = s.size > 0 ? "block" : "none";
-            });
-        }
-
-        function loadStories() {
-            onSnapshot(collection(db, "stories"), s => {
-                document.getElementById('storyList').innerHTML = s.docs.map(d => `
-                    <div class="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer">
-                        <div class="story-circle">
-                            <img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full object-cover border-2 border-white">
-                        </div>
-                        <span class="text-[11px] font-bold text-gray-600 truncate w-16 text-center">@${d.data().userName}</span>
-                    </div>
-                `).join('');
-            });
-        }
-
+        function checkNotifications() { onSnapshot(query(collection(db, "notifications"), where("targetUserId", "==", user.uid), where("read", "==", false)), s => { document.getElementById('notifDot').style.display = s.size > 0 ? "block" : "none"; }); }
+        function loadStories() { onSnapshot(collection(db, "stories"), s => { document.getElementById('storyList').innerHTML = s.docs.map(d => `<div class="shrink-0 flex flex-col items-center gap-1.5"><div class="story-circle"><img src="${d.data().userPic || 'https://via.placeholder.com/150'}" class="w-full h-full rounded-full border-2 border-white object-cover"></div><span class="text-[11px] font-bold text-gray-600">@${d.data().userName}</span></div>`).join(''); }); }
         window.closeAll = () => { document.getElementById('commentSheet').classList.remove('active'); document.getElementById('overlay').style.display = "none"; };
     </script>
 </body>
