@@ -95,6 +95,7 @@
     let activeWatchTimers = {}; let triggeredVideoAds = {}; let viewLogsTrack = {}; let commentUnsubscribe = null;  
 
     async function updateCreatorBalance(cid, amount) {
+async function updateCreatorBalance(cid, amount) {
 
     if (!cid) return;
     if (cid === user?.uid) return;
@@ -103,24 +104,19 @@
 
         const ref = doc(db, "users", cid);
 
-        const snap = await getDoc(ref);
-
-        if (!snap.exists()) return;
-
-        const oldBalance = Number(snap.data().balance || 0);
-        const oldTotal = Number(snap.data().totalEarned || 0);
-
         await updateDoc(ref, {
-            balance: oldBalance + amount,
-            totalEarned: oldTotal + amount,
+            balance: increment(amount),
+            totalEarned: increment(amount),
             todayIncome: increment(amount),
             lastIncomeAt: serverTimestamp()
         });
 
-        console.log("Income Added");
+        console.log("Income Added Successfully");
 
     } catch(err) {
-        console.log(err);
+
+        console.log("Balance Error:", err);
+
     }
 }  
 
