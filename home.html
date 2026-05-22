@@ -94,14 +94,35 @@
     let globalCPM = 0.0001; let currentAdminAdHtml = ''; let currentLongVideoAdCode = '';  
     let activeWatchTimers = {}; let triggeredVideoAds = {}; let viewLogsTrack = {}; let commentUnsubscribe = null;  
 
-    // 💰 নতুন ব্যালেন্স আপডেট ফাংশন  
-    async function updateCreatorBalance(cid, amount) {  
-        if (!cid || cid === user?.uid) return;  
-        try {  
-            const userRef = doc(db, "users", cid);  
-            await updateDoc(userRef, { balance: increment(amount) });  
-        } catch (e) { console.error("Balance update error", e); }  
-    }  
+    async function updateCreatorBalance(cid, amount) {
+
+    if (!cid) return;
+    if (cid === user?.uid) return;
+
+    try {
+
+        const ref = doc(db, "users", cid);
+
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) return;
+
+        const oldBalance = Number(snap.data().balance || 0);
+        const oldTotal = Number(snap.data().totalEarned || 0);
+
+        await updateDoc(ref, {
+            balance: oldBalance + amount,
+            totalEarned: oldTotal + amount,
+            todayIncome: increment(amount),
+            lastIncomeAt: serverTimestamp()
+        });
+
+        console.log("Income Added");
+
+    } catch(err) {
+        console.log(err);
+    }
+}  
 
     function getTimeAgo(ts) {  
         if(!ts) return "সদ্য";  
