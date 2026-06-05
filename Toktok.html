@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>My Book - Reels Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .reels-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; padding-bottom: 65px; }
+        .reels-container::-webkit-scrollbar { display: none; }
+        .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
+        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
+
+        .side-bar { position: absolute; right: 12px; bottom: 220px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
+        .bottom-info { position: absolute; bottom: 120px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+        
+        /* 📱 শর্টস/রিলসের নিচে ব্যানার অ্যাডের প্রিমিয়াম প্লেসমেন্ট */
+        .bottom-ad-slot { position: absolute; bottom: 65px; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent); padding: 12px 12px 15px 12px; display: flex; flex-direction: column; justify-content: center; min-height: 65px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.3); }
+        .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
+        .action-btn:active { transform: scale(0.9); }
+        
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
+        #commentSheet.active { transform: translateY(0); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; text-shadow: 0 0 20px rgba(255,0,0,0.6); }
+        .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
+        @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        /* 🌟 Premium Bottom Navigation Menu */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; z-index: 999; padding-bottom: calc(env(safe-area-inset-bottom) / 2); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; text-decoration: none; width: 50px; height: 100%; transition: all 0.2s ease; position: relative; }
+        .nav-item.active { color: #fff; }
+        .nav-item i { font-size: 20px; transition: transform 0.2s; }
+        .nav-item:active i { transform: scale(0.85); }
+        .nav-item span { font-size: 9px; font-weight: 500; margin-top: 4px; display: none; }
+        @media(min-width: 480px) { .nav-item span { display: block; } }
+        .create-btn { background: #fff; color: #000 !important; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px !important; box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        .create-btn:active { transform: scale(0.9); }
+    </style>
+</head>
+<body>
+
+    <!-- Main Content Container -->
+    <div class="reels-container" id="reelsWrapper"></div>
+
+    <!-- 🌟 Professional Navigation Bar Added 🌟 -->
+    <nav class="bottom-nav">
+        <a href="search.html" class="nav-item">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Search</span>
+        </a>
+        <a href="messages.html" class="nav-item">
+            <i class="fa-regular fa-paper-plane"></i>
+            <span>Messages</span>
+        </a>
+        <a href="post.html" class="nav-item">
+            <div class="create-btn">
+                <i class="fa-solid fa-plus" style="color: #000;"></i>
+            </div>
+        </a>
+        <a href="notifications.html" class="nav-item">
+            <i class="fa-regular fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fa-regular fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Comments Bottom Sheet -->
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
+        <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
+        <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
+        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
+            <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
+            <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
+            <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
+            <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let userData = null;
+        let globalCPM = 0.0001;
+        let viewTimers = {};
+        let activePostId = null;
+        let replyCommentId = null;
+        let isAudioEnabled = false;
+        let reelsViewTrack = {}; // ডাবল ভিউ প্রটেকশন
+
+        onAuthStateChanged(auth, async (user) => {
+            if(user) { 
+                currentUser = user; 
+                try {
+                    const uSnap = await getDoc(doc(db, "users", user.uid));
+                    if(uSnap.exists()) userData = uSnap.data();
+                    renderReels(); 
+                } catch(e) {
+                    console.log("Reels session protected");
+                    renderReels();
+                }
+            } else { 
+                if(!currentUser) window.location.href="index.html"; 
+            }
+        });
+
+        // ব্রাউজার পলিসি অনুযায়ী প্রথম ক্লিকেই অডিও গ্লোবাল এনাবল হবে
+        document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
+
+        async function renderReels() {
+            // অ্যালগরিদম ও শর্টস ব্যানার কোড সিঙ্গেল রিড লোড
+            const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
+            if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
+
+            const adSnap = await getDoc(doc(db, "appSettings", "ads"));
+            // অ্যাডমিন প্যানেলের কাস্টম shortsBannerCode বা ডিফল্ট ব্যানার কোড সোর্স
+            const adCode = adSnap.exists() ? (adSnap.data().shortsBannerCode || adSnap.data().code || "") : "";
+
+            const wrapper = document.getElementById('reelsWrapper');
+            wrapper.innerHTML = '<div class="text-white text-center py-20 text-xs tracking-widest animate-pulse">LOADING REELS ENGINE...</div>'; 
+
+            try {
+                // getDocs ব্যবহারের ফলে ডাটাবেসে ভিউ বা লাইক বাড়লেও পুরো পেজ রি-রেন্ডার বা ঝাঁকি মারবে না
+                const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
+                const snap = await getDocs(q);
+                wrapper.innerHTML = "";
+
+                if(snap.empty) {
+                    wrapper.innerHTML = '<div class="text-gray-500 text-center py-20 text-xs">No video reels found.</div>';
+                    return;
+                }
+
+                snap.forEach((d) => {
+                    const p = d.data(); const id = d.id;
+                    const isLiked = p.likedBy?.includes(currentUser?.uid);
+                    const isMonetized = p.isCreatorMonetized === true;
+
+                    const card = document.createElement('div');
+                    card.className = "reel-card";
+                    card.innerHTML = `
+                        <div class="video-wrapper" ondblclick="window.handleDoubleTap(this, '${id}')">
+                            <i class="fas fa-heart heart-animation"></i>
+                            <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="window.handleReelTap(this)" data-id="${id}" data-owner="${p.userId}" data-monetized="${isMonetized}"></video>
+                        </div>
+                        <div class="side-bar">
+                            <div class="flex flex-col items-center">
+                                <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
+                                <span id="likeCount-${id}" class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <button onclick="window.openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
+                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">${p.commentCount || 0}</span>
+                            </div>
+                            <button onclick="window.shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        <div class="bottom-info">
+                            <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${p.userId}'">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full border border-white/20 object-cover">
+                                <h4 class="text-white font-black text-xs">@${p.userName}</h4>
+                                ${isMonetized ? `<span class="bg-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-star mr-0.5"></i>MONETIZED</span>` : ''}
+                            </div>
+                            <p class="text-white/90 text-[11px] line-clamp-2">${p.text || ''}</p>
+                        </div>
+                        
+                        <div class="bottom-ad-slot ${isMonetized ? '' : 'hidden'}" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}">
+                            <div class="flex justify-between w-full text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                <span>Sponsored Revenue Ad</span><i class="fas fa-circle-info"></i>
+                            </div>
+                            <div class="w-full bg-white/5 rounded-xl p-1 overflow-hidden border border-white/10" id="ad-content-target-${id}"></div>
+                        </div>
+                    `;
+                    wrapper.appendChild(card);
+                });
+                
+                // রেন্ডারিং শেষে IntersectionObserver অ্যাক্টিভেশন
+                setTimeout(initObserver, 200);
+
+            } catch(err) {
+                console.error("Reels primary load error handled:", err);
+                wrapper.innerHTML = '<div class="text-red-500 text-center py-20 text-xs">Error loading reels. check index.</div>';
+            }
+        }
+
+        function initObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const vid = entry.target;
+                    const id = vid.getAttribute('data-id');
+                    const owner = vid.getAttribute('data-owner');
+                    const isMonetized = vid.getAttribute('data-monetized') === "true";
+                    const adTarget = document.getElementById(`ad-content-target-${id}`);
+                    const adBox = document.getElementById(`ad-box-${id}`);
+
+                    if (entry.isIntersecting) {
+                        // স্ক্রিনে এলে ভিডিও অটো-প্লে হবে
+                        vid.play().catch(e => console.log("Play blocked"));
+                        if(isAudioEnabled) vid.muted = false;
+                        
+                        // ব্যানার অ্যাড ইনজেকশন মেকানিজম
+                        if(isMonetized && adBox && adTarget && adTarget.innerHTML.trim() === "") {
+                            const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
+                            if(rawAd && rawAd !== "undefined" && rawAd !== "") {
+                                try {
+                                    const range = document.createRange();
+                                    const fragment = range.createContextualFragment(rawAd);
+                                    adTarget.appendChild(fragment);
+                                } catch(adErr) { adTarget.innerHTML = rawAd; }
+                            } else {
+                                adTarget.innerHTML = '<div class="text-center text-[10px] py-1 text-blue-400">Loading Premium Network Ads...</div>';
+                            }
+                        }
+                        
+                        // ৫ সেকেন্ড ওয়াচটাইম হলে ভিউ কাউন্ট এবং ক্রিয়েটর রেভিনিউ জেনারেট হবে
+                        viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
+                    } else { 
+                        vid.pause(); 
+                        vid.muted = true; 
+                        clearTimeout(viewTimers[id]); 
+                    }
+                });
+            }, { threshold: 0.60 });
+            document.querySelectorAll('.reel-video').forEach(v => observer.observe(v));
+        }
+
+        window.handleDoubleTap = async (el, id) => {
+            const heart = el.querySelector('.heart-animation');
+            if(heart) {
+                heart.classList.add('heart-active');
+                setTimeout(() => heart.classList.remove('heart-active'), 800);
+            }
+            await window.likeReel(id);
+        };
+
+        async function handleView(postId, ownerId, isMonetized) {
+            if (currentUser && ownerId === currentUser.uid) return;
+            
+            // প্রতি সেশনে একবারের জন্য ভিউ কাউন্ট প্রটেকশন
+            if(!reelsViewTrack[postId]) {
+                reelsViewTrack[postId] = true;
+                await updateDoc(doc(db, "posts", postId), { views: increment(1) });
+            }
+
+            // শর্টস ব্যানার অ্যাড ইমপ্রেশন রেভিনিউ ওয়ালেট লগ সাবমিশন
+            if (isMonetized && currentUser) {
+                try {
+                    await addDoc(collection(db, "adImpressions"), {
+                        viewerUid: currentUser.uid,
+                        creatorUid: ownerId,
+                        postId: postId,
+                        amount: globalCPM,
+                        type: "banner-shorts-post",
+                        timestamp: serverTimestamp()
+                    });
+                } catch(e) { console.log("Reels Ad share error:", e); }
+            }
+        }
+
+        window.handleReelTap = (v) => {
+            if(v.paused) { 
+                v.play().catch(()=>{}); 
+                if(isAudioEnabled) v.muted = false; 
+            } else {
+                v.pause();
+            }
+        };
+
+        window.likeReel = async (id) => {
+            const ref = doc(db, "posts", id);
+            const pSnap = await getDoc(ref);
+            if(!pSnap.exists()) return;
+            
+            const likedArr = pSnap.data().likedBy || [];
+            const isLiked = likedArr.includes(currentUser.uid);
+            
+            const btn = document.getElementById(`likeBtn-${id}`);
+            const countSpan = document.getElementById(`likeCount-${id}`);
+
+            // ইনস্ট্যান্ট UI রিফ্লেকশন বাগ ছাড়া
+            if (isLiked) {
+                await updateDoc(ref, { likedBy: arrayRemove(currentUser.uid) });
+                if(btn) { btn.classList.remove('text-red-500'); btn.classList.add('text-white'); btn.innerHTML = '<i class="far fa-heart"></i>'; }
+                if(countSpan) countSpan.innerText = likedArr.length - 1;
+            } else {
+                await updateDoc(ref, { likedBy: arrayUnion(currentUser.uid) });
+                if(btn) { btn.classList.remove('text-white'); btn.classList.add('text-red-500'); btn.innerHTML = '<i class="fas fa-heart"></i>'; }
+                if(countSpan) countSpan.innerText = likedArr.length + 1;
+            }
+        };
+
+        window.openComments = (id) => {
+            activePostId = id;
+            document.getElementById('commentSheet').classList.add('active');
+            onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "desc")), (snap) => {
+                const list = document.getElementById('commentList');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.data(); const cid = c.id;
+                    const isCLiked = d.likes?.includes(currentUser.uid);
+                    list.innerHTML += `
+                        <div class="flex gap-3">
+                            <img src="${d.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-xl object-cover">
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
+                                    <button onclick="window.likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'} text-[10px]">
+                                        <i class="fas fa-heart"></i> ${d.likes?.length || 0}
+                                    </button>
+                                </div>
+                                <p class="text-white text-xs mt-1">
+                                    ${d.replyTo ? `<span class="text-indigo-500 font-bold">@${d.replyTo}</span> ` : ''}${d.text}
+                                </p>
+                                <button onclick="window.setupReply('${cid}', '${d.userName}')" class="text-gray-500 text-[9px] font-bold mt-2 uppercase">Reply</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        };
+
+        window.likeComment = async (cid) => {
+            const ref = doc(db, "posts", activePostId, "comments", cid);
+            const snap = await getDoc(ref);
+            const isLiked = snap.data().likes?.includes(currentUser.uid);
+            await updateDoc(ref, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+        };
+
+        window.setupReply = (cid, name) => {
+            replyCommentId = cid;
+            document.getElementById('replyPreview').classList.remove('hidden');
+            document.getElementById('replyToText').innerText = `Replying to @${name}`;
+            document.getElementById('commentInput').focus();
+        };
+
+        window.cancelReply = () => {
+            replyCommentId = null;
+            document.getElementById('replyPreview').classList.add('hidden');
+        };
+
+        window.postComment = async () => {
+            const input = document.getElementById('commentInput');
+            if(!input.value.trim() || !activePostId) return;
+            
+            const commentData = {
+                text: input.value, userId: currentUser.uid, userName: userData?.name || "User",
+                userPic: userData?.profilePic || "", likes: [], timestamp: serverTimestamp()
+            };
+            
+            if (replyCommentId) {
+                const rSnap = await getDoc(doc(db, "posts", activePostId, "comments", replyCommentId));
+                if(rSnap.exists()) commentData.replyTo = rSnap.data().userName;
+                window.cancelReply();
+            }
+            
+            await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
+            await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
+            
+            const cc = document.getElementById(`count-${activePostId}`);
+            if(cc) cc.innerText = parseInt(cc.innerText) + 1;
+            
+            input.value = "";
+        };
+
+        window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); window.cancelReply(); };
+
+        window.shareReel = (id) => {
+            const url = window.location.origin + "/post-view.html?id=" + id;
+            navigator.clipboard.writeText(url);
+            Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1000, showConfirmButton: false });
+        };
+    </script>
+</body>
+</html>
