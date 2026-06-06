@@ -5,64 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Notifications - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #080c14; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
         
-        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .notif-card { transition: all 0.2s ease; border-radius: 20px; cursor: pointer; position: relative; }
-        .notif-card:active { transform: scale(0.97); background: #f1f5f9; }
-        .unread-dot { width: 8px; height: 8px; background: #4f46e5; border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+        .glass-panel { background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); }
+        .glass-sticky { background: rgba(8, 12, 20, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
         
-        /* Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border-radius: 35px; padding: 12px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .notif-card { border-radius: 20px; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .notif-card:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.03); }
+        .unread-dot { width: 7px; height: 7px; background: #1877f2; border-radius: 50%; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); box-shadow: 0 0 10px #1877f2; }
         
-        .elite-popup { background: #111 !important; color: #fff !important; border-radius: 25px !important; border: 1px solid #4f46e5 !important; }
-        .elite-confirm { background: #4f46e5 !important; border-radius: 12px !important; }
+        /* 📱 Bottom Navigation Bar Styling */
+        .nav-glass { background: rgba(8, 12, 20, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.04); }
+        .nav-btn { color: #64748b; transition: all 0.25s; }
+        .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
+
+        /* SweetAlert Custom Elite Styling */
+        .elite-popup { background: #0f172a !important; color: #f1f5f9 !important; border-radius: 28px !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; }
+        .elite-confirm { background: #1877f2 !important; border-radius: 14px !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 1px !important; padding: 12px 24px !important; }
+        .elite-cancel { background: rgba(255, 255, 255, 0.05) !important; color: #94a3b8 !important; border-radius: 14px !important; font-size: 11px !important; font-weight: 800 !important; text-transform: uppercase !important; }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-28">
 
-    <nav class="glass-nav sticky top-0 z-50 p-5 flex justify-between items-center border-b border-gray-100 max-w-md mx-auto">
+    <nav class="glass-sticky sticky top-0 z-50 p-5 flex justify-between items-center max-w-md mx-auto">
         <div class="flex items-center gap-3">
-            <button onclick="location.href='home.html'" class="w-10 h-10 flex items-center justify-center text-gray-400 active:scale-90 transition">
-                <i class="fas fa-chevron-left text-lg"></i>
+            <button onclick="location.href='dashboard.html'" class="w-10 h-10 glass-panel flex items-center justify-center text-gray-400 rounded-xl active:scale-90 transition">
+                <i class="fas fa-chevron-left text-xs"></i>
             </button>
-            <h1 class="font-black text-gray-800 tracking-tighter text-xl italic uppercase">Notifications</h1>
+            <h1 class="font-black text-white tracking-tighter text-lg italic uppercase">Alert Hub</h1>
         </div>
-        <button id="clearBtn" class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-50 px-3 py-2 rounded-lg hidden">Clear All</button>
+        <button id="clearBtn" class="text-[9px] font-black text-red-400 uppercase tracking-widest bg-red-500/10 border border-red-500/10 px-3 py-2 rounded-lg hidden transition">Clear All</button>
     </nav>
 
-    <div id="notifContainer" class="max-w-md mx-auto px-4 mt-4 space-y-3">
-        <div id="loading" class="text-center py-20">
-            <div class="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-[10px] text-gray-400 mt-3 font-black uppercase tracking-widest">Fetching Notifications...</p>
+    <div id="notifContainer" class="max-w-md mx-auto px-4 mt-4 space-y-2.5">
+        <div id="loading" class="text-center py-40">
+            <div class="inline-block w-7 h-7 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-[9px] text-gray-500 mt-4 font-black uppercase tracking-widest">Querying Notification Cluster Logs...</p>
         </div>
     </div>
 
-    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto">
-        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 text-3xl mb-4">
+    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-40 text-center max-w-md mx-auto">
+        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-600 text-xl mb-4 border border-white/5">
             <i class="far fa-bell-slash"></i>
         </div>
-        <h3 class="font-bold text-gray-800 uppercase text-sm">All caught up!</h3>
-        <p class="text-[11px] text-gray-400 mt-1 font-medium">No new alerts found.</p>
+        <h3 class="font-black text-white uppercase text-xs tracking-wider">Pipeline Clear</h3>
+        <p class="text-[10px] text-gray-500 mt-1.5 font-medium">No live alert transmissions documented inside this node.</p>
     </div>
 
-    <div class="bottom-nav">
-        <a href="home.html" class="text-gray-400 text-lg"><i class="fas fa-home"></i></a>
-        <a href="search.html" class="text-gray-400 text-lg"><i class="fas fa-search"></i></a>
-        <button onclick="location.href='post.html'" class="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition">
-            <i class="fas fa-plus"></i>
+    <nav class="fixed bottom-0 left-0 right-0 h-20 nav-glass z-50 flex justify-around items-center px-4 max-w-md mx-auto">
+        <button onclick="location.href='reels.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-clapperboard text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Reels</span>
         </button>
-        <a href="messages.html" class="text-gray-400 text-lg"><i class="fas fa-comment-dots"></i></a>
-        <a href="profile.html" class="text-gray-400 text-lg"><i class="fas fa-user-circle"></i></a>
-    </div>
+        <button onclick="location.href='post.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-square-plus text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Create</span>
+        </button>
+        <button onclick="location.href='dashboard.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-chart-pie text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Studio</span>
+        </button>
+        <button onclick="location.href='profile.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-user text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Profile</span>
+        </button>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, orderBy, doc, deleteDoc, getDocs, writeBatch, limit, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, writeBatch, limit, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -81,17 +92,16 @@
             if(user) {
                 listenNotifications(user.uid);
             } else {
-                location.href = "index.html";
+                location.href = "Login.html";
             }
         });
 
         function listenNotifications(uid) {
-            // ✅ Fix: Simplified query to avoid Index issues if not created
-            // Real-time listener: onSnapshot
+            // Memory Optimization Layer Pipeline Execution Query
             const q = query(
                 collection(db, "notifications"), 
                 where("targetUserId", "==", uid),
-                limit(30)
+                limit(40)
             );
 
             onSnapshot(q, (snapshot) => {
@@ -104,7 +114,7 @@
                 let docsArray = [];
                 snapshot.forEach(d => docsArray.push({id: d.id, ...d.data()}));
                 
-                // Manual Sort (If Composite Index isn't set up yet)
+                // Real-time local engine parameters sorting operation
                 docsArray.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
                 container.innerHTML = "";
@@ -121,20 +131,20 @@
                 docsArray.forEach(data => {
                     const time = data.timestamp ? formatTime(data.timestamp.toDate()) : "Just now";
                     const div = document.createElement('div');
-                    div.className = `notif-card p-4 flex items-center gap-4 bg-white shadow-sm border border-gray-100`;
+                    div.className = `notif-card p-4 flex items-center gap-4 glass-panel ${data.read === false ? 'border-l-2 border-l-blue-500' : ''}`;
                     
                     div.innerHTML = `
-                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-indigo-100">
-                            ${data.senderPic ? `<img src="${data.senderPic}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-indigo-300"></i>`}
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
+                            ${data.senderPic ? `<img src="${data.senderPic}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-slate-600 text-sm"></i>`}
                         </div>
-                        <div class="flex-1 pr-4">
-                            <p class="text-[13px] text-gray-800 font-semibold leading-tight">
-                                <span class="font-black italic text-indigo-600">@${data.senderName || 'Someone'}</span> ${data.message}
+                        <div class="flex-1 pr-6">
+                            <p class="text-[12px] text-gray-300 font-medium leading-tight">
+                                <span class="font-black italic text-blue-400">@${data.senderName || 'creator'}</span> ${data.message}
                             </p>
-                            <p class="text-[9px] text-gray-400 font-black mt-1 uppercase tracking-tighter">${time}</p>
+                            <p class="text-[8px] text-gray-500 font-black mt-1 uppercase tracking-wider">${time}</p>
                         </div>
                         ${data.postImg ? `
-                            <div class="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                            <div class="w-9 h-9 rounded-lg overflow-hidden border border-white/5 flex-shrink-0">
                                 <img src="${data.postImg}" class="w-full h-full object-cover">
                             </div>
                         ` : ''}
@@ -146,16 +156,18 @@
                 });
             }, (error) => {
                 console.error("Notif Error:", error);
-                document.getElementById('loading').innerHTML = `<p class="text-red-500 text-xs">Error loading notifications. Please check Firebase Index.</p>`;
+                document.getElementById('loading').innerHTML = `<p class="text-red-500 text-xs uppercase font-bold">Error loading telemetry stream data.</p>`;
             });
         }
 
         async function handleAction(id, data) {
-            // Mark as read and Navigate
-            await updateDoc(doc(db, "notifications", id), { read: true });
+            try {
+                await updateDoc(doc(db, "notifications", id), { read: true });
+            } catch(e) { console.log("Notif state write block handled"); }
 
+            // Target Routing Interface Sync Sequence
             if(data.type === "follow" || data.type === "profile") {
-                location.href = `user.html?id=${data.senderId}`;
+                location.href = `profile.html?uid=${data.senderId}`;
             } else if(data.type === "like" || data.type === "comment") {
                 location.href = `post-view.html?id=${data.postId}`;
             } else if(data.type === "call") {
@@ -165,19 +177,22 @@
 
         document.getElementById('clearBtn').onclick = () => {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "সব নোটিফিকেশন মুছে যাবে!",
+                title: 'Flush All Logs?',
+                text: "This action will purge all notification packets permanently.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Clear All',
-                customClass: { popup: 'elite-popup', confirmButton: 'elite-confirm' }
+                confirmButtonText: 'Purge Stream',
+                cancelButtonText: 'Abort',
+                customClass: { popup: 'elite-popup', confirmButton: 'elite-confirm', cancelButton: 'elite-cancel' }
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    const q = query(collection(db, "notifications"), where("targetUserId", "==", auth.currentUser.uid));
-                    const snap = await getDocs(q);
-                    const batch = writeBatch(db);
-                    snap.forEach(d => batch.delete(d.ref));
-                    await batch.commit();
+                    try {
+                        const q = query(collection(db, "notifications"), where("targetUserId", "==", auth.currentUser.uid));
+                        const snap = await getDocs(q);
+                        const batch = writeBatch(db);
+                        snap.forEach(d => batch.delete(d.ref));
+                        await batch.commit();
+                    } catch(err) { console.log("Flush array clear interrupted:", err); }
                 }
             });
         };
