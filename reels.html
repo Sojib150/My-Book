@@ -5,60 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>My Book - Reels Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .reels-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .reels-container { height: calc(100vh - 70px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
-        .reel-card { height: 100vh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .reel-card { height: calc(100vh - 70px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
         .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
-        .side-bar { position: absolute; right: 12px; bottom: 180px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 10; }
-        .bottom-info { position: absolute; bottom: 75px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+        .side-bar { position: absolute; right: 14px; bottom: 140px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+        .bottom-info { position: absolute; bottom: 85px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
         
-        /* 📱 শর্টস/রিলসের নিচে ব্যানার অ্যাডের প্রিমিয়াম প্লেসমেন্ট */
-        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 70%, transparent); padding: 12px 12px 15px 12px; display: flex; flex-direction: column; justify-content: center; min-height: 65px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.3); }
-        .action-btn { background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
+        /* 📱 Shorts/Reels Banner Placement */
+        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 85%, transparent); padding: 12px 15px 20px 15px; display: flex; flex-direction: column; justify-content: center; min-height: 70px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.25); }
+        .action-btn { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
         .action-btn:active { transform: scale(0.9); }
         
-        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #111827; border-radius: 30px 30px 0 0; border-top: 1px solid #1e293b; color: white; }
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.05); color: white; }
         #commentSheet.active { transform: translateY(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; text-shadow: 0 0 20px rgba(255,0,0,0.6); }
+        .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; text-shadow: 0 0 20px rgba(24, 119, 242, 0.6); }
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        /* 📱 Bottom Navigation Bar Styling */
+        .nav-glass { background: rgba(8, 12, 20, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.04); }
+        .nav-btn { color: #64748b; transition: all 0.25s; }
+        .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
     </style>
 </head>
 <body>
 
     <div class="reels-container" id="reelsWrapper"></div>
 
-    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col">
-        <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
-        <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Comments</h3>
+    <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col max-w-md mx-auto">
+        <div class="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
+        <h3 class="text-xs font-black uppercase tracking-widest text-blue-500 mb-4">Comments Pipeline</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
-        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-gray-800 flex justify-between items-center text-[10px]">
-            <span id="replyToText" class="text-indigo-400 font-bold italic"></span>
+        
+        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-slate-900 flex justify-between items-center text-[10px] border-t border-white/5">
+            <span id="replyToText" class="text-blue-400 font-bold italic"></span>
             <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
         </div>
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#111827] flex items-center gap-3 border-t border-gray-800">
-            <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-gray-800 rounded-2xl p-4 text-white outline-none text-sm border border-gray-700">
-            <button onclick="postComment()" class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#0b0f19] flex items-center gap-3 border-t border-white/5">
+            <input type="text" id="commentInput" placeholder="Write a public comment..." class="flex-1 bg-slate-900 rounded-2xl p-4 text-white outline-none text-xs border border-white/5 focus:border-blue-500/50">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
     </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 h-20 nav-glass z-50 flex justify-around items-center px-4 max-w-md mx-auto">
+        <button onclick="location.href='reels.html'" class="nav-btn active flex flex-col items-center gap-1">
+            <i class="fa-solid fa-clapperboard text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Reels</span>
+        </button>
+        <button onclick="location.href='post.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-square-plus text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Create</span>
+        </button>
+        <button onclick="location.href='dashboard.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-chart-pie text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Studio</span>
+        </button>
+        <button onclick="location.href='profile.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-user text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Profile</span>
+        </button>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, updateDoc, increment, arrayUnion, arrayRemove, addDoc, serverTimestamp, getDoc, query, orderBy, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92",
+            storageBucket: "seen-a1d92.firebasestorage.app",
+            messagingSenderId: "868584044532",
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -70,7 +100,7 @@
         let activePostId = null;
         let replyCommentId = null;
         let isAudioEnabled = false;
-        let reelsViewTrack = {}; // ডাবল ভিউ প্রটেকশন
+        let reelsViewTrack = {}; 
 
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
@@ -80,37 +110,32 @@
                     if(uSnap.exists()) userData = uSnap.data();
                     renderReels(); 
                 } catch(e) {
-                    console.log("Reels session protected");
                     renderReels();
                 }
             } else { 
-                if(!currentUser) window.location.href="index.html"; 
+                window.location.href="Login.html"; 
             }
         });
 
-        // ব্রাউজার পলিসি অনুযায়ী প্রথম ক্লিকেই অডিও গ্লোবাল এনাবল হবে
         document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
         async function renderReels() {
-            // অ্যালগরিদম ও শর্টস ব্যানার কোড সিঙ্গেল রিড লোড
             const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
             if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
 
             const adSnap = await getDoc(doc(db, "appSettings", "ads"));
-            // অ্যাডমিন প্যানেলের কাস্টম shortsBannerCode বা ডিফল্ট ব্যানার কোড সোর্স
             const adCode = adSnap.exists() ? (adSnap.data().shortsBannerCode || adSnap.data().code || "") : "";
 
             const wrapper = document.getElementById('reelsWrapper');
-            wrapper.innerHTML = '<div class="text-white text-center py-20 text-xs tracking-widest animate-pulse">LOADING REELS ENGINE...</div>'; 
+            wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING REELS MOTOR ENGINE...</div>'; 
 
             try {
-                // getDocs ব্যবহারের ফলে ডাটাবেসে ভিউ বা লাইক বাড়লেও পুরো পেজ রি-রেন্ডার বা ঝাঁকি মারবে না
                 const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(30));
                 const snap = await getDocs(q);
                 wrapper.innerHTML = "";
 
                 if(snap.empty) {
-                    wrapper.innerHTML = '<div class="text-gray-500 text-center py-20 text-xs">No video reels found.</div>';
+                    wrapper.innerHTML = '<div class="text-gray-500 text-center py-40 text-xs uppercase font-bold tracking-wider">No active video streams deployment found.</div>';
                     return;
                 }
 
@@ -128,40 +153,38 @@
                         </div>
                         <div class="side-bar">
                             <div class="flex flex-col items-center">
-                                <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-xl ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
-                                <span id="likeCount-${id}" class="text-[10px] text-white font-bold mt-1">${p.likedBy?.length || 0}</span>
+                                <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-lg ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
+                                <span id="likeCount-${id}" class="text-[9px] text-gray-400 font-extrabold mt-1.5">${p.likedBy?.length || 0}</span>
                             </div>
                             <div class="flex flex-col items-center">
-                                <button onclick="window.openComments('${id}')" class="action-btn text-xl"><i class="far fa-comment-dots"></i></button>
-                                <span id="count-${id}" class="text-[10px] text-white font-bold mt-1">${p.commentCount || 0}</span>
+                                <button onclick="window.openComments('${id}')" class="action-btn text-lg"><i class="far fa-comment-dots"></i></button>
+                                <span id="count-${id}" class="text-[9px] text-gray-400 font-extrabold mt-1.5">${p.commentCount || 0}</span>
                             </div>
-                            <button onclick="window.shareReel('${id}')" class="action-btn text-xl"><i class="fas fa-paper-plane"></i></button>
+                            <button onclick="window.shareReel('${id}')" class="action-btn text-lg"><i class="fas fa-paper-plane"></i></button>
                         </div>
                         <div class="bottom-info">
-                            <div class="flex items-center gap-3 mb-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full border border-white/20 object-cover">
-                                <h4 class="text-white font-black text-xs">@${p.userName}</h4>
-                                ${isMonetized ? `<span class="bg-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-star mr-0.5"></i>MONETIZED</span>` : ''}
+                            <div class="flex items-center gap-2.5 mb-2.5 cursor-pointer" onclick="window.location.href='profile.html?uid=${p.userId}'">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full border border-white/10 object-cover">
+                                <h4 class="text-white font-black text-xs">@${p.userName || 'creator'}</h4>
+                                ${isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-sm tracking-wider uppercase"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : ''}
                             </div>
-                            <p class="text-white/90 text-[11px] line-clamp-2">${p.text || ''}</p>
+                            <p class="text-white/80 text-[11px] leading-relaxed line-clamp-2">${p.text || ''}</p>
                         </div>
                         
                         <div class="bottom-ad-slot ${isMonetized ? '' : 'hidden'}" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}">
-                            <div class="flex justify-between w-full text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                                <span>Sponsored Revenue Ad</span><i class="fas fa-circle-info"></i>
+                            <div class="flex justify-between w-full text-[7px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+                                <span>Sponsored Distribution Node</span><i class="fas fa-circle-info"></i>
                             </div>
-                            <div class="w-full bg-white/5 rounded-xl p-1 overflow-hidden border border-white/10" id="ad-content-target-${id}"></div>
+                            <div class="w-full bg-white/5 rounded-xl p-1 overflow-hidden border border-white/5" id="ad-content-target-${id}"></div>
                         </div>
                     `;
                     wrapper.appendChild(card);
                 });
                 
-                // রেন্ডারিং শেষেIntersectionObserver অ্যাক্টিভেশন
                 setTimeout(initObserver, 200);
 
             } catch(err) {
-                console.error("Reels primary load error handled:", err);
-                wrapper.innerHTML = '<div class="text-red-500 text-center py-20 text-xs">Error loading reels. check index.</div>';
+                wrapper.innerHTML = '<div class="text-red-500 text-center py-40 text-xs">ERR: CORE PIPELINE INITIALIZATION FAILURE.</div>';
             }
         }
 
@@ -176,11 +199,9 @@
                     const adBox = document.getElementById(`ad-box-${id}`);
 
                     if (entry.isIntersecting) {
-                        // স্ক্রিনে এলে ভিডিও অটো-প্লে হবে
-                        vid.play().catch(e => console.log("Play blocked"));
+                        vid.play().catch(() => {});
                         if(isAudioEnabled) vid.muted = false;
                         
-                        // ব্যানার অ্যাড ইনজেকশন মেকানিজম
                         if(isMonetized && adBox && adTarget && adTarget.innerHTML.trim() === "") {
                             const rawAd = decodeURIComponent(adBox.getAttribute('data-ad-code'));
                             if(rawAd && rawAd !== "undefined" && rawAd !== "") {
@@ -190,11 +211,11 @@
                                     adTarget.appendChild(fragment);
                                 } catch(adErr) { adTarget.innerHTML = rawAd; }
                             } else {
-                                adTarget.innerHTML = '<div class="text-center text-[10px] py-1 text-blue-400">Loading Premium Network Ads...</div>';
+                                adTarget.innerHTML = '<div class="text-center text-[9px] py-1 text-blue-400 font-bold uppercase tracking-wider">Loading Revenue Partner Ads...</div>';
                             }
                         }
                         
-                        // ৫ সেকেন্ড ওয়াচটাইম হলে ভিউ কাউন্ট এবং ক্রিয়েটর রেভিনিউ জেনারেট হবে
+                        // ⏱️ ৫ সেকেন্ড ওয়াচটাইম হলে সেশন ভিউ এবং ক্রিয়েটর মনিটাইজেশন ইমপ্রেশন সিঙ্ক হবে
                         viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
                     } else { 
                         vid.pause(); 
@@ -218,13 +239,24 @@
         async function handleView(postId, ownerId, isMonetized) {
             if (currentUser && ownerId === currentUser.uid) return;
             
-            // প্রতি সেশনে একবারের জন্য ভিউ কাউন্ট প্রটেকশন
+            // 🔄 ক্রিয়েটরের ড্যাশবোর্ডে ভিউ এবং অ্যাপের মনিটাইজেশন পলিসি সিঙ্ক লজিক
             if(!reelsViewTrack[postId]) {
                 reelsViewTrack[postId] = true;
+                
+                // ১. পোস্ট অবজেক্টের ভিউ ইনক্রিমেন্ট
                 await updateDoc(doc(db, "posts", postId), { views: increment(1) });
+                
+                // ২. ক্রিয়েটরের ইউজার ডাটাবেজ ডকুমেন্টে ভিউ যোগ (ড্যাশবোর্ড সিঙ্ক্রোনাইজেশন)
+                if(ownerId) {
+                    try {
+                        await updateDoc(doc(db, "users", ownerId), { 
+                            totalImpressions: increment(1) 
+                        });
+                    } catch(uErr) { console.log("Creator profile sync skipped:", uErr); }
+                }
             }
 
-            // শর্টস ব্যানার অ্যাড ইমপ্রেশন রেভিনিউ ওয়ালেট লগ সাবমিশন
+            // 💳 ব্যানার অ্যাড রেভিনিউ লগিং সিস্টেম
             if (isMonetized && currentUser) {
                 try {
                     await addDoc(collection(db, "adImpressions"), {
@@ -235,7 +267,7 @@
                         type: "banner-shorts-post",
                         timestamp: serverTimestamp()
                     });
-                } catch(e) { console.log("Reels Ad share error:", e); }
+                } catch(e) { console.log("Ad tracking log failed:", e); }
             }
         }
 
@@ -249,6 +281,7 @@
         };
 
         window.likeReel = async (id) => {
+            if(!currentUser) return;
             const ref = doc(db, "posts", id);
             const pSnap = await getDoc(ref);
             if(!pSnap.exists()) return;
@@ -259,11 +292,10 @@
             const btn = document.getElementById(`likeBtn-${id}`);
             const countSpan = document.getElementById(`likeCount-${id}`);
 
-            // ইনস্ট্যান্ট UI রিফ্লেকশন বাগ ছাড়া
             if (isLiked) {
                 await updateDoc(ref, { likedBy: arrayRemove(currentUser.uid) });
                 if(btn) { btn.classList.remove('text-red-500'); btn.classList.add('text-white'); btn.innerHTML = '<i class="far fa-heart"></i>'; }
-                if(countSpan) countSpan.innerText = likedArr.length - 1;
+                if(countSpan) countSpan.innerText = Math.max(0, likedArr.length - 1);
             } else {
                 await updateDoc(ref, { likedBy: arrayUnion(currentUser.uid) });
                 if(btn) { btn.classList.remove('text-white'); btn.classList.add('text-red-500'); btn.innerHTML = '<i class="fas fa-heart"></i>'; }
@@ -282,18 +314,18 @@
                     const isCLiked = d.likes?.includes(currentUser.uid);
                     list.innerHTML += `
                         <div class="flex gap-3">
-                            <img src="${d.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-xl object-cover">
+                            <img src="${d.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover">
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <p class="text-indigo-400 font-bold text-xs">@${d.userName}</p>
+                                    <p class="text-blue-400 font-bold text-xs">@${d.userName || 'user'}</p>
                                     <button onclick="window.likeComment('${cid}')" class="${isCLiked ? 'text-red-500' : 'text-gray-500'} text-[10px]">
                                         <i class="fas fa-heart"></i> ${d.likes?.length || 0}
                                     </button>
                                 </div>
-                                <p class="text-white text-xs mt-1">
-                                    ${d.replyTo ? `<span class="text-indigo-500 font-bold">@${d.replyTo}</span> ` : ''}${d.text}
+                                <p class="text-gray-200 text-xs mt-1">
+                                    ${d.replyTo ? `<span class="text-blue-500 font-bold">@${d.replyTo}</span> ` : ''}${d.text}
                                 </p>
-                                <button onclick="window.setupReply('${cid}', '${d.userName}')" class="text-gray-500 text-[9px] font-bold mt-2 uppercase">Reply</button>
+                                <button onclick="window.setupReply('${cid}', '${d.userName}')" class="text-gray-500 text-[9px] font-bold mt-2 uppercase tracking-wider">Reply</button>
                             </div>
                         </div>`;
                 });
@@ -301,6 +333,7 @@
         };
 
         window.likeComment = async (cid) => {
+            if(!currentUser || !activePostId) return;
             const ref = doc(db, "posts", activePostId, "comments", cid);
             const snap = await getDoc(ref);
             const isLiked = snap.data().likes?.includes(currentUser.uid);
@@ -321,7 +354,7 @@
 
         window.postComment = async () => {
             const input = document.getElementById('commentInput');
-            if(!input.value.trim() || !activePostId) return;
+            if(!input.value.trim() || !activePostId || !currentUser) return;
             
             const commentData = {
                 text: input.value, userId: currentUser.uid, userName: userData?.name || "User",
@@ -348,7 +381,14 @@
         window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
             navigator.clipboard.writeText(url);
-            Swal.fire({ title: 'Link Copied!', icon: 'success', timer: 1000, showConfirmButton: false });
+            Swal.fire({ 
+                title: 'Link Copied!', 
+                icon: 'success', 
+                background: '#0b0f19',
+                color: '#f1f5f9',
+                timer: 1000, 
+                showConfirmButton: false 
+            });
         };
     </script>
 </body>
