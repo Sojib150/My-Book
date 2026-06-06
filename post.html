@@ -2,80 +2,153 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Post - My Book Elite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Create Reel - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .preview-container img, .preview-container video { width: 100%; border-radius: 25px; max-height: 250px; object-fit: cover; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #000; margin: 0; overflow-x: hidden; color: #fff; }
         
-        /* Category Chip Style */
-        .category-chip { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 1.5px solid #f1f5f9; }
-        .category-chip.active { background: #2563eb; color: white; border-color: #2563eb; transform: scale(1.05); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+        /* Premium Cyberpunk Theme Customizations */
+        .neon-border { border: 1px solid rgba(99, 102, 241, 0.2); box-shadow: 0 0 15px rgba(99, 102, 241, 0.1); }
+        .neon-btn { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3); }
         
-        .ios-input { background: #f1f5f9; border: 2px solid transparent; transition: all 0.3s; }
-        .ios-input:focus { background: white; border-color: #dbeafe; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .category-chip { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #9ca3af; }
+        .category-chip.active { background: #6366f1; color: white; border-color: #6366f1; transform: scale(1.05); box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Camera UI Components */
+        #cameraView { transform: scaleX(-1); object-fit: cover; } /* Selfie Reflection */
+        .recording-active { animation: pulseBtn 1.5s infinite; background: #ef4444 !important; }
+        @keyframes pulseBtn { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
-<body class="bg-[#f8fafc] flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-0 sm:p-4 bg-[#050508]">
 
-    <div class="bg-white w-full max-w-md p-8 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white relative overflow-hidden">
+    <div class="bg-[#0b0f19] w-full max-w-md min-h-screen sm:min-h-0 sm:rounded-[35px] p-6 flex flex-col justify-between border border-white/5 relative overflow-hidden">
         
-        <div class="flex justify-between items-center mb-8">
-            <a href="home.html" class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:text-blue-600 transition-all">
+        <div class="flex justify-between items-center mb-5 z-10">
+            <a href="reels.html" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-all">
                 <i class="fas fa-chevron-left"></i>
             </a>
             <div class="text-center">
-                <h2 class="text-[11px] font-black uppercase tracking-[4px] text-gray-400 mb-1">New Post</h2>
-                <div class="h-1 w-4 bg-blue-600 mx-auto rounded-full"></div>
+                <h2 class="text-[10px] font-black uppercase tracking-[3px] text-indigo-400 mb-0.5">Studio Lab</h2>
+                <p class="text-[14px] font-extrabold text-white">Create Reel</p>
             </div>
-            <div class="w-12"></div>
+            <div class="w-10"></div>
         </div>
 
-        <textarea id="postText" placeholder="আপনার মনের কথা এখানে লিখুন..." class="w-full p-6 ios-input rounded-[30px] h-36 mb-6 outline-none text-[15px] font-medium resize-none text-gray-700"></textarea>
-
-        <div class="mb-6">
-            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 px-2">Select Category</p>
-            <div id="categoryContainer" class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                <div class="category-chip active px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="General">General</div>
-                <div class="category-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="Technology">Technology</div>
-                <div class="category-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="Entertainment">Entertainment</div>
-                <div class="category-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="Sports">Sports</div>
-                <div class="category-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="Fashion">Fashion</div>
-                <div class="category-chip px-5 py-2.5 rounded-2xl text-[12px] font-extrabold shrink-0" data-val="Lifestyle">Lifestyle</div>
-            </div>
-        </div>
-
-        <div id="previewArea" class="preview-container mb-6 hidden ring-4 ring-blue-50 rounded-[30px] overflow-hidden"></div>
-
-        <div class="relative group mb-8">
-            <input type="file" id="fileInput" accept="image/*,video/*" class="hidden">
-            <label for="fileInput" class="w-full flex items-center justify-between p-5 bg-gray-50 rounded-[25px] cursor-pointer hover:bg-blue-50 transition-all border-2 border-transparent hover:border-blue-100">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                        <i class="fas fa-camera text-blue-500"></i>
-                    </div>
-                    <span id="fileLabel" class="text-[12px] font-bold text-gray-500">Photo / Video</span>
+        <div class="relative w-full aspect-[9/13] bg-black/40 rounded-[28px] overflow-hidden neon-border mb-5 group">
+            <video id="cameraView" autoplay playsinline class="w-full h-full absolute inset-0 object-cover hidden bg-black"></video>
+            
+            <div id="previewArea" class="w-full h-full absolute inset-0 flex items-center justify-center overflow-hidden">
+                <div class="text-center p-6 transition-all" id="uploadPlaceholder">
+                    <i class="fa-solid fa-clapperboard text-4xl text-indigo-500/60 mb-3 animate-pulse"></i>
+                    <p class="text-xs font-bold text-gray-400">Record Live or Select Studio Gallery</p>
                 </div>
-                <i class="fas fa-plus text-gray-300 text-sm"></i>
-            </label>
+            </div>
+
+            <div id="cameraControls" class="absolute bottom-4 left-0 right-0 px-4 flex justify-between items-center z-20 hidden">
+                <button id="switchCamBtn" class="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10"><i class="fa-solid fa-camera-rotate text-white"></i></button>
+                <button id="recordBtn" class="w-14 h-14 bg-white rounded-full flex items-center justify-center border-4 border-black/20 shadow-xl transition-all"></button>
+                <button id="closeCamBtn" class="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10"><i class="fa-solid fa-xmark text-white"></i></button>
+            </div>
+            
+            <div id="recTimer" class="absolute top-4 left-4 bg-red-600 text-white font-black px-2.5 py-1 rounded-md text-[9px] tracking-widest uppercase items-center gap-1.5 hidden">
+                <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span> <span id="timerText">00:00</span>
+            </div>
         </div>
 
-        <button id="uploadBtn" class="w-full bg-blue-600 text-white font-black py-5 rounded-[30px] shadow-[0_15px_30px_rgba(37,99,235,0.25)] active:scale-95 transition-all flex items-center justify-center gap-3">
-            <i class="fas fa-paper-plane text-sm"></i>
-            <span class="uppercase tracking-widest text-[11px]">Share to Feed</span>
+        <div class="space-y-4 z-10 flex-1">
+            <div>
+                <button id="openMusicModal" class="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-[20px] border border-white/5 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400">
+                            <i class="fa-solid fa-music text-sm"></i>
+                        </div>
+                        <span id="selectedMusicLabel" class="text-[12px] font-bold text-gray-300">Select Audio Track (Optional)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i>
+                </button>
+            </div>
+
+            <textarea id="postText" placeholder="Write a compelling caption or description..." class="w-full p-4 bg-white/5 border border-white/5 rounded-[22px] h-20 outline-none text-[13px] font-medium resize-none text-white placeholder-gray-500 focus:border-indigo-500/30 transition-all"></textarea>
+
+            <div>
+                <p class="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-2.5 px-1">Content Channel</p>
+                <div id="categoryContainer" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                    <div class="category-chip active px-4 py-2 rounded-xl text-[11px] font-bold shrink-0" data-val="General">General</div>
+                    <div class="category-chip px-4 py-2 rounded-xl text-[11px] font-bold shrink-0" data-val="Technology">Technology</div>
+                    <div class="category-chip px-4 py-2 rounded-xl text-[11px] font-bold shrink-0" data-val="Entertainment">Entertainment</div>
+                    <div class="category-chip px-4 py-2 rounded-xl text-[11px] font-bold shrink-0" data-val="Sports">Sports</div>
+                    <div class="category-chip px-4 py-2 rounded-xl text-[11px] font-bold shrink-0" data-val="Fashion">Fashion</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <input type="file" id="fileInput" accept="image/*,video/*" class="hidden">
+                <label for="fileInput" class="flex items-center justify-center gap-2.5 p-3.5 bg-white/5 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all">
+                    <i class="fa-regular fa-images text-indigo-400 text-sm"></i>
+                    <span id="fileLabel" class="text-[11px] font-bold text-gray-300">Gallery</span>
+                </label>
+                <button id="initCameraBtn" class="flex items-center justify-center gap-2.5 p-3.5 bg-indigo-600/10 rounded-xl border border-indigo-500/20 hover:bg-indigo-600/20 transition-all">
+                    <i class="fa-solid fa-camera text-indigo-400 text-sm"></i>
+                    <span class="text-[11px] font-bold text-indigo-300">Live Studio Cam</span>
+                </button>
+            </div>
+
+            <div class="p-4 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 rounded-xl border border-amber-500/20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-coins text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-amber-400 tracking-wider">In-Stream Monetization</p>
+                        <p class="text-[9px] text-gray-400">Run embedded video advertising impressions</p>
+                    </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="monetizeToggle" class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-white"></div>
+                </label>
+            </div>
+        </div>
+
+        <button id="uploadBtn" class="w-full neon-btn text-white font-black py-4 rounded-[22px] active:scale-95 transition-all flex items-center justify-center gap-2.5 mt-5 z-10">
+            <i class="fas fa-paper-plane text-xs"></i>
+            <span class="uppercase tracking-widest text-[11px]">Publish Elite Reel</span>
         </button>
 
-        <p id="status" class="mt-6 text-center text-[10px] font-black uppercase tracking-widest text-gray-400"></p>
+        <p id="status" class="mt-4 text-center text-[9px] font-black uppercase tracking-widest text-indigo-400/70"></p>
+    </div>
+
+    <div id="musicSheet" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center hidden" onclick="closeMusicModal()">
+        <div class="bg-[#0b0f19] w-full max-w-md rounded-t-[30px] p-6 max-h-[60vh] flex flex-col border-t border-white/10" onclick="event.stopPropagation()">
+            <div class="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeMusicModal()"></div>
+            <h3 class="text-xs font-black uppercase tracking-wider text-indigo-400 mb-4">Select Creator Audio Track</h3>
+            <div class="flex-1 overflow-y-auto space-y-2 no-scrollbar" id="musicTrackList">
+                <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-indigo-600/20 border border-white/5" onclick="selectTrack('Cyberpunk Beats', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-play text-indigo-400 text-xs"></i>
+                        <div><p class="text-xs font-bold text-white">Cyberpunk Beats</p><p class="text-[9px] text-gray-400">Trending Music Track</p></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-indigo-600/20 border border-white/5" onclick="selectTrack('Lofi Chill Vibes', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-play text-indigo-400 text-xs"></i>
+                        <div><p class="text-xs font-bold text-white">Lofi Chill Vibes</p><p class="text-[9px] text-gray-400">Ambient Studio Track</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1" };
@@ -87,8 +160,26 @@
         let userData = null;
         let selectedCategory = "General";
         let videoDuration = 0;
+        let selectedAudioUrl = "";
+        let selectedAudioTitle = "None";
 
-        // ১. ক্যাটাগরি সিলেকশন লজিক
+        // Camera Media System Handling Elements Variables
+        let mediaStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let activeFacingMode = "user"; // Standard Front Selfie Camera Default
+        let activeRecordBlob = null;
+        let timerInterval = null;
+
+        // UI Access Nodes References 
+        const cameraView = document.getElementById('cameraView');
+        const cameraControls = document.getElementById('cameraControls');
+        const previewArea = document.getElementById('previewArea');
+        const recordBtn = document.getElementById('recordBtn');
+        const recTimer = document.getElementById('recTimer');
+        const timerText = document.getElementById('timerText');
+
+        // ক্যাটাগরি সিলেকশন লজিক
         document.querySelectorAll('.category-chip').forEach(chip => {
             chip.onclick = () => {
                 document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
@@ -102,99 +193,253 @@
                 currentUser = user;
                 const uSnap = await getDoc(doc(db, "users", user.uid));
                 if(uSnap.exists()) userData = uSnap.data();
+                loadAudioLibrary(); // রিয়েল-টাইম অডিও ট্র্যাক লোড
             } else { 
                 window.location.href="index.html"; 
             }
         });
 
+        // Firestore থেকে মিউজিক লাইব্রেরি লোড মেকানিজম
+        async function loadAudioLibrary() {
+            try {
+                const snap = await getDocs(collection(db, "audioLibrary"));
+                const trackList = document.getElementById('musicTrackList');
+                if(!snap.empty) {
+                    trackList.innerHTML = ""; // ডাইনামিক ডাটা পুশ
+                    snap.forEach(d => {
+                        const track = d.data();
+                        trackList.innerHTML += `
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-indigo-600/20 border border-white/5" onclick="selectTrack('${track.title}', '${track.url}')">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-music text-indigo-400 text-xs"></i>
+                                    <div><p class="text-xs font-bold text-white">${track.title}</p><p class="text-[9px] text-gray-400">${track.artist || 'Official Audio'}</p></div>
+                                </div>
+                            </div>`;
+                    });
+                }
+            } catch(e) { console.log("Audio Lib loading offline mode fallback used."); }
+        }
+
+        // গ্যালারি ফাইল বা কাস্টম মিডিয়া প্রিভিউ রেন্ডারিং মেথড
         const fileInput = document.getElementById('fileInput');
         fileInput.onchange = (e) => {
+            stopCameraSystem(); // ফাইল সিলেক্ট করলে লাইভ ক্যামেরা বন্ধ হবে
             const file = e.target.files[0];
-            const previewArea = document.getElementById('previewArea');
-            const fileLabel = document.getElementById('fileLabel');
+            processSelectedFile(file);
+        };
 
+        function processSelectedFile(file) {
+            const fileLabel = document.getElementById('fileLabel');
             if (file) {
-                fileLabel.innerText = file.name.slice(0, 15) + "...";
-                previewArea.classList.remove('hidden');
+                activeRecordBlob = file; // কন্টেন্ট ডাটা হোল্ড
+                fileLabel.innerText = file.name.slice(0, 10) + "...";
                 const url = URL.createObjectURL(file);
                 
                 if (file.type.startsWith('video')) {
                     const video = document.createElement('video');
                     video.src = url;
-                    video.onloadedmetadata = () => { videoDuration = video.duration; }; // ২. ডিউরেশন ডিটেক্ট
+                    video.onloadedmetadata = () => { videoDuration = video.duration; };
                     previewArea.innerHTML = '';
-                    video.className = "rounded-xl w-full";
+                    video.className = "w-full h-full object-cover rounded-[28px]";
                     video.controls = true;
                     previewArea.appendChild(video);
                 } else {
-                    previewArea.innerHTML = `<img src="${url}" class="rounded-xl shadow-lg w-full">`;
+                    previewArea.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-[28px]">`;
+                    videoDuration = 0;
                 }
+            }
+        }
+
+        // 🎥 ইন-অ্যাপ মোবাইল ক্যামেরা ইঞ্জিন কন্ট্রোল কোড
+        document.getElementById('initCameraBtn').onclick = async () => {
+            previewArea.innerHTML = '';
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
+            cameraView.classList.remove('hidden');
+            cameraControls.classList.remove('hidden');
+            await startCameraEngine();
+        };
+
+        async function startCameraEngine() {
+            if(mediaStream) stopCameraSystem();
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: activeFacingMode, width: { ideal: 720 }, height: { ideal: 1280 } },
+                    audio: true
+                });
+                cameraView.srcObject = mediaStream;
+            } catch (err) {
+                Swal.fire('Camera Error', 'ক্যামেরা এক্সেস করা সম্ভব হচ্ছে না!', 'error');
+                document.getElementById('closeCamBtn').click();
+            }
+        }
+
+        function stopCameraSystem() {
+            if(mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            cameraView.classList.add('hidden');
+            cameraControls.classList.add('hidden');
+            recTimer.classList.add('hidden');
+            clearInterval(timerInterval);
+        }
+
+        document.getElementById('closeCamBtn').onclick = () => {
+            stopCameraSystem();
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+            previewArea.innerHTML = `<div class="text-center p-6" id="uploadPlaceholder"><i class="fa-solid fa-clapperboard text-4xl text-indigo-500/60 mb-3 animate-pulse"></i><p class="text-xs font-bold text-gray-400">Record Live or Select Studio Gallery</p></div>`;
+        };
+
+        document.getElementById('switchCamBtn').onclick = async () => {
+            activeFacingMode = (activeFacingMode === "user") ? "environment" : "user";
+            cameraView.style.transform = (activeFacingMode === "user") ? "scaleX(-1)" : "none";
+            await startCameraEngine();
+        };
+
+        // ⏺️ ভিডিও রেকর্ডিং লজিক (Start / Stop)
+        recordBtn.onclick = () => {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                // স্টপ রেকর্ডিং প্রক্রিয়া
+                mediaRecorder.stop();
+                recordBtn.classList.remove('recording-active');
+                clearInterval(timerInterval);
+                recTimer.classList.add('hidden');
+            } else {
+                // স্টার্ট রেকর্ডিং প্রক্রিয়া
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp8,opus' });
+                
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                
+                mediaRecorder.onstop = () => {
+                    activeRecordBlob = new Blob(recordedChunks, { type: 'video/mp4' });
+                    const videoUrl = URL.createObjectURL(activeRecordBlob);
+                    
+                    videoDuration = parseFloat(timerText.dataset.seconds) || 5;
+                    
+                    // প্রিভিউ কনটেইনারে রেকর্ড করা ফাইল সেটআপ
+                    stopCameraSystem();
+                    const videoElem = document.createElement('video');
+                    videoElem.src = videoUrl;
+                    videoElem.className = "w-full h-full object-cover rounded-[28px]";
+                    videoElem.controls = true;
+                    previewArea.appendChild(videoElem);
+                };
+
+                mediaRecorder.start();
+                recordBtn.classList.add('recording-active');
+                startTimerCounter();
             }
         };
 
+        function startTimerCounter() {
+            recTimer.classList.remove('hidden');
+            let totalSeconds = 0;
+            timerText.dataset.seconds = 0;
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                timerText.dataset.seconds = totalSeconds;
+                let mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+                let secs = String(totalSeconds % 60).padStart(2, '0');
+                timerText.innerText = `${mins}:${secs}`;
+                if(totalSeconds >= 60) recordBtn.click(); // ১ মিনিটের শর্টস লিমিট প্রটেকশন
+            }, 1000);
+        }
+
+        // 🎵 মিউজিক শীট কন্ট্রোল মডিউলস 
+        window.selectTrack = (title, url) => {
+            selectedAudioTitle = title;
+            selectedAudioUrl = url;
+            document.getElementById('selectedMusicLabel').innerText = `Track: ${title}`;
+            document.getElementById('selectedMusicLabel').classList.remove('text-gray-300');
+            document.getElementById('selectedMusicLabel').classList.add('text-indigo-400');
+            closeMusicModal();
+        };
+
+        document.getElementById('openMusicModal').onclick = () => document.getElementById('musicSheet').classList.remove('hidden');
+        window.closeMusicModal = () => document.getElementById('musicSheet').classList.add('hidden');
+
+        // 🚀 ফাইনাল আপলোড এবং ডাটা পুশ এক্সিকিউশন
         document.getElementById('uploadBtn').onclick = async () => {
             const text = document.getElementById('postText').value;
-            const file = fileInput.files[0];
             const status = document.getElementById('status');
             const btn = document.getElementById('uploadBtn');
+            const isMonetizedChecked = document.getElementById('monetizeToggle').checked;
 
-            if(!text.trim() && !file) {
-                status.innerText = "❌ কিছু তো লিখুন!";
+            if(!text.trim() && !activeRecordBlob) {
+                Swal.fire('Empty Submission', 'আপনার ক্যাপশন অথবা কোনো মিডিয়া ফাইল যুক্ত করুন!', 'warning');
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            status.innerText = "ALGORITHM SYNCING...";
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSING STUDIO ASSETS...';
+            status.innerText = "CLOUDINARY SYNC RUNNING...";
 
             let url = ""; 
             let type = "";
 
             try {
-                if(file) {
+                if(activeRecordBlob) {
                     const formData = new FormData(); 
-                    formData.append("file", file); 
+                    formData.append("file", activeRecordBlob); 
                     formData.append("upload_preset", "sojida_videos");
                     
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/${file.type.startsWith('video')?'video':'image'}/upload`, {
+                    // ডিটেক্ট টাইপ (রেকর্ড করা ফাইল সবসময় ভিডিও হিসেবে যাবে)
+                    const isVideoFile = (activeRecordBlob.type && activeRecordBlob.type.startsWith('video')) || recordedChunks.length > 0;
+                    const endpointType = isVideoFile ? 'video' : 'image';
+                    
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/dlpwdx288/${endpointType}/upload`, {
                         method:"POST", 
                         body:formData
                     });
                     
                     const data = await res.json(); 
-                    url = data.secure_url; 
-                    type = file.type.startsWith('video')?'video':'image';
+                    if(data.secure_url) {
+                        url = data.secure_url; 
+                        type = isVideoFile ? 'video' : 'image';
+                    } else { throw new Error("Cloudinary Target Core Refused Connection"); }
                 }
 
-                // ৩. অ্যালগরিদম ফ্রেন্ডলি ডাটা ইনজেকশন
+                status.innerText = "DATABASE ARCHITECTURE UPDATING...";
+
+                // ৩. অ্যালগরিদম ফ্রেন্ডলি এবং মনিটাইজেশন এনাবলড ডাটা ইনজেকশন
                 await addDoc(collection(db, "posts"), { 
                     text: text || "", 
                     fileUrl: url, 
                     fileType: type, 
-                    category: selectedCategory, // 🔥 ক্যাটাগরি (ইন্টারেস্ট স্কোরিংয়ের জন্য)
-                    duration: videoDuration,   // 🔥 ডিউরেশন (ওয়াচ রেশিওর জন্য)
-                    watchTime: 0,              // 🔥 অ্যালগরিদম ভেরিয়েবল
+                    category: selectedCategory,
+                    duration: videoDuration,
+                    watchTime: 0,
                     userId: currentUser.uid, 
                     userName: userData?.name || "User", 
                     userPic: userData?.profilePic || "",
                     likes: 0, 
                     likedBy: [], 
-                    commentCount: 0,           // 🔥 প্রপার কাউন্টার
-                    shares: 0,                 // 🔥 হাই স্কোরিং এলিমেন্ট
+                    commentCount: 0,
+                    shares: 0,
                     views: 0,
-                    viewsByUser: [],           // 🔥 রিপিট কন্ট্রোল লজিকের জন্য
+                    viewsByUser: [],
                     isShadowBanned: false,
+                    
+                    // 🔥 নতুন শর্টস প্ল্যাটফর্ম স্পেসিফিক ফিচারস ডাটা নোডস
+                    musicTitle: selectedAudioTitle,
+                    musicUrl: selectedAudioUrl,
+                    isCreatorMonetized: isMonetizedChecked, // কন্টেন্ট ক্রিয়েটরের মনিটাইজেশন চয়েস অন/অফ
+                    isMonetizationApproved: false,          // এডমিন প্যানেল থেকে ফাইনাল অ্যাপ্রুভালের জন্য ডিফল্ট ফলস
+                    
                     createdAt: serverTimestamp() 
                 });
 
                 status.innerText = "SUCCESS! REDIRECTING...";
-                setTimeout(() => window.location.href = "home.html", 1000);
+                Swal.fire({ icon: 'success', title: 'Elite Reel Published!', showConfirmButton: false, timer: 1500 });
+                setTimeout(() => window.location.href = "reels.html", 1500);
 
             } catch (error) {
                 console.error(error);
-                status.innerText = "ERROR. TRY AGAIN.";
+                status.innerText = "TRANSMISSION FAILED. RETRY.";
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span class="uppercase tracking-widest text-[11px]">Publish Elite Reel</span>';
+                Swal.fire('Upload Failed', 'সার্ভারে ফাইল আপলোড করার সময় সমস্যা হয়েছে!', 'error');
             }
         };
     </script>
