@@ -5,62 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Chat Elite - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #000000; 
+            background: #050508; 
             color: white; 
             overflow: hidden; 
             height: 100vh; 
             display: flex; 
             flex-direction: column; 
+            -webkit-tap-highlight-color: transparent;
         }
         
-        /* এলিট ব্যাকগ্রাউন্ড */
+        /* এলিট প্রিমিয়াম ব্যাকগ্রাউন্ড */
         #chatBox { 
-            background-color: #000;
-            background-image: radial-gradient(circle at top right, #1a1a1a, #000);
+            background-color: #050508;
+            background-image: radial-gradient(circle at top right, #0f1220, #050508);
             background-size: cover; 
             background-position: center; 
-            transition: 0.5s; 
+            transition: background 0.5s ease; 
         }
 
         /* গ্লাস হেডার */
         .chat-blur { 
-            background: rgba(10, 10, 10, 0.8); 
+            background: rgba(11, 15, 25, 0.85); 
             backdrop-filter: blur(25px); 
             -webkit-backdrop-filter: blur(25px); 
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2); 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
         }
 
         /* গোল্ডেন চ্যাট বাবল - আমার জন্য */
         .msg-me { 
             background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
             color: #000; 
-            border-radius: 22px 22px 4px 22px; 
+            border-radius: 20px 20px 4px 20px; 
             font-weight: 600;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
         }
 
-        /* ডার্ক বাবল - অন্যদের জন্য */
+        /* ডার্ক লাক্সারি বাবল - অন্যদের জন্য */
         .msg-them { 
-            background: rgba(255, 255, 255, 0.08); 
+            background: rgba(255, 255, 255, 0.04); 
             color: #fff; 
-            border-radius: 22px 22px 22px 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 20px 20px 20px 4px; 
+            border: 1px solid rgba(255, 255, 255, 0.03); 
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* প্রিমিয়াম ইনপুট এরিয়া */
+        /* প্রিমিয়াম ইনপুট এরিয়া ফ্লোটিং টার্মিনাল */
         .input-wrapper { 
             position: fixed; 
-            bottom: 25px; 
+            bottom: 20px; 
             left: 50%; 
             transform: translateX(-50%); 
             width: 92%; 
@@ -68,112 +70,120 @@
             z-index: 1000; 
         }
         .input-area { 
-            background: rgba(25, 25, 25, 0.9); 
-            border-radius: 28px; 
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
-            padding: 8px; 
+            background: rgba(11, 15, 25, 0.9); 
+            border-radius: 24px; 
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); 
+            padding: 6px 10px; 
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
+        /* ড্রপডাউন অ্যাকশন মেনু */
         #menuPanel { 
             position: absolute; 
             top: 75px; 
             right: 20px; 
-            background: #111; 
+            background: #0b0f19; 
             border-radius: 20px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,1); 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); 
             display: none; 
             z-index: 100; 
-            border: 1px solid rgba(212, 175, 55, 0.2); 
-            min-width: 200px; 
+            border: 1px solid rgba(212, 175, 55, 0.15); 
+            min-width: 220px; 
             overflow: hidden;
         }
         .menu-item { 
             padding: 14px 20px; 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: #ccc; 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: #a0aec0; 
             display: flex; 
             align-items: center; 
             gap: 12px; 
-            transition: 0.3s;
+            transition: 0.25s;
+            cursor: pointer;
         }
-        .menu-item:hover { background: rgba(212, 175, 55, 0.1); color: #D4AF37; }
+        .menu-item:hover { background: rgba(212, 175, 55, 0.08); color: #D4AF37; }
 
-        /* গোল্ডেন আইকন ও বাটন */
-        .btn-icon { color: #D4AF37; opacity: 0.9; transition: 0.3s; }
-        .btn-icon:active { transform: scale(0.85); }
+        /* গোল্ডেন অ্যাকশন বাটন */
+        .btn-icon { color: #D4AF37; transition: 0.25s; }
+        .btn-icon:active { transform: scale(0.9); opacity: 0.7; }
         
         #sendBtn { 
             background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
             color: #000; 
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
         }
 
-        .status-online { background: #D4AF37; box-shadow: 0 0 10px #D4AF37; }
+        .status-online { background: #D4AF37; box-shadow: 0 0 12px #D4AF37; }
 
-        /* Custom SweetAlert Style */
+        /* Custom Elite SweetAlert Style */
         .elite-popup {
-            background: #111 !important;
-            border: 1px solid #D4AF37 !important;
+            background: #0b0f19 !important;
+            border: 1px solid rgba(212, 175, 55, 0.25) !important;
             color: #fff !important;
-            border-radius: 20px !important;
+            border-radius: 24px !important;
         }
-        .elite-title { color: #D4AF37 !important; font-size: 18px !important; }
+        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; tracking-wide: 1px; }
         .elite-confirm {
             background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important;
             color: #000 !important;
-            font-weight: bold !important;
-            border-radius: 12px !important;
+            font-weight: 800 !important;
+            border-radius: 14px !important;
+            padding: 10px 24px !important;
+            font-size: 12px !important;
         }
         .elite-cancel {
-            background: #222 !important;
-            color: #fff !important;
-            border-radius: 12px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #a0aec0 !important;
+            font-weight: 700 !important;
+            border-radius: 14px !important;
+            padding: 10px 24px !important;
+            font-size: 12px !important;
         }
     </style>
 </head>
 <body>
 
-    <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <a href="messages.html" class="w-10 h-10 flex items-center justify-center text-[#D4AF37] rounded-full transition hover:bg-white/5"><i class="fas fa-chevron-left text-lg"></i></a>
-            <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-3 cursor-pointer">
-                <div class="relative">
-                    <div id="uAvatar" class="w-11 h-11 bg-neutral-900 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
-                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-neutral-600 border-2 border-black rounded-full transition-all duration-500"></div>
+    <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between max-w-md w-full mx-auto shrink-0">
+        <div class="flex items-center gap-2 max-w-[70%]">
+            <a href="messages.html" class="w-9 h-9 flex items-center justify-center text-[#D4AF37] rounded-xl active:scale-90 transition"><i class="fas fa-chevron-left text-sm"></i></a>
+            <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-2.5 cursor-pointer truncate">
+                <div class="relative flex-shrink-0">
+                    <div id="uAvatar" class="w-10 h-10 bg-neutral-900 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
+                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-neutral-600 border-2 border-[#050508] rounded-full transition-all duration-500"></div>
                 </div>
-                <div>
-                    <h2 id="uName" class="font-bold text-[14px] text-white tracking-wide">LOADING...</h2>
-                    <p id="uStatusText" class="text-[9px] text-[#D4AF37] font-bold uppercase tracking-[2px]">Waiting...</p>
+                <div class="truncate">
+                    <h2 id="uName" class="font-bold text-[13px] text-white tracking-wide truncate">LOADING...</h2>
+                    <p id="uStatusText" class="text-[8px] text-[#D4AF37] font-black uppercase tracking-[2px]">Waiting...</p>
                 </div>
             </div>
         </div>
         
-        <div class="flex items-center gap-2">
-            <button onclick="startCall('audio')" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-phone-alt text-sm"></i></button>
-            <button onclick="startCall('video')" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-video text-sm"></i></button>
-            <button onclick="toggleMenu()" class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-ellipsis-v text-sm"></i></button>
+        <div class="flex items-center gap-1.5">
+            <button onclick="startCall('audio')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-phone-alt text-xs"></i></button>
+            <button onclick="startCall('video')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-video text-xs"></i></button>
+            <button onclick="toggleMenu()" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-ellipsis-v text-xs"></i></button>
         </div>
 
         <div id="menuPanel">
             <div class="menu-item border-b border-white/5" onclick="document.getElementById('wallpaperInput').click()"><i class="fas fa-image"></i> Change Elite Wallpaper</div>
-            <div class="menu-item text-red-500" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat History</div>
+            <div class="menu-item text-red-400" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat History</div>
         </div>
         <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="changeWallpaper(event)">
     </nav>
 
-    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-6 pb-40 no-scrollbar"></div>
+    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-5 pb-36 no-scrollbar max-w-md w-full mx-auto"></div>
 
     <div class="input-wrapper">
         <div class="flex items-center gap-2 input-area">
-            <button onclick="document.getElementById('imageInput').click()" class="w-11 h-11 text-[#D4AF37] opacity-80 hover:opacity-100 transition"><i class="fas fa-camera text-xl"></i></button>
+            <button onclick="document.getElementById('imageInput').click()" class="w-10 h-10 text-[#D4AF37] opacity-80 active:scale-90 transition flex items-center justify-center"><i class="fas fa-camera text-lg"></i></button>
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="uploadImage(event)">
             
-            <input type="text" id="msgInput" placeholder="Write a message..." class="flex-1 bg-transparent border-none py-3 px-2 text-[15px] outline-none text-white placeholder-gray-500">
+            <input type="text" id="msgInput" placeholder="Write a secure message..." class="flex-1 bg-transparent border-none py-3 px-1 text-xs outline-none text-white placeholder-gray-500 font-medium">
             
-            <button id="sendBtn" class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 transition"><i class="fas fa-paper-plane text-sm"></i></button>
+            <button id="sendBtn" class="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition flex-shrink-0"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
     </div>
 
@@ -245,7 +255,6 @@
             if(savedBg) document.getElementById('chatBox').style.backgroundImage = `url(${savedBg})`;
         }
 
-        // ✅ Updated Clear Chat with Custom Elite Popup
         window.clearChat = async () => {
             Swal.fire({
                 title: 'CLEAR ELITE MESSAGES?',
@@ -306,7 +315,7 @@
                     customClass: { popup: 'elite-popup', title: 'elite-title' }
                 });
             }
-            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane text-sm"></i>';
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane text-xs"></i>';
         };
 
         async function initChat() {
@@ -317,7 +326,7 @@
                     if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
                     
                     const isOnline = u.isOnline || u.online;
-                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-black rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
+                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
                     document.getElementById('uStatusText').innerText = isOnline ? "Active Now" : "Offline";
                 }
             });
@@ -332,8 +341,8 @@
                     const div = document.createElement('div');
                     div.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
                     let content = m.text;
-                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/10">`;
-                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-5 py-3'} max-w-[80%] text-[14px] shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300">${content}</div>`;
+                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
+                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">${content}</div>`;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
