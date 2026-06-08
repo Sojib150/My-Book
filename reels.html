@@ -18,16 +18,19 @@
         .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
-        .side-bar { position: absolute; right: 14px; bottom: 140px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-        .bottom-info { position: absolute; bottom: 85px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+        /* 📱 সাইড বার এবং বটম ইনফো অ্যাডজাস্টমেন্ট */
+        .side-bar { position: absolute; right: 14px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+        .bottom-info { position: absolute; bottom: 165px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
         
-        /* 📱 Shorts/Reels Banner Placement */
-        .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 85%, transparent); padding: 12px 15px 20px 15px; display: flex; flex-direction: column; justify-content: center; min-height: 70px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.25); }
+        /* 📱 ফিক্সড: ব্যানার অ্যাড পজিশন ন্যাভ বারের ঠিক ওপরে দেওয়া হলো */
+        .bottom-ad-slot { position: absolute; bottom: 80px; width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 90%, transparent); padding: 10px 15px 12px 15px; display: flex; flex-direction: column; justify-content: center; min-height: 75px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.25); }
         .action-btn { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; items-center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
         .action-btn:active { transform: scale(0.9); }
         
-        #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.05); color: white; }
+        /* 📱 ফেসবুক স্টাইল বটম শীট কমেন্ট বক্স */
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 25px 25px 0 0; border-top: 1px solid rgba(255,255,255,0.08); color: white; touch-action: none; }
         #commentSheet.active { transform: translateY(0); }
+        #commentSheet.dragging { transition: none; } /* ড্র্যাগ করার সময় স্মুথ অ্যানিমেশন অফ থাকবে */
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
         .heart-animation { position: absolute; color: white; font-size: 80px; opacity: 0; pointer-events: none; transform: scale(0); transition: all 0.5s ease; z-index: 100; text-shadow: 0 0 20px rgba(24, 119, 242, 0.6); }
@@ -54,9 +57,9 @@
     <div class="reels-container" id="reelsWrapper"></div>
 
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col max-w-md mx-auto">
-        <div class="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-6 cursor-pointer" onclick="closeComments()"></div>
+        <div id="commentDragHandler" class="w-16 h-1.5 bg-gray-600 rounded-full mx-auto mb-5 cursor-grab active:cursor-grabbing p-1"></div>
         <h3 class="text-xs font-black uppercase tracking-widest text-blue-500 mb-4">Comments Pipeline</h3>
-        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm"></div>
+        <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm" style="touch-action: auto;"></div>
         
         <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-slate-900 flex justify-between items-center text-[10px] border-t border-white/5">
             <span id="replyToText" class="text-blue-400 font-bold italic"></span>
@@ -148,15 +151,12 @@
                     return;
                 }
 
-                // কারেন্ট ইউজারের ফলোয়িং লিস্ট চেক করার জন্য শর্ট ভ্যারিয়েবল
                 const myFollowing = userData?.following || [];
 
                 snap.forEach((d) => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
                     const isMonetized = p.isCreatorMonetized === true;
-                    
-                    // লজিক: ক্রিয়েটর যদি নিজে না হয় এবং ফলোয়িং লিস্টে না থাকে তাহলে প্লাস বাটন দেখাবে
                     const shouldShowFollowPlus = (p.userId !== currentUser?.uid) && !myFollowing.includes(p.userId);
 
                     const card = document.createElement('div');
@@ -181,9 +181,8 @@
                             <div class="flex items-center gap-2.5 mb-2.5 relative">
                                 <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
                                     <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full border border-white/20 object-cover">
-                                    
                                     ${shouldShowFollowPlus ? `
-                                        <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px] hover:scale-110 active:scale-90 transition shadow-md">
+                                        <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px]">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     ` : ''}
@@ -197,7 +196,7 @@
                         </div>
                         
                         <div class="bottom-ad-slot ${isMonetized ? '' : 'hidden'}" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}">
-                            <div class="flex justify-between w-full text-[7px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+                            <div class="flex justify-between w-full text-[7px] font-black text-gray-500 uppercase tracking-widest mb-1">
                                 <span>Sponsored Distribution Node</span><i class="fas fa-circle-info"></i>
                             </div>
                             <div class="w-full bg-white/5 rounded-xl p-1 overflow-hidden border border-white/5" id="ad-content-target-${id}"></div>
@@ -213,19 +212,14 @@
             }
         }
 
-        // ➕ ইনলাইন ফলো করার গ্লোবাল ফাংশন (টিকটক স্টাইল)
         window.followCreatorInline = async (targetCreatorId) => {
             if(!currentUser) return;
-            
             try {
                 const myRef = doc(db, "users", currentUser.uid);
                 const targetRef = doc(db, "users", targetCreatorId);
-                
-                // ডাটাবেস আপডেট
                 await updateDoc(myRef, { following: arrayUnion(targetCreatorId) });
                 await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
                 
-                // রিলস ফিডে থাকা এই ইউজারের সব প্লাস বাটন স্ক্রিন থেকে স্মুথলি ভ্যানিশ করে দেওয়া
                 const allPlusButtons = document.querySelectorAll(`[id="followPlus-${targetCreatorId}"]`);
                 allPlusButtons.forEach(btn => {
                     btn.style.transform = "translate(-50%, 50%) scale(0)";
@@ -233,7 +227,6 @@
                     setTimeout(() => btn.remove(), 300);
                 });
 
-                // নোটিফিকেশন পাঠানো
                 await addDoc(collection(db, "notifications"), {
                     targetUserId: targetCreatorId,
                     senderId: currentUser.uid,
@@ -244,10 +237,7 @@
                     read: false,
                     timestamp: serverTimestamp()
                 });
-
-            } catch (err) {
-                console.error("Inline Follow Error:", err);
-            }
+            } catch (err) { console.error(err); }
         };
 
         function initObserver() {
@@ -276,7 +266,6 @@
                                 adTarget.innerHTML = '<div class="text-center text-[9px] py-1 text-blue-400 font-bold uppercase tracking-wider">Loading Revenue Partner Ads...</div>';
                             }
                         }
-                        
                         viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
                     } else { 
                         vid.pause(); 
@@ -299,40 +288,25 @@
 
         async function handleView(postId, ownerId, isMonetized) {
             if (currentUser && ownerId === currentUser.uid) return;
-            
             if(!reelsViewTrack[postId]) {
                 reelsViewTrack[postId] = true;
                 await updateDoc(doc(db, "posts", postId), { views: increment(1) });
                 if(ownerId) {
-                    try {
-                        await updateDoc(doc(db, "users", ownerId), { 
-                            totalImpressions: increment(1) 
-                        });
-                    } catch(uErr) { console.log("Creator profile sync skipped:", uErr); }
+                    try { await updateDoc(doc(db, "users", ownerId), { totalImpressions: increment(1) }); } catch(e){}
                 }
             }
-
             if (isMonetized && currentUser) {
                 try {
                     await addDoc(collection(db, "adImpressions"), {
-                        viewerUid: currentUser.uid,
-                        creatorUid: ownerId,
-                        postId: postId,
-                        amount: globalCPM,
-                        type: "banner-shorts-post",
-                        timestamp: serverTimestamp()
+                        viewerUid: currentUser.uid, creatorUid: ownerId, postId: postId,
+                        amount: globalCPM, type: "banner-shorts-post", timestamp: serverTimestamp()
                     });
-                } catch(e) { console.log("Ad tracking log failed:", e); }
+                } catch(e) {}
             }
         }
 
         window.handleReelTap = (v) => {
-            if(v.paused) { 
-                v.play().catch(()=>{}); 
-                if(isAudioEnabled) v.muted = false; 
-            } else {
-                v.pause();
-            }
+            if(v.paused) { v.play().catch(()=>{}); if(isAudioEnabled) v.muted = false; } else { v.pause(); }
         };
 
         window.likeReel = async (id) => {
@@ -343,7 +317,6 @@
             
             const likedArr = pSnap.data().likedBy || [];
             const isLiked = likedArr.includes(currentUser.uid);
-            
             const btn = document.getElementById(`likeBtn-${id}`);
             const countSpan = document.getElementById(`likeCount-${id}`);
 
@@ -360,6 +333,7 @@
 
         window.openComments = (id) => {
             activePostId = id;
+            document.getElementById('commentSheet').style.transform = "translateY(0)";
             document.getElementById('commentSheet').classList.add('active');
             onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("timestamp", "desc")), (snap) => {
                 const list = document.getElementById('commentList');
@@ -386,6 +360,47 @@
                 });
             });
         };
+
+        /* 📱 ফেসবুক টাইপ টান দিলে বন্ধ হওয়ার লজিক (Drag to Close Logic) */
+        const sheet = document.getElementById('commentSheet');
+        const handler = document.getElementById('commentSheet'); // পুরো শীটেই ড্র্যাগ কাজ করবে
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        sheet.addEventListener('touchstart', (e) => {
+            // কমেন্ট লিস্ট স্ক্রল করার সময় যেন ড্র্যাগ না হয়, শুধু লিস্টের ওপরের বর্ডারে বা ফাঁকা জায়গায় ধরলে কাজ করবে
+            if (e.target.closest('#commentList') && e.target.closest('#commentList').scrollTop > 0) return;
+            
+            startY = e.touches[0].clientY;
+            sheet.classList.add('dragging');
+            isDragging = true;
+        }, { passive: true });
+
+        sheet.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY - startY;
+            
+            // শুধু নিচের দিকে ড্র্যাগ করার অনুমতি দেওয়া হলো
+            if (currentY > 0) {
+                sheet.style.transform = `translateY(${currentY}px)`;
+            }
+        }, { passive: true });
+
+        sheet.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            sheet.classList.remove('dragging');
+            
+            // যদি ইউজার স্ক্রিনের ২৫% এর বেশি নিচে টেনে নামায়, তবে বন্ধ হয়ে যাবে
+            if (currentY > window.innerHeight * 0.20) {
+                window.closeComments();
+            } else {
+                // না হলে আবার আগের জায়গায় ফিরে যাবে
+                sheet.style.transform = "translateY(0)";
+            }
+            currentY = 0;
+        });
 
         window.likeComment = async (cid) => {
             if(!currentUser || !activePostId) return;
@@ -431,18 +446,17 @@
             input.value = "";
         };
 
-        window.closeComments = () => { document.getElementById('commentSheet').classList.remove('active'); window.cancelReply(); };
+        window.closeComments = () => { 
+            sheet.style.transform = "translateY(100%)";
+            sheet.classList.remove('active'); 
+            window.cancelReply(); 
+        };
 
         window.shareReel = (id) => {
             const url = window.location.origin + "/post-view.html?id=" + id;
             navigator.clipboard.writeText(url);
             Swal.fire({ 
-                title: 'Link Copied!', 
-                icon: 'success', 
-                background: '#0b0f19',
-                color: '#f1f5f9',
-                timer: 1000, 
-                showConfirmButton: false 
+                title: 'Link Copied!', icon: 'success', background: '#0b0f19', color: '#f1f5f9', timer: 1000, showConfirmButton: false 
             });
         };
     </script>
