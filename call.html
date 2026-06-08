@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Call - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #000; 
+            background: #020205; 
             color: white; 
             overflow: hidden; 
             height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
         }
         
-        /* মেইন ভিডিও স্ক্রিন */
+        /* মেইন রিমোট এইচডি ভিডিও স্ক্রিন */
         #remote-player { 
             position: absolute; 
             inset: 0; 
@@ -26,161 +27,183 @@
             height: 100%; 
             object-fit: cover; 
             z-index: 10; 
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%); 
+            background: radial-gradient(circle, #0c0f1d 0%, #020205 100%); 
+            transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* নিজের ভিডিও - এলিট গোল্ডেন ডিজাইন */
+        /* নিজের ফ্লিপ করা লোকাল ক্যামেরা উইন্ডো */
         #local-player { 
             position: absolute; 
-            top: 50px; 
+            top: 45px; 
             right: 20px; 
-            width: 115px; 
-            height: 170px; 
-            border-radius: 24px; 
+            width: 110px; 
+            height: 165px; 
+            border-radius: 20px; 
             overflow: hidden; 
             z-index: 50; 
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4); 
-            border: 2px solid #D4AF37; 
-            background: #111;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.25); 
+            border: 1.5px solid rgba(212, 175, 55, 0.6); 
+            background: #0b0f19;
             transition: all 0.3s ease;
         }
 
-        /* প্রিমিয়াম কন্ট্রোল বার */
+        /* প্রফেশনাল ফ্ল্যাশলাইট ইফেক্ট ওভারলে */
+        #night-flash-overlay {
+            position: fixed; inset: 0; background: rgba(255, 255, 255, 0);
+            z-index: 45; pointer-events: none; transition: background 0.3s ease;
+        }
+        .flash-active #night-flash-overlay {
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: inset 0 0 100px rgba(255,255,255,1);
+        }
+
+        /* কন্ট্রোল ডক বার */
         .glass-controls { 
             position: fixed; 
-            bottom: 40px; 
+            bottom: 30px; 
             left: 50%; 
             transform: translateX(-50%); 
-            width: 85%; 
-            max-width: 320px; 
-            background: rgba(15, 15, 15, 0.7); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px); 
-            border-radius: 50px; 
-            padding: 15px; 
+            width: 90%; 
+            max-width: 420px; 
+            background: rgba(11, 15, 25, 0.8); 
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px); 
+            border-radius: 35px; 
+            padding: 12px; 
             display: flex; 
             justify-content: space-around; 
             align-items: center; 
             z-index: 100;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
         }
 
         .control-btn { 
-            width: 55px; 
-            height: 55px; 
+            width: 48px; 
+            height: 48px; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 20px; 
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            font-size: 16px; 
+            transition: all 0.25s ease;
         }
 
-        /* গোল্ডেন বাটন থিম */
         .bg-blur-btn { 
-            background: rgba(212, 175, 55, 0.15); 
-            color: #D4AF37; 
-            border: 1px solid rgba(212, 175, 55, 0.4);
+            background: rgba(255, 255, 255, 0.05); 
+            color: #a0aec0; 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .bg-blur-btn.active-gold {
+            background: rgba(212, 175, 55, 0.15);
+            color: #D4AF37;
+            border-color: rgba(212, 175, 55, 0.4);
         }
         
         .bg-red-btn { 
-            background: linear-gradient(135deg, #ff3b30, #b0150d); 
+            background: linear-gradient(135deg, #ff3b30, #d6241a); 
             color: white; 
-            width: 65px; 
-            height: 65px; 
-            font-size: 24px; 
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.4);
+            width: 54px; 
+            height: 54px; 
+            font-size: 18px; 
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
         }
+        .bg-red-btn:active { transform: scale(0.92); }
 
-        .bg-red-btn:active { transform: scale(0.9); }
-
-        /* কলার ইনফো */
-        .caller-info { 
-            position: absolute; 
-            top: 65px; 
-            left: 25px; 
-            z-index: 40; 
+        /* রিয়েল-টাইম ফ্লোটিং ইন-কল চ্যাট উইন্ডো */
+        #inCallChatPanel {
+            position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
+            width: 90%; max-w: 420px; height: 260px; background: rgba(11, 15, 25, 0.92);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 24px;
+            z-index: 90; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
+        #inCallChatPanel.open { transform: translateX(-50%) translateY(0); }
 
-        .caller-name { 
-            font-size: 32px; 
-            font-weight: 800; 
-            letter-spacing: -1px; 
-            color: #fff;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        /* ফিল্টার ইন্টিগ্রেশন স্লাইডার */
+        #filterPanel {
+            position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
+            width: 90%; max-width: 420px; background: rgba(11, 15, 25, 0.9);
+            border-radius: 20px; p-3; border: 1px solid rgba(212, 175, 55, 0.15);
+            z-index: 95; transition: transform 0.3s ease; padding: 12px;
         }
+        #filterPanel.open { transform: translateX(-50%) translateY(0); }
 
-        .call-status { 
-            font-size: 11px; 
-            font-weight: 600; 
-            color: #D4AF37;
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            display: flex;
-            align-items: center;
-        }
+        /* ফিল্টার প্রিসেটস স্টাইল */
+        .filter-node { filter: none; }
+        .filter-gold { filter: sepia(0.3) saturate(1.4) hue-rotate(-10deg) contrast(1.1); }
+        .filter-cinematic { filter: contrast(1.2) saturate(1.1) brightness(0.9); }
+        .filter-retro { filter: sepia(0.5) contrast(0.95); }
+        .filter-bw { filter: grayscale(1); }
 
-        /* গোল্ডেন পালস এনিমেশন */
-        .call-status::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: #D4AF37;
-            border-radius: 50%;
-            margin-right: 10px;
-            box-shadow: 0 0 10px #D4AF37;
-            animation: goldPulse 1.5s infinite;
-        }
-
-        @keyframes goldPulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        #permission-overlay {
-            position: fixed; inset: 0; background: #000;
-            z-index: 200; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
-        }
-
-        .start-btn {
-            background: linear-gradient(135deg, #D4AF37, #8A6E2F);
-            color: black; padding: 15px 40px; border-radius: 40px;
-            font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="permission-overlay">
-        <h2 class="text-2xl font-bold mb-2">My Book Elite</h2>
-        <p class="text-gray-400 mb-8 px-10">Secure HD Video Call</p>
-        <button id="startCallBtn" class="start-btn">Start Call</button>
+    <div id="night-flash-overlay"></div>
+
+    <div id="permission-overlay" class="fixed inset-0 bg-[#020205] z-[200] flex flex-direction flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5 shadow-inner">
+            <i class="fas fa-shield-alt text-[#D4AF37] text-xl"></i>
+        </div>
+        <h2 class="text-xl font-black tracking-wider text-white uppercase">MY BOOK <span class="text-[#D4AF37]">ELITE</span></h2>
+        <p class="text-gray-400 text-xs mt-1 mb-8 font-medium tracking-wide">Secure Ultra HD 1080p Engine</p>
+        <button id="startCallBtn" class="bg-gradient-to-r from-[#D4AF37] to-[#8A6E2F] text-black font-extrabold text-xs tracking-widest uppercase px-8 py-3.5 rounded-full shadow-lg shadow-yellow-600/10 active:scale-95 transition">Accept & Enter</button>
     </div>
 
     <audio id="ringtoneAudio" loop src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3"></audio>
     <audio id="dialingAudio" loop src="https://www.soundjay.com/phone/phone-calling-1.mp3"></audio>
 
-    <div id="remote-player"></div>
+    <div id="remote-player" class="filter-node"></div>
     <div id="local-player"></div>
 
-    <div class="caller-info">
-        <h1 id="uName" class="caller-name">Connecting...</h1>
-        <p id="callStatus" class="call-status">Live Video Call</p>
+    <div class="absolute top-12 left-6 z-40">
+        <h1 id="uName" class="text-2xl font-black tracking-wide text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">Connecting...</h1>
+        <p id="callStatus" class="text-[9px] text-[#D4AF37] font-black uppercase tracking-[3px] mt-0.5 flex items-center drop-shadow-md">
+            <span class="w-2 h-2 bg-[#D4AF37] rounded-full inline-block mr-2 shadow-[0_0_8px_#D4AF37] animate-pulse"></span>Live Stream
+        </p>
+    </div>
+
+    <div id="inCallChatPanel">
+        <div class="p-3 bg-white/5 border-b border-white/5 flex justify-between items-center px-4">
+            <span class="text-xs font-bold text-[#D4AF37] tracking-wider uppercase"><i class="fas fa-comments mr-1.5"></i>Live Chat</span>
+            <button onclick="togglePanel('inCallChatPanel')" class="text-gray-500 hover:text-white text-sm"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="inCallMsgBox" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs no-scrollbar"></div>
+        <div class="p-2.5 bg-black/40 border-t border-white/5 flex gap-2 items-center">
+            <input type="text" id="inCallInput" placeholder="Type a message..." class="flex-1 bg-white/5 rounded-xl px-3 py-2 text-xs outline-none text-white placeholder-gray-500 border border-white/5">
+            <button id="inCallSendBtn" class="w-9 h-9 bg-gradient-to-r from-[#D4AF37] to-[#8A6E2F] text-black rounded-xl flex items-center justify-center font-bold text-xs"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="filterPanel">
+        <div class="flex justify-between items-center mb-2.5 px-1">
+            <span class="text-[10px] font-black text-[#D4AF37] uppercase tracking-wider"><i class="fas fa-sliders-h mr-1.5"></i>HD Video Filters</span>
+            <button onclick="togglePanel('filterPanel')" class="text-gray-500 text-xs"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            <button onclick="applyFilter('filter-node')" class="px-3 py-1.5 bg-white/5 rounded-lg text-[11px] font-bold border border-white/5 shrink-0">Normal</button>
+            <button onclick="applyFilter('filter-gold')" class="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] rounded-lg text-[11px] font-bold border border-[#D4AF37]/20 shrink-0">Elite Gold</button>
+            <button onclick="applyFilter('filter-cinematic')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg text-[11px] font-bold border border-blue-500/20 shrink-0">Cinematic</button>
+            <button onclick="applyFilter('filter-retro')" class="px-3 py-1.5 bg-orange-500/10 text-orange-400 rounded-lg text-[11px] font-bold border border-orange-500/20 shrink-0">Retro</button>
+            <button onclick="applyFilter('filter-bw')" class="px-3 py-1.5 bg-gray-500/10 text-gray-400 rounded-lg text-[11px] font-bold border border-gray-500/20 shrink-0">B&W</button>
+        </div>
     </div>
 
     <div class="glass-controls">
-        <button id="micBtn" class="control-btn bg-blur-btn"><i class="fas fa-microphone"></i></button>
+        <button id="micBtn" class="control-btn bg-blur-btn active-gold"><i class="fas fa-microphone"></i></button>
+        <button id="flashBtn" onclick="toggleFlashLight()" class="control-btn bg-blur-btn"><i class="fas fa-lightbulb"></i></button>
         <button onclick="endCall()" class="control-btn bg-red-btn"><i class="fas fa-phone-slash"></i></button>
-        <button id="camBtn" class="control-btn bg-blur-btn"><i class="fas fa-video"></i></button>
+        <button id="filterBtn" onclick="togglePanel('filterPanel')" class="control-btn bg-blur-btn"><i class="fas fa-magic"></i></button>
+        <button id="chatBtn" onclick="togglePanel('inCallChatPanel')" class="control-btn bg-blur-btn"><i class="fas fa-comment-alt"></i></button>
+        <button id="camBtn" class="control-btn bg-blur-btn active-gold"><i class="fas fa-video"></i></button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, deleteDoc, getDoc, collection, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
@@ -194,6 +217,7 @@
         const action = urlParams.get('action');
         
         let myId = null;
+        let chatID = null;
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
 
@@ -209,48 +233,78 @@
         onAuthStateChanged(auth, async user => {
             if(user) {
                 myId = user.uid;
+                chatID = [myId, targetId].sort().join("_");
                 loadTargetName();
                 listenForEnd();
+                initInCallChat();
             }
         });
+
+        // ব্রাইটনেস ফ্রন্ট প্যানেল ট্র্যাকার বাটন
+        window.toggleFlashLight = () => {
+            document.body.classList.toggle('flash-active');
+            const flashBtn = document.getElementById('flashBtn');
+            const isActive = document.body.classList.contains('flash-active');
+            flashBtn.className = `control-btn bg-blur-btn ${isActive ? 'active-gold' : ''}`;
+        };
+
+        // ফিল্টার আর্কিটেকচার সুইচার মেথড
+        window.applyFilter = (filterClass) => {
+            const player = document.getElementById('remote-player');
+            player.className = `absolute inset-0 w-full h-full object-cover z-10 ${filterClass}`;
+        };
+
+        // ইউনিভার্সাল প্যানেল ডক সুইচার টগল মেথড
+        window.togglePanel = (panelId) => {
+            const panel = document.getElementById(panelId);
+            const isOpen = panel.classList.contains('open');
+            // অন্য প্যানেলগুলো হাইড করে দাও
+            document.getElementById('filterPanel').classList.remove('open');
+            document.getElementById('inCallChatPanel').classList.remove('open');
+            if(!isOpen) panel.classList.add('open');
+        };
 
         function handleRingtone() {
             if(action === 'calling') {
                 dialing.play().catch(e => console.error(e));
-                document.getElementById('callStatus').innerText = "Dialing...";
+                document.getElementById('callStatus').innerText = "Dialing Elite...";
             } else {
                 ringtone.play().catch(e => console.error(e));
-                document.getElementById('callStatus').innerText = "Incoming...";
+                document.getElementById('callStatus').innerText = "Incoming Call...";
             }
         }
 
         async function loadTargetName() {
             if(!targetId) return;
             const snap = await getDoc(doc(db, "users", targetId));
-            if(snap.exists()) document.getElementById('uName').innerText = snap.data().name;
+            if(snap.exists()) document.getElementById('uName').innerText = snap.data().name.toUpperCase();
         }
 
         async function startAgora() {
             try {
-                const channel = [myId, targetId].sort().join("_");
+                const channel = chatID;
                 client.on("user-published", async (user, mediaType) => {
                     await client.subscribe(user, mediaType);
                     stopAllAudio();
-                    document.getElementById('callStatus').innerText = "On Call - Elite";
+                    document.getElementById('callStatus').innerText = "Secure Call • 1080p HD";
                     if (mediaType === "video") user.videoTrack.play("remote-player");
                     if (mediaType === "audio") user.audioTrack.play();
                 });
 
                 await client.join(APP_ID, channel, null, null);
                 localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
-                localTracks.video = await AgoraRTC.createCameraVideoTrack({ encoderConfig: "720p_1" });
+                
+                // 💎 প্রফেশনাল আল্ট্রা এইচডি ভিডিও কোয়ালিটি এনকোডার কনফিগারেশন সেটআপ করা হলো
+                localTracks.video = await AgoraRTC.createCameraVideoTrack({ 
+                    encoderConfig: "1080p_1" 
+                });
                 
                 localTracks.video.play("local-player");
                 await client.publish([localTracks.audio, localTracks.video]);
 
             } catch (err) {
                 console.error(err);
-                alert("Please enable camera permissions in settings.");
+                alert("Camera and Mic permissions are strictly required for Ultra HD calling.");
             }
         }
 
@@ -276,21 +330,62 @@
             window.location.href = "messages.html";
         };
 
-        // Mic/Cam Toggles
+        // রিয়েল-টাইম চ্যাট সিস্টেম (মেসেঞ্জার/হোয়াটসঅ্যাপ-স্টাইল কলের ভেতরেই)
+        function initInCallChat() {
+            const q = query(collection(db, "chats", chatID, "messages"), orderBy("timestamp", "asc"));
+            onSnapshot(q, s => {
+                const msgBox = document.getElementById('inCallMsgBox');
+                msgBox.innerHTML = "";
+                s.forEach(d => {
+                    const m = d.data();
+                    if(m.type === 'text') {
+                        const isMe = m.senderId === myId;
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'}`;
+                        msgDiv.innerHTML = `<div class="${isMe ? 'bg-[#D4AF37] text-black font-semibold' : 'bg-white/10 text-white'} px-3 py-1.5 rounded-xl max-w-[75%] break-words">${m.text}</div>`;
+                        msgBox.appendChild(msgDiv);
+                    }
+                });
+                msgBox.scrollTop = msgBox.scrollHeight;
+            });
+
+            document.getElementById('inCallSendBtn').onclick = sendInCallMessage;
+            document.getElementById('inCallInput').addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') sendInCallMessage();
+            });
+        }
+
+        async function sendInCallMessage() {
+            const input = document.getElementById('inCallInput');
+            if(!input.value.trim()) return;
+            const text = input.value;
+            input.value = "";
+
+            await addDoc(collection(db, "chats", chatID, "messages"), {
+                senderId: myId,
+                text: text,
+                type: "text",
+                timestamp: serverTimestamp()
+            });
+        }
+
+        // হার্ডওয়্যার টগলস (মাইক ও ক্যামেরা অন/অফ)
         document.getElementById('micBtn').onclick = async () => {
             if(!localTracks.audio) return;
             const state = !localTracks.audio.enabled;
             await localTracks.audio.setEnabled(state);
-            document.getElementById('micBtn').innerHTML = state ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash text-red-500"></i>';
-            document.getElementById('micBtn').style.background = state ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 59, 48, 0.1)';
+            const micBtn = document.getElementById('micBtn');
+            micBtn.innerHTML = state ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash text-red-500"></i>';
+            micBtn.className = `control-btn bg-blur-btn ${state ? 'active-gold' : ''}`;
         };
 
         document.getElementById('camBtn').onclick = async () => {
             if(!localTracks.video) return;
             const state = !localTracks.video.enabled;
             await localTracks.video.setEnabled(state);
-            document.getElementById('camBtn').innerHTML = state ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash text-red-500"></i>';
-            document.getElementById('camBtn').style.background = state ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 59, 48, 0.1)';
+            const camBtn = document.getElementById('camBtn');
+            camBtn.innerHTML = state ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash text-red-500"></i>';
+            camBtn.className = `control-btn bg-blur-btn ${state ? 'active-gold' : ''}`;
         };
     </script>
 </body>
