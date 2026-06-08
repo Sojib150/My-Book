@@ -65,7 +65,7 @@
                 const card = document.createElement('div');
                 card.className = "user-card p-3 flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50";
                 // ⚡ আপনার রিলস ও লগইন ফাইল আর্কিটেকচার অনুযায়ী লিংকটি হ্যান্ডেল করা হয়েছে
-                card.onclick = () => location.href = `profile.html?id=${user.uid}`;
+                card.onclick = () => location.href = `user.html?id=${user.uid}`;
                 card.innerHTML = `
                     <div class="flex items-center gap-3">
                         <img src="${user.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-2xl object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/100'">
