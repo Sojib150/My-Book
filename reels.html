@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         .reels-container { height: calc(100vh - 70px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
@@ -23,7 +23,7 @@
         
         /* 📱 Shorts/Reels Banner Placement */
         .bottom-ad-slot { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 85%, transparent); padding: 12px 15px 20px 15px; display: flex; flex-direction: column; justify-content: center; min-height: 70px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.25); }
-        .action-btn { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
+        .action-btn { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; items-center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
         .action-btn:active { transform: scale(0.9); }
         
         #commentSheet { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.05); color: white; }
@@ -38,6 +38,15 @@
         .nav-glass { background: rgba(8, 12, 20, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.04); }
         .nav-btn { color: #64748b; transition: all 0.25s; }
         .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
+
+        /* TikTok Style Plus Follow Button Animation */
+        .follow-plus-btn {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, 50%) scale(0); }
+            100% { transform: translate(-50%, 50%) scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -139,10 +148,16 @@
                     return;
                 }
 
+                // কারেন্ট ইউজারের ফলোয়িং লিস্ট চেক করার জন্য শর্ট ভ্যারিয়েবল
+                const myFollowing = userData?.following || [];
+
                 snap.forEach((d) => {
                     const p = d.data(); const id = d.id;
                     const isLiked = p.likedBy?.includes(currentUser?.uid);
                     const isMonetized = p.isCreatorMonetized === true;
+                    
+                    // লজিক: ক্রিয়েটর যদি নিজে না হয় এবং ফলোয়িং লিস্টে না থাকে তাহলে প্লাস বাটন দেখাবে
+                    const shouldShowFollowPlus = (p.userId !== currentUser?.uid) && !myFollowing.includes(p.userId);
 
                     const card = document.createElement('div');
                     card.className = "reel-card";
@@ -163,10 +178,20 @@
                             <button onclick="window.shareReel('${id}')" class="action-btn text-lg"><i class="fas fa-paper-plane"></i></button>
                         </div>
                         <div class="bottom-info">
-                            <div class="flex items-center gap-2.5 mb-2.5 cursor-pointer" onclick="window.location.href='profile.html?uid=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full border border-white/10 object-cover">
-                                <h4 class="text-white font-black text-xs">@${p.userName || 'creator'}</h4>
-                                ${isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-sm tracking-wider uppercase"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : ''}
+                            <div class="flex items-center gap-2.5 mb-2.5 relative">
+                                <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
+                                    <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full border border-white/20 object-cover">
+                                    
+                                    ${shouldShowFollowPlus ? `
+                                        <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px] hover:scale-110 active:scale-90 transition shadow-md">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                <div class="cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
+                                    <h4 class="text-white font-black text-xs flex items-center gap-1">@${p.userName || 'creator'}</h4>
+                                    ${isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : ''}
+                                </div>
                             </div>
                             <p class="text-white/80 text-[11px] leading-relaxed line-clamp-2">${p.text || ''}</p>
                         </div>
@@ -187,6 +212,43 @@
                 wrapper.innerHTML = '<div class="text-red-500 text-center py-40 text-xs">ERR: CORE PIPELINE INITIALIZATION FAILURE.</div>';
             }
         }
+
+        // ➕ ইনলাইন ফলো করার গ্লোবাল ফাংশন (টিকটক স্টাইল)
+        window.followCreatorInline = async (targetCreatorId) => {
+            if(!currentUser) return;
+            
+            try {
+                const myRef = doc(db, "users", currentUser.uid);
+                const targetRef = doc(db, "users", targetCreatorId);
+                
+                // ডাটাবেস আপডেট
+                await updateDoc(myRef, { following: arrayUnion(targetCreatorId) });
+                await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
+                
+                // রিলস ফিডে থাকা এই ইউজারের সব প্লাস বাটন স্ক্রিন থেকে স্মুথলি ভ্যানিশ করে দেওয়া
+                const allPlusButtons = document.querySelectorAll(`[id="followPlus-${targetCreatorId}"]`);
+                allPlusButtons.forEach(btn => {
+                    btn.style.transform = "translate(-50%, 50%) scale(0)";
+                    btn.style.transition = "transform 0.3s ease";
+                    setTimeout(() => btn.remove(), 300);
+                });
+
+                // নোটিফিকেশন পাঠানো
+                await addDoc(collection(db, "notifications"), {
+                    targetUserId: targetCreatorId,
+                    senderId: currentUser.uid,
+                    senderName: userData?.name || "Someone",
+                    senderPic: userData?.profilePic || "",
+                    type: "follow",
+                    message: "আপনাকে ফলো করা শুরু করেছেন।",
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+
+            } catch (err) {
+                console.error("Inline Follow Error:", err);
+            }
+        };
 
         function initObserver() {
             const observer = new IntersectionObserver((entries) => {
