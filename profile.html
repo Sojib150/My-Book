@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #000; -webkit-tap-highlight-color: transparent; color: #fff; margin: 0; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050508; -webkit-tap-highlight-color: transparent; color: #fff; margin: 0; overflow-x: hidden; }
         
         /* Premium Cyberpunk & Glassmorphism Theme Base */
         .neon-border { border: 1px solid rgba(99, 102, 241, 0.15); box-shadow: 0 0 15px rgba(99, 102, 241, 0.05); }
@@ -29,16 +29,16 @@
         
         .interest-tag { background: rgba(99, 102, 241, 0.1); color: #818cf8; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.15); text-transform: uppercase; }
         
-        /* Mobile Dedicated Fixed Navigation */
-        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); padding: 12px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-icon { font-size: 1.3rem; color: #6b7280; cursor: pointer; transition: all 0.2s; }
-        .nav-icon.active { color: #6366f1; text-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+        /* 📱 Universal Bottom Menu Navigation */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; background: rgba(8, 12, 20, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.04); padding: 12px 0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-btn { color: #64748b; transition: all 0.25s; }
+        .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-28 bg-[#050508]">
+<body class="pb-28">
 
-    <nav class="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-white/5 px-5 py-4 flex justify-between items-center浏览 max-w-md mx-auto">
+    <nav class="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-md border-b border-white/5 px-5 py-4 flex justify-between items-center max-w-md mx-auto">
         <div class="flex items-center gap-3">
             <button onclick="logoutUser()" class="w-9 h-9 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center active:scale-90 transition border border-red-500/20">
                 <i class="fas fa-power-off text-xs"></i>
@@ -51,7 +51,7 @@
                 <i class="fa-solid fa-headset text-xs animate-pulse"></i>
             </button>
             <button onclick="location.href='search.html'" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 active:scale-95 transition"><i class="fas fa-search text-xs"></i></button>
-            <button onclick="location.href='edit-profile.html'" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 active:scale-95 transition"><i class="fas fa-sliders-h text-xs"></i></button>
+            <button onclick="location.href='edit-profile.html'" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 active:scale-95 transition" title="Edit Profile Details"><i class="fas fa-sliders-h text-xs"></i></button>
         </div>
     </nav>
 
@@ -99,12 +99,18 @@
                 </button>
             </div>
 
-            <div class="mt-4 px-0 space-y-2">
-                <button onclick="location.href='dashboard.html'" class="w-full glass-panel hover:bg-white/5 text-gray-300 py-3 rounded-xl font-bold text-[11px] uppercase tracking-wider active:scale-98 transition flex items-center justify-center gap-2">
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                <button onclick="location.href='dashboard.html'" class="glass-panel hover:bg-white/5 text-gray-300 py-3 px-2 rounded-xl font-bold text-[10px] uppercase tracking-wider active:scale-98 transition flex items-center justify-center gap-2">
                     <i class="fas fa-chart-pie text-indigo-400 text-xs"></i>
-                    Analytics Professional Dashboard
+                    Creator Studio
                 </button>
-                
+                <button onclick="location.href='notifications.html'" class="glass-panel hover:bg-white/5 text-gray-300 py-3 px-2 rounded-xl font-bold text-[10px] uppercase tracking-wider active:scale-98 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-bell text-blue-400 text-xs"></i>
+                    Alert Hub
+                </button>
+            </div>
+
+            <div class="mt-2 px-0">
                 <button onclick="openComplaintModal()" class="w-full bg-amber-500/5 hover:bg-amber-500/10 text-amber-400/80 py-3 rounded-xl font-bold text-[11px] uppercase tracking-wider active:scale-98 transition flex items-center justify-center gap-2 border border-amber-500/10">
                     <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs"></i>
                     Report Issue / এডমিনকে কমপ্লেন করুন
@@ -168,13 +174,20 @@
         </div>
     </div>
 
-    <div class="bottom-nav max-w-md mx-auto">
-        <div onclick="location.href='reels.html'" class="text-gray-500 text-lg px-4 py-2 cursor-pointer"><i class="fas fa-home"></i></div>
-        <div onclick="location.href='search.html'" class="text-gray-500 text-lg px-4 py-2 cursor-pointer"><i class="fas fa-search"></i></div>
-        <div onclick="location.href='post.html'" class="w-11 h-11 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 transform active:scale-90 transition -mt-5 border border-indigo-400/20"><i class="fas fa-plus text-sm"></i></div>
-        <div onclick="location.href='messages.html'" class="text-gray-500 text-lg px-4 py-2 cursor-pointer"><i class="fas fa-comment-dots"></i></div>
-        <div onclick="location.href='profile.html'" class="nav-icon active text-lg px-4 py-2 cursor-pointer"><i class="fas fa-user-circle"></i></div>
-    </div>
+    <nav class="fixed bottom-0 left-0 right-0 h-20 nav-glass z-50 flex justify-around items-center px-4 max-w-md mx-auto">
+        <button onclick="location.href='reels.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-clapperboard text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Reels</span>
+        </button>
+        <button onclick="location.href='post.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-square-plus text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Create</span>
+        </button>
+        <button onclick="location.href='messages.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-comment-dots text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Messages</span>
+        </button>
+        <button onclick="location.href='profile.html'" class="nav-btn active flex flex-col items-center gap-1">
+            <i class="fa-solid fa-user text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Profile</span>
+        </button>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -198,9 +211,7 @@
 
         onAuthStateChanged(auth, user => {
             if(user) {
-                // Real-time Core Admin Connection Check
                 checkAdminClearance(user.uid);
-                
                 loadProfile(user.uid);
                 loadPosts(user.uid);
                 document.getElementById('followersBtn').onclick = () => location.href = `followers.html?id=${user.uid}`;
@@ -208,12 +219,11 @@
             } else { location.href = "index.html"; }
         });
 
-        // 🛡️ Admin Security Portal Clearance Node Connection 
         function checkAdminClearance(uid) {
             onSnapshot(doc(db, "system_admins", uid), (adminSnap) => {
                 const gatewayBtn = document.getElementById('adminGatewayBtn');
                 if (adminSnap.exists() && adminSnap.data().role === "superadmin") {
-                    gatewayBtn.classList.remove('hidden'); // শুধুমাত্র অ্যাডমিন একাউন্টেই প্যানেল বাটন শো হবে
+                    gatewayBtn.classList.remove('hidden'); 
                 } else {
                     gatewayBtn.classList.add('hidden');
                 }
@@ -233,21 +243,17 @@
                     document.getElementById('uBio').innerText = d.bio || "Hello, I am using My Book Elite Video Studio!";
                     document.getElementById('initials').innerText = name[0].toUpperCase();
 
-                    // Real-Time Creator Balance Syncing Node (Connected to admin.html Ledger)
                     document.getElementById('walletBalance').innerText = d.balance ? parseFloat(d.balance).toFixed(2) : "0.00";
 
-                    // Verified Badge Tracking Node Configuration Check
                     if(d.isVerified === true || d.role === "admin") {
                         document.getElementById('verifiedBadge').classList.remove('hidden');
                     } else {
                         document.getElementById('verifiedBadge').classList.add('hidden');
                     }
 
-                    // Stats Update
                     document.getElementById('followerCount').innerText = d.followers ? (Array.isArray(d.followers) ? d.followers.length : d.followers) : 0;
                     document.getElementById('followingCount').innerText = d.following ? (Array.isArray(d.following) ? d.following.length : d.following) : 0;
 
-                    // Interests Badges Injector
                     const interestBox = document.getElementById('interestBadges');
                     interestBox.innerHTML = "";
                     if(d.interests) {
@@ -294,13 +300,13 @@
                     }
                     
                     div.innerHTML = content;
+                    // ✅ রিডাইরেকশন লজিক একদম পারফেক্টলি ইনজেক্টেড!
                     div.onclick = () => location.href = `post-view.html?id=${d.id}`;
                     container.appendChild(div);
                 });
             });
         }
 
-        // 🚨 Report / Complaint Logging Logic Module Connected to Admin Pipeline Engine
         window.openComplaintModal = () => {
             document.getElementById('complaintMessage').value = "";
             document.getElementById('complaintModal').classList.remove('hidden');
@@ -316,19 +322,18 @@
             const user = auth.currentUser;
 
             if(!message) {
-                return Swal.fire({ icon: 'warning', title: 'Empty Log Text', text: 'দয়া করে আপনার সমস্যাটি বিস্তারিত টাইপ করুন।' });
+                return Swal.fire({ icon: 'warning', title: 'Empty Log Text', text: 'দয়া করে আপনার সমস্যাটি বিস্তারিত লিখুন।' });
             }
 
             try {
-                // Admin Real-Time Database Pipe Target
                 await addDoc(collection(db, "complaints"), {
                     userUid: user.uid,
                     userName: currentActiveUserName,
                     userEmail: user.email,
                     issueType: issueType,
                     message: message,
-                    status: "pending", // Admin panel can set this to "resolved" / "investigating"
-                    adminNotes: "",    // Space allocated for admin logs
+                    status: "pending", 
+                    adminNotes: "",    
                     timestamp: serverTimestamp()
                 });
 
