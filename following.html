@@ -9,51 +9,33 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        
-        /* প্রিমিয়াম কার্ড ডিজাইন */
-        .user-card { 
-            background: white; 
-            border-radius: 20px; 
-            transition: all 0.3s ease; 
-            border: 1px solid rgba(0,0,0,0.03); 
-        }
-        .user-card:active { transform: scale(0.96); }
-        
-        /* গ্লাস ইফেক্ট হেডার */
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
+        .user-card { background: white; border-radius: 20px; transition: 0.2s; border: 1px solid rgba(0,0,0,0.02); }
+        .user-card:active { transform: scale(0.98); }
     </style>
 </head>
 <body class="pb-10">
 
-    <nav class="sticky top-0 z-50 glass-nav border-b border-gray-100 p-5 flex items-center gap-4">
-        <button onclick="history.back()" class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-700 active:scale-90 transition">
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 p-5 flex items-center gap-4">
+        <button onclick="history.back()" class="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-700">
             <i class="fa-solid fa-arrow-left"></i>
         </button>
-        <h1 class="text-xl font-black text-gray-900 tracking-tight">Following</h1>
+        <h1 class="text-xl font-black text-gray-900">Following</h1>
     </nav>
 
     <div class="max-w-md mx-auto p-4">
         <div class="relative mb-6">
-            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
-            <input type="text" id="searchInput" placeholder="Search people you follow..." 
-                class="w-full bg-white border-none py-4 pl-12 pr-4 rounded-2xl shadow-sm outline-none text-sm font-medium focus:ring-2 focus:ring-blue-500/10 transition">
+            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="searchInput" placeholder="Search following..." 
+                class="w-full bg-white border-none py-4 pl-12 pr-4 rounded-2xl shadow-sm outline-none text-sm font-medium focus:ring-2 focus:ring-blue-500/20">
         </div>
 
-        <div id="followingList" class="space-y-3">
-            <div class="text-center py-20">
-                <i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i>
-                <p class="text-xs text-gray-400 mt-3 font-bold uppercase tracking-widest">Loading List...</p>
-            </div>
+        <div id="userList" class="space-y-3">
+            <div class="text-center py-20"><i class="fas fa-circle-notch fa-spin text-blue-600 text-2xl"></i></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // ⚡ ইন-কুয়েরি চালানোর জন্য প্রয়োজনীয় মডিউলগুলো আনা হয়েছে
         import { getFirestore, doc, getDoc, collection, query, where, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
@@ -67,65 +49,52 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetUserId = urlParams.get('id');
 
-        let allFollowingData = []; // সার্চিং এর জন্য ডাটা স্টোর রাখার গ্লোবাল অ্যারে
+        let allFollowingData = []; 
 
-        // 📂 ফলোয়িং লিস্ট রেন্ডার করার ফাংশন
         function renderFollowing(users) {
-            const container = document.getElementById('followingList');
+            const userList = document.getElementById('userList');
             if (users.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10">
-                        <p class="text-gray-400 font-bold text-sm">কোনো ব্যবহারকারী পাওয়া যায়নি</p>
-                    </div>`;
+                userList.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold text-sm">কোনো ব্যবহারকারী পাওয়া যায়নি</div>`;
                 return;
             }
 
-            container.innerHTML = "";
+            userList.innerHTML = "";
             users.forEach(user => {
                 const card = document.createElement('div');
                 card.className = "user-card p-3 flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50";
-                
-                // আপনার আর্কিটেকচার অনুযায়ী user.html পেজ লিংক রাখা হলো
                 card.onclick = () => location.href = `user.html?id=${user.uid}`;
-                
                 card.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <img src="${user.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-2xl object-cover bg-gray-100 border border-gray-50" onerror="this.src='https://via.placeholder.com/100'">
+                        <img src="${user.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-2xl object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/100'">
                         <div>
-                            <h4 class="font-bold text-[14px] text-gray-900">@${user.name}</h4>
-                            <p class="text-[9px] text-green-500 font-bold uppercase tracking-widest">${user.category || 'Member'}</p>
+                            <h4 class="font-bold text-[14px] text-gray-900">@${user.name || 'User'}</h4>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${user.category || 'Member'}</p>
                         </div>
                     </div>
-                    <div class="bg-gray-50 px-3 py-1.5 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-tighter">Profile</div>
+                    <i class="fa-solid fa-chevron-right text-gray-300 text-xs pr-2"></i>
                 `;
-                container.appendChild(card);
+                userList.appendChild(card);
             });
         }
 
-        // 🚀 ডাটাবেস থেকে অপ্টিমাইজড উপায়ে ফলোয়িং ডাটা নিয়ে আসার ফাংশন
         async function loadFollowing() {
             if(!targetUserId) {
-                document.getElementById('followingList').innerHTML = "<p class='text-center text-red-400 font-bold text-sm'>Invalid User ID!</p>";
+                document.getElementById('userList').innerHTML = `<div class="text-center py-10 text-red-500 font-bold text-sm">ইনভ্যালিড ইউজার আইডি!</div>`;
                 return;
             }
-            const container = document.getElementById('followingList');
+            const userList = document.getElementById('userList');
             
             try {
                 const userDoc = await getDoc(doc(db, "users", targetUserId));
-                
                 if (userDoc.exists()) {
+                    // ⚡ ফিক্স: ফলোয়িং ডেটা লোড করার জন্য 'following' অ্যারে রিড করা হচ্ছে
                     const followingIds = userDoc.data().following || [];
                     
                     if (followingIds.length === 0) {
-                        container.innerHTML = `
-                            <div class="text-center py-20">
-                                <i class="fa-solid fa-user-plus text-gray-200 text-5xl mb-4"></i>
-                                <p class="text-gray-400 font-bold text-sm">কাউকে ফলো করা হয়নি</p>
-                            </div>`;
+                        userList.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold text-sm">কেউ ফলো করা হচ্ছে না</div>`;
                         return;
                     }
 
-                    // ⚡ ফায়ারবেস লিমিটেশন হ্যান্ডেল করতে ৩০টি করে আইডি চাঙ্ক আকারে ভাগ করা হচ্ছে
                     const chunks = [];
                     for (let i = 0; i < followingIds.length; i += 30) {
                         chunks.push(followingIds.slice(i, i + 30));
@@ -136,22 +105,20 @@
                         const q = query(collection(db, "users"), where(documentId(), "in", chunk));
                         const querySnapshot = await getDocs(q);
                         querySnapshot.forEach(doc => {
-                            allFollowingData.push(doc.data());
+                            allFollowingData.push({ uid: doc.id, ...doc.data() });
                         });
                     }
 
-                    // প্রথমবার পেজ লোডে সব ডাটা দেখাবে
                     renderFollowing(allFollowingData);
                 } else {
-                    container.innerHTML = "<p class='text-center text-gray-400 font-bold text-sm'>ইউজার ডাটা পাওয়া যায়নি</p>";
+                    userList.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold text-sm">ইউজার পাওয়া যায়নি</div>`;
                 }
-            } catch (error) {
-                console.error("Error:", error);
-                container.innerHTML = "<p class='text-center text-red-400 font-bold text-sm'>Error loading list.</p>";
+            } catch (e) {
+                console.error("Following Pipeline Error:", e);
+                userList.innerHTML = `<div class="text-center py-10 text-red-500 font-bold text-sm">ডাটা লোড করতে সমস্যা হয়েছে।</div>`;
             }
         }
 
-        // 🔍 রিয়াল-টাইম ইনপুট সার্চ ফিল্টার লজিক
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase().trim();
             const filteredUsers = allFollowingData.filter(user => 
@@ -160,7 +127,6 @@
             renderFollowing(filteredUsers);
         });
 
-        // ইনিশিয়াল কল
         loadFollowing();
     </script>
 </body>
