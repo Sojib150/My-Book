@@ -67,8 +67,8 @@
         <button onclick="location.href='post.html'" class="nav-btn flex flex-col items-center gap-1">
             <i class="fa-solid fa-square-plus text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Create</span>
         </button>
-        <button onclick="location.href='dashboard.html'" class="nav-btn flex flex-col items-center gap-1">
-            <i class="fa-solid fa-chart-pie text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Studio</span>
+        <button onclick="location.href='messages.html'" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-comment-dots text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Messages</span>
         </button>
         <button onclick="location.href='profile.html'" class="nav-btn flex flex-col items-center gap-1">
             <i class="fa-solid fa-user text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Profile</span>
@@ -113,7 +113,7 @@
                     renderReels();
                 }
             } else { 
-                window.location.href="Login.html"; 
+                window.location.href="index.html"; 
             }
         });
 
@@ -215,7 +215,6 @@
                             }
                         }
                         
-                        // ⏱️ ৫ সেকেন্ড ওয়াচটাইম হলে সেশন ভিউ এবং ক্রিয়েটর মনিটাইজেশন ইমপ্রেশন সিঙ্ক হবে
                         viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
                     } else { 
                         vid.pause(); 
@@ -239,14 +238,9 @@
         async function handleView(postId, ownerId, isMonetized) {
             if (currentUser && ownerId === currentUser.uid) return;
             
-            // 🔄 ক্রিয়েটরের ড্যাশবোর্ডে ভিউ এবং অ্যাপের মনিটাইজেশন পলিসি সিঙ্ক লজিক
             if(!reelsViewTrack[postId]) {
                 reelsViewTrack[postId] = true;
-                
-                // ১. পোস্ট অবজেক্টের ভিউ ইনক্রিমেন্ট
                 await updateDoc(doc(db, "posts", postId), { views: increment(1) });
-                
-                // ২. ক্রিয়েটরের ইউজার ডাটাবেজ ডকুমেন্টে ভিউ যোগ (ড্যাশবোর্ড সিঙ্ক্রোনাইজেশন)
                 if(ownerId) {
                     try {
                         await updateDoc(doc(db, "users", ownerId), { 
@@ -256,7 +250,6 @@
                 }
             }
 
-            // 💳 ব্যানার অ্যাড রেভিনিউ লগিং সিস্টেম
             if (isMonetized && currentUser) {
                 try {
                     await addDoc(collection(db, "adImpressions"), {
