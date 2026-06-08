@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05070a; color: #e2e8f0; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         input { background: #0f172a !important; color: white !important; border: 1px solid #1e293b !important; border-radius: 16px; padding: 14px; outline: none; transition: 0.3s; width: 100%; }
@@ -56,7 +56,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // ⚡ increment ইমপোর্ট করা হয়েছে নিখুঁত আইপি ট্র্যাকিংয়ের জন্য
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -71,7 +72,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // IP অ্যাড্রেস চেক করার ফাংশন
         async function getIP() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -83,31 +83,34 @@
         document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('regBtn');
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const pass = document.getElementById('password').value;
 
             btn.innerText = "SECURITY CHECKING...";
             btn.disabled = true;
 
             const userIP = await getIP();
-            const safeIP = userIP.replace(/\./g, "_"); // IP তে ডট থাকলে ফায়ারবেস আইডি নিতে সমস্যা করে
+            // আইপির স্পেশাল ক্যারেক্টার এবং ডট ক্লিন করার সেফ মেথড
+            const safeIP = userIP.replace(/[\.\s:]/g, "_"); 
 
             try {
-                // ১. IP Protection (এক নেটওয়ার্ক থেকে ৩টির বেশি আইডি নয়)
-                const ipCheck = await getDoc(doc(db, "security_ips", safeIP));
-                if (ipCheck.exists() && ipCheck.data().count >= 3) {
-                    Swal.fire("Access Denied", "একই ফোন বা ওয়াইফাই থেকে অনেকগুলো আইডি খোলা হয়েছে।", "error");
-                    btn.innerText = "CREATE ACCOUNT";
-                    btn.disabled = false;
-                    return;
+                // 🛡️ ১. আইপি সিকিউরিটি গেটওয়ে চেকিং (রেজিস্ট্রেশনের আগেই ব্লক করা হবে)
+                if (safeIP !== "Unknown") {
+                    const ipCheck = await getDoc(doc(db, "security_ips", safeIP));
+                    if (ipCheck.exists() && ipCheck.data().count >= 3) {
+                        Swal.fire("Access Denied", "এই ডিভাইস বা নেটওয়ার্ক থেকে সর্বোচ্চ সংখ্যক (৩টি) অ্যাকাউন্ট অলরেডি তৈরি করা হয়েছে!", "error");
+                        btn.innerText = "CREATE ACCOUNT";
+                        btn.disabled = false;
+                        return;
+                    }
                 }
 
-                // ২. ইউজার তৈরি করা
+                // 🔑 ২. ফায়ারবেস অথেন্টিকেশন নোড ক্রিয়েশন
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
 
-                // ৩. ডাটাবেসে ইউজারের তথ্য সেভ করা (আপনার ড্যাশবোর্ড ও প্রোফাইলের জন্য)
+                // 📂 ৩. ইউজার প্রোফাইল অবজেক্ট ডাটা সিঙ্ক (ড্যাশবোর্ডের সাথে সামঞ্জস্যপূর্ণ)
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     name: name,
@@ -119,6 +122,7 @@
                     following: [],
                     isVerified: false,
                     isMonetized: false,
+                    isHardBanned: false, // ⚡ আপনার অ্যাডমিন প্যানেলের ব্যান নোডের সাথে ম্যাচ করা হয়েছে
                     profilePic: "",
                     coverPic: "",
                     bio: "Hello, I am using My Book!",
@@ -126,18 +130,35 @@
                     createdAt: serverTimestamp()
                 });
 
-                // ৪. আইপি ডাটা আপডেট
-                await setDoc(doc(db, "security_ips", safeIP), {
-                    count: (ipCheck.exists() ? ipCheck.data().count + 1 : 1),
-                    lastUser: user.uid
-                }, { merge: true });
+                // 📈 ৪. আইপি ডাটাবেস কাউন্টার এটমিক ইনক্রিমেন্ট (Race Condition ফিক্সড)
+                if (safeIP !== "Unknown") {
+                    await setDoc(doc(db, "security_ips", safeIP), {
+                        count: increment(1),
+                        lastUser: user.uid,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                }
 
-                Swal.fire("Welcome!", "অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।", "success").then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome to My Book!',
+                    text: 'আপনার অ্যাকাউন্টটি সফলভাবে তৈরি হয়েছে।',
+                    background: '#0f172a',
+                    color: '#fff',
+                    confirmButtonColor: '#6366f1'
+                }).then(() => {
                     window.location.href = "profile.html";
                 });
 
             } catch (error) {
-                Swal.fire("Error", error.message, "error");
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "এই ইমেইলটি দিয়ে অলরেডি একটি অ্যাকাউন্ট খোলা আছে।";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "পাসওয়ার্ডটি অত্যন্ত দুর্বল। অন্তত ৬টি অক্ষর ব্যবহার করুন।";
+                }
+                
+                Swal.fire("Registration Failed", errorMessage, "error");
                 btn.innerText = "CREATE ACCOUNT";
                 btn.disabled = false;
             }
