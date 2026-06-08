@@ -7,11 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .user-card { background: white; border-radius: 20px; transition: transform 0.2s; border: 1px solid rgba(0,0,0,0.02); }
+        .user-card { background: white; border-radius: 20px; transition: 0.2s; border: 1px solid rgba(0,0,0,0.02); }
         .user-card:active { transform: scale(0.98); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-10">
@@ -37,17 +36,56 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // ⚡ documentId এবং where ইমপোর্ট করা হয়েছে অপ্টিমাইজড কুয়েরির জন্য
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const urlParams = new URLSearchParams(window.location.search);
         const targetUserId = urlParams.get('id');
 
+        let allFollowersData = []; // সার্চিং ফিল্টারের জন্য গ্লোবাল অ্যারে
+
+        // 📂 ফলোয়ারদের ডাটা রেন্ডার করার ফাংশন
+        function renderFollowers(users) {
+            const userList = document.getElementById('userList');
+            if (users.length === 0) {
+                userList.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold text-sm">কোনো ব্যবহারকারী পাওয়া যায়নি</div>`;
+                return;
+            }
+
+            userList.innerHTML = "";
+            users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = "user-card p-3 flex items-center justify-between shadow-sm cursor-pointer hover:bg-slate-50";
+                // ⚡ আপনার রিলস ও লগইন ফাইল আর্কিটেকচার অনুযায়ী লিংকটি হ্যান্ডেল করা হয়েছে
+                card.onclick = () => location.href = `profile.html?id=${user.uid}`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${user.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-2xl object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/100'">
+                        <div>
+                            <h4 class="font-bold text-[14px] text-gray-900">@${user.name}</h4>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${user.category || 'Member'}</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-300 text-xs pr-2"></i>
+                `;
+                userList.appendChild(card);
+            });
+        }
+
+        // 🚀 ডাটাবেস থেকে একবারে সব ফলোয়ার নিয়ে আসার মূল ফাংশন
         async function loadFollowers() {
-            if(!targetUserId) return;
+            if(!targetUserId) {
+                document.getElementById('userList').innerHTML = `<div class="text-center py-10 text-red-500 font-bold text-sm">ইনভ্যালিড ইউজার আইডি!</div>`;
+                return;
+            }
             const userList = document.getElementById('userList');
             
             try {
@@ -60,33 +98,43 @@
                         return;
                     }
 
-                    userList.innerHTML = "";
-                    for (let uid of followersIds) {
-                        const uSnap = await getDoc(doc(db, "users", uid));
-                        if (uSnap.exists()) {
-                            const data = uSnap.data();
-                            const card = document.createElement('div');
-                            card.className = "user-card p-3 flex items-center justify-between shadow-sm cursor-pointer";
-                            card.onclick = () => location.href = `user.html?id=${uid}`;
-                            card.innerHTML = `
-                                <div class="flex items-center gap-3">
-                                    <img src="${data.profilePic || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-2xl object-cover bg-gray-100">
-                                    <div>
-                                        <h4 class="font-bold text-[14px] text-gray-900">@${data.name}</h4>
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${data.category || 'Member'}</p>
-                                    </div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-gray-300 text-xs pr-2"></i>
-                            `;
-                            userList.appendChild(card);
-                        }
+                    // ⚡ ওয়ান-টাইম অপ্টিমাইজড কুয়েরি (এক রিকোয়েস্টে সর্বোচ্চ ৩০টি ডাটা ফেচ করবে, ফায়ারবেস লিমিট অনুযায়ী)
+                    // যদি ফলোয়ার সংখ্যা ৩০ এর বেশি হয়, তবে ১০টি করে চাঙ্ক ভাগ করে আনা বেস্ট প্র্যাকটিস
+                    const chunks = [];
+                    for (let i = 0; i < followersIds.length; i += 30) {
+                        chunks.push(followersIds.slice(i, i + 30));
                     }
+
+                    allFollowersData = [];
+                    for (const chunk of chunks) {
+                        const q = query(collection(db, "users"), where(documentId(), "in", chunk));
+                        const querySnapshot = await getDocs(q);
+                        querySnapshot.forEach(doc => {
+                            allFollowersData.push(doc.data());
+                        });
+                    }
+
+                    // প্রথমবার লোডে সব ডেটা রেন্ডার হবে
+                    renderFollowers(allFollowersData);
+                } else {
+                    userList.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold text-sm">ইউজার পাওয়া যায়নি</div>`;
                 }
             } catch (e) {
                 console.error(e);
-                userList.innerHTML = "Error loading data.";
+                userList.innerHTML = `<div class="text-center py-10 text-red-500 font-bold text-sm">ডাটা লোড করতে সমস্যা হয়েছে।</div>`;
             }
         }
+
+        // 🔍 রিয়েল-টাইম সার্চ লজিক যুক্ত করা হলো
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase().trim();
+            const filteredUsers = allFollowersData.filter(user => 
+                (user.name && user.name.toLowerCase().includes(keyword))
+            );
+            renderFollowers(filteredUsers);
+        });
+
+        // ইনিশিয়াল লোড রান
         loadFollowers();
     </script>
 </body>
