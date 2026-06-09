@@ -1,81 +1,382 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>রিয়েল-টাইম চ্যাট</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Chat Elite - My Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #0a0e17; color: #ffffff; display: flex; flex-direction: column; height: 100vh; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
         
-        /* প্রফেশনাল চ্যাট হেডার */
-        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #111726; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
-        .back-user { display: flex; align-items: center; gap: 12px; }
-        .back-user a { color: #d4af37; text-decoration: none; font-size: 18px; }
-        .active-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #d4af37; }
-        .active-username { font-size: 16px; font-weight: 600; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #050508; 
+            color: white; 
+            overflow: hidden; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            -webkit-tap-highlight-color: transparent;
+        }
         
-        /* কলিং বাটন গ্রুপ (ওপরের কর্নারে) */
-        .call-actions { display: flex; gap: 18px; }
-        .call-actions a { color: #d4af37; font-size: 18px; text-decoration: none; transition: 0.2s; }
-        .call-actions a:hover { transform: scale(1.1); }
+        /* এলিট প্রিমিয়াম ব্যাকগ্রাউন্ড */
+        #chatBox { 
+            background-color: #050508;
+            background-image: radial-gradient(circle at top right, #0f1220, #050508);
+            background-size: cover; 
+            background-position: center; 
+            transition: background 0.5s ease; 
+        }
 
-        /* মেসেজিং এরিয়া */
-        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .bubble-wrapper { display: flex; flex-direction: column; max-width: 75%; }
-        .bubble-wrapper.incoming { align-self: flex-start; }
-        .bubble-wrapper.outgoing { align-self: flex-end; }
+        /* গ্লাস হেডার */
+        .chat-blur { 
+            background: rgba(11, 15, 25, 0.85); 
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px); 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
+        }
 
-        .msg-bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; }
-        .incoming .msg-bubble { background: #111726; border: 1px solid rgba(212, 175, 55, 0.05); color: #fff; border-top-left-radius: 2px; }
-        .outgoing .msg-bubble { background: linear-gradient(135deg, #d4af37 0%, #aa841e 100%); color: #0a0e17; font-weight: 500; border-top-right-radius: 2px; }
+        /* গোল্ডেন চ্যাট বাবল - আমার জন্য */
+        .msg-me { 
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
+            color: #000; 
+            border-radius: 20px 20px 4px 20px; 
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
+        }
+
+        /* ডার্ক লাক্সারি বাবল - অন্যদের জন্য */
+        .msg-them { 
+            background: rgba(255, 255, 255, 0.04); 
+            color: #fff; 
+            border-radius: 20px 20px 20px 4px; 
+            border: 1px solid rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
         
-        /* টাইম ও সিন (Seen) স্ট্যাটাস */
-        .status-row { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; color: #a0aec0; margin-top: 3px; }
-        .outgoing .status-row { color: #d4af37; }
-        .seen-tick { font-size: 11px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* বটম ইনপুট বার */
-        .input-container { padding: 12px; background: #111726; display: flex; gap: 10px; align-items: center; border-top: 1px solid rgba(212, 175, 55, 0.1); }
-        .input-container input { flex: 1; background: #0a0e17; border: 1px solid rgba(212, 175, 55, 0.2); padding: 12px 18px; border-radius: 25px; color: #ffffff; outline: none; }
-        .input-container input:focus { border-color: #d4af37; }
-        .send-message-btn { background: #d4af37; border: none; width: 44px; height: 44px; border-radius: 50%; color: #0a0e17; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* প্রিমিয়াম ইনপুট এরিয়া ফ্লোটিং টার্মিনাল */
+        .input-wrapper { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 92%; 
+            max-width: 500px; 
+            z-index: 1000; 
+        }
+        .input-area { 
+            background: rgba(11, 15, 25, 0.9); 
+            border-radius: 24px; 
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); 
+            padding: 6px 10px; 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* ড্রপডাউন অ্যাকশন মেনু */
+        #menuPanel { 
+            position: absolute; 
+            top: 75px; 
+            right: 20px; 
+            background: #0b0f19; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); 
+            display: none; 
+            z-index: 100; 
+            border: 1px solid rgba(212, 175, 55, 0.15); 
+            min-width: 220px; 
+            overflow: hidden;
+        }
+        .menu-item { 
+            padding: 14px 20px; 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: #a0aec0; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            transition: 0.25s;
+            cursor: pointer;
+        }
+        .menu-item:hover { background: rgba(212, 175, 55, 0.08); color: #D4AF37; }
+
+        /* গোল্ডেন অ্যাকশন বাটন */
+        .btn-icon { color: #D4AF37; transition: 0.25s; }
+        .btn-icon:active { transform: scale(0.9); opacity: 0.7; }
+        
+        #sendBtn { 
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
+            color: #000; 
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+
+        .status-online { background: #D4AF37; box-shadow: 0 0 12px #D4AF37; }
+
+        /* Custom Elite SweetAlert Style */
+        .elite-popup {
+            background: #0b0f19 !important;
+            border: 1px solid rgba(212, 175, 55, 0.25) !important;
+            color: #fff !important;
+            border-radius: 24px !important;
+        }
+        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; tracking-wide: 1px; }
+        .elite-confirm {
+            background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important;
+            color: #000 !important;
+            font-weight: 800 !important;
+            border-radius: 14px !important;
+            padding: 10px 24px !important;
+            font-size: 12px !important;
+        }
+        .elite-cancel {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #a0aec0 !important;
+            font-weight: 700 !important;
+            border-radius: 14px !important;
+            padding: 10px 24px !important;
+            font-size: 12px !important;
+        }
     </style>
 </head>
 <body>
 
-    <div class="chat-header">
-        <div class="back-user">
-            <a href="messages.html"><i class="fas fa-arrow-left"></i></a>
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" class="active-avatar" alt="">
-            <span class="active-username">টিনা শর্মা</span>
-        </div>
-        <div class="call-actions">
-            <a href="call.html?type=audio"><i class="fas fa-phone-alt"></i></a>
-            <a href="call.html?type=video"><i class="fas fa-video"></i></a>
-        </div>
-    </div>
-
-    <div class="chat-box">
-        <div class="bubble-wrapper incoming">
-            <div class="msg-bubble">হ্যালো, ফ্রি আছো? একটা দরকারি কথা ছিল।</div>
-            <div class="status-row"><span>10:55 PM</span></div>
-        </div>
-
-        <div class="bubble-wrapper outgoing">
-            <div class="msg-bubble">হ্যাঁ ফ্রি আছি, বলো কী বলবে।</div>
-            <div class="status-row">
-                <span>10:56 PM</span>
-                <i class="fas fa-check-double seen-tick"></i> Seen
+    <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between max-w-md w-full mx-auto shrink-0">
+        <div class="flex items-center gap-2 max-w-[70%]">
+            <a href="messages.html" class="w-9 h-9 flex items-center justify-center text-[#D4AF37] rounded-xl active:scale-90 transition"><i class="fas fa-chevron-left text-sm"></i></a>
+            <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-2.5 cursor-pointer truncate">
+                <div class="relative flex-shrink-0">
+                    <div id="uAvatar" class="w-10 h-10 bg-neutral-900 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
+                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-neutral-600 border-2 border-[#050508] rounded-full transition-all duration-500"></div>
+                </div>
+                <div class="truncate">
+                    <h2 id="uName" class="font-bold text-[13px] text-white tracking-wide truncate">LOADING...</h2>
+                    <p id="uStatusText" class="text-[8px] text-[#D4AF37] font-black uppercase tracking-[2px]">Waiting...</p>
+                </div>
             </div>
         </div>
+        
+        <div class="flex items-center gap-1.5">
+            <button onclick="startCall('audio')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-phone-alt text-xs"></i></button>
+            <button onclick="startCall('video')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-video text-xs"></i></button>
+            <button onclick="toggleMenu()" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-ellipsis-v text-xs"></i></button>
+        </div>
+
+        <div id="menuPanel">
+            <div class="menu-item border-b border-white/5" onclick="document.getElementById('wallpaperInput').click()"><i class="fas fa-image"></i> Change Elite Wallpaper</div>
+            <div class="menu-item text-red-400" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat History</div>
+        </div>
+        <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="changeWallpaper(event)">
+    </nav>
+
+    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-5 pb-36 no-scrollbar max-w-md w-full mx-auto"></div>
+
+    <div class="input-wrapper">
+        <div class="flex items-center gap-2 input-area">
+            <button onclick="document.getElementById('imageInput').click()" class="w-10 h-10 text-[#D4AF37] opacity-80 active:scale-90 transition flex items-center justify-center"><i class="fas fa-camera text-lg"></i></button>
+            <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="uploadImage(event)">
+            
+            <input type="text" id="msgInput" placeholder="Write a secure message..." class="flex-1 bg-transparent border-none py-3 px-1 text-xs outline-none text-white placeholder-gray-500 font-medium">
+            
+            <button id="sendBtn" class="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition flex-shrink-0"><i class="fas fa-paper-plane text-xs"></i></button>
+        </div>
     </div>
 
-    <div class="input-container">
-        <input type="text" placeholder="মেসেজ টাইপ করুন...">
-        <button class="send-message-btn"><i class="fas fa-paper-plane"></i></button>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            projectId: "seen-a1d92",
+            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        window.targetId = urlParams.get('id');
+        let myId = null;
+        let chatID = null;
+
+        onAuthStateChanged(auth, user => {
+            if(user) { 
+                myId = user.uid; 
+                chatID = [myId, targetId].sort().join("_");
+                loadWallpaper();
+                initChat(); 
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        window.startCall = async (type) => {
+            if(!myId || !targetId) return;
+            const mySnap = await getDoc(doc(db, "users", myId));
+            const myName = mySnap.exists() ? mySnap.data().name : "Elite Member";
+            
+            await setDoc(doc(db, "calls", targetId), {
+                callerId: myId,
+                callerName: myName,
+                status: "ringing",
+                type: type,
+                timestamp: Date.now()
+            });
+
+            window.location.href = `call.html?id=${targetId}&type=${type}&action=calling`;
+        };
+
+        window.toggleMenu = () => {
+            const menu = document.getElementById('menuPanel');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        };
+
+        window.changeWallpaper = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const url = reader.result;
+                document.getElementById('chatBox').style.backgroundImage = `url(${url})`;
+                localStorage.setItem('chat_bg_'+targetId, url);
+                toggleMenu();
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function loadWallpaper() {
+            const savedBg = localStorage.getItem('chat_bg_'+targetId);
+            if(savedBg) document.getElementById('chatBox').style.backgroundImage = `url(${savedBg})`;
+        }
+
+        window.clearChat = async () => {
+            Swal.fire({
+                title: 'CLEAR ELITE MESSAGES?',
+                text: "এই চ্যাটের সব মেসেজ ডিলিট হয়ে যাবে!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'YES, DELETE',
+                cancelButtonText: 'CANCEL',
+                customClass: {
+                    popup: 'elite-popup',
+                    title: 'elite-title',
+                    confirmButton: 'elite-confirm',
+                    cancelButton: 'elite-cancel'
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const q = query(collection(db, "chats", chatID, "messages"));
+                    const snap = await getDocs(q);
+                    snap.forEach(async (d) => {
+                        await deleteDoc(doc(db, "chats", chatID, "messages", d.id));
+                    });
+                    toggleMenu();
+                    Swal.fire({
+                        title: 'DELETED!',
+                        text: 'চ্যাট ক্লিয়ার করা হয়েছে।',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        customClass: { popup: 'elite-popup', title: 'elite-title' }
+                    });
+                }
+            });
+        };
+
+        window.uploadImage = async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "sojida_videos");
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner animate-spin text-black"></i>';
+            try {
+                const res = await fetch("https://api.cloudinary.com/v1_1/seen-a1d92/image/upload", { method: "POST", body: formData });
+                const data = await res.json();
+                if(data.secure_url) {
+                    await addDoc(collection(db, "chats", chatID, "messages"), {
+                        senderId: myId,
+                        type: "image",
+                        image: data.secure_url,
+                        timestamp: serverTimestamp()
+                    });
+                }
+            } catch (err) { 
+                Swal.fire({
+                    title: 'UPLOAD FAILED',
+                    text: 'ইমেজ আপলোড করতে সমস্যা হয়েছে!',
+                    icon: 'error',
+                    customClass: { popup: 'elite-popup', title: 'elite-title' }
+                });
+            }
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane text-xs"></i>';
+        };
+
+        async function initChat() {
+            onSnapshot(doc(db, "users", targetId), (snap) => {
+                if(snap.exists()) {
+                    const u = snap.data();
+                    document.getElementById('uName').innerText = u.name.toUpperCase();
+                    if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
+                    
+                    const isOnline = u.isOnline || u.online;
+                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
+                    document.getElementById('uStatusText').innerText = isOnline ? "Active Now" : "Offline";
+                }
+            });
+
+            const q = query(collection(db, "chats", chatID, "messages"), orderBy("timestamp", "asc"));
+            onSnapshot(q, s => {
+                const box = document.getElementById('chatBox');
+                box.innerHTML = "";
+                s.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.senderId === myId;
+                    const div = document.createElement('div');
+                    div.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
+                    let content = m.text;
+                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
+                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">${content}</div>`;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        document.getElementById('sendBtn').onclick = sendMessage;
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            if(!input.value.trim()) return;
+            const text = input.value;
+            input.value = "";
+            
+            await addDoc(collection(db, "chats", chatID, "messages"), { 
+                senderId: myId, 
+                text: text, 
+                type: "text", 
+                timestamp: serverTimestamp() 
+            });
+
+            const chatRef = doc(db, "chats", chatID);
+            const chatUpdate = {
+                lastMessage: text,
+                lastMessageTimestamp: serverTimestamp()
+            };
+
+            await updateDoc(chatRef, chatUpdate).catch(async () => {
+                await setDoc(chatRef, chatUpdate);
+            });
+        }
+
+        document.getElementById('msgInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMessage();
+        });
+    </script>
 </body>
 </html>
