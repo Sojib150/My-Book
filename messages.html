@@ -38,7 +38,7 @@
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.08);
         }
         
-        /* চ্যাট লিস্ট কার্ড - মেসেঞ্জার ওয়ান-ট্যাপ ফিডব্যাক */
+        /* চ্যাট লিস্ট কার্ড */
         .msg-card { 
             transition: all 0.2s ease; 
         }
@@ -65,7 +65,7 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* বটম绕ল এলিট নেভিগেশন বার */
+        /* বটম এলিট নেভিগেশন বার */
         .nav-elite {
             background: rgba(11, 15, 25, 0.85);
             backdrop-filter: blur(25px);
@@ -162,7 +162,6 @@
                 userSnap.forEach(d => {
                     cachedUsers[d.id] = { id: d.id, ...d.data() };
                 });
-                
                 renderActiveStories(myId);
                 loadRecentChats(myId);
             });
@@ -174,6 +173,7 @@
             
             Object.values(cachedUsers).forEach(u => {
                 if(u.id !== myId) {
+                    const isOnline = u.isOnline || u.online;
                     container.innerHTML += `
                         <a href="chat.html?id=${u.id}" class="story-node flex-shrink-0 text-center w-14 group active:scale-90 transition">
                             <div class="w-[56px] h-[56px] active-story-ring mx-auto mb-1 relative p-[1.5px]">
@@ -182,7 +182,7 @@
                                         ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-[#D4AF37] text-sm">${u.name?.[0] || '?'}</div>`}
                                     </div>
                                 </div>
-                                ${u.isOnline || u.online ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#D4AF37] border-2 border-[#050508] rounded-full"></div>` : ''}
+                                ${isOnline ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#D4AF37] border-2 border-[#050508] rounded-full"></div>` : ''}
                             </div>
                             <p class="story-name text-[10px] font-medium text-gray-400 truncate px-0.5">${u.name?.split(' ')[0] || 'User'}</p>
                         </a>`;
@@ -194,13 +194,11 @@
             }
         }
 
-        // মেসেঞ্জার ইন্টেলিজেন্ট সোর্টিং ইঞ্জিন (মেসেজ বা কল ইভেন্ট আপডেটে অটো টপ-আপ পজিশন)
         function loadRecentChats(myId) {
             onSnapshot(collection(db, "chats"), async (snapshot) => {
                 const list = document.getElementById('chatList');
                 let chatData = [];
 
-                // ফায়ারবেস চ্যাট এবং কল রিয়েল-টাইম কম্বাইন্ড ট্র্যাকিং লাস্ট টাইমস্ট্যাম্প
                 const promises = snapshot.docs.map(async (chatDoc) => {
                     const ids = chatDoc.id.split('_');
                     if(ids.includes(myId)) {
@@ -213,27 +211,28 @@
                         const uData = cachedUsers[targetId];
                         
                         if(uData) {
-                            // ১. ইন-কল বা ডাইনামিক মেসেজ ট্র্যাকিং
                             let hasUnread = false;
                             const msgQuery = query(collection(db, "chats", chatDoc.id, "messages"), orderBy("timestamp", "desc"), limit(1));
                             const msgSnap = await getDocs(msgQuery);
+                            
                             if(!msgSnap.empty) {
                                 const lastMsgData = msgSnap.docs[0].data();
                                 if(lastMsgData.senderId !== myId && lastMsgData.isSeen === false) {
                                     hasUnread = true;
                                 }
-                                // যদি রিয়েল-টাইম মেসেজের নিজস্ব টাইমস্ট্যাম্প ডক মেটাডাটার চেয়ে নতুন হয়
                                 if(lastMsgData.timestamp?.toMillis() > lastTime) {
                                     lastTime = lastMsgData.timestamp.toMillis();
                                 }
                             }
 
-                            // ২. কল ট্রিগার চেকিং (ইনকামিং বা আউটগোয়িং কল থাকলে সোর্টিং টাইম বুস্ট হবে)
+                            // কল স্ট্যাটাস রিয়েল-টাইম চেকিং ও শর্টিং পুশ
                             const callSnap = await getDoc(doc(db, "calls", targetId)).catch(()=>{});
                             if(callSnap && callSnap.exists()) {
                                 const callData = callSnap.data();
-                                lastMsg = `<i class="fas fa-video text-[#D4AF37] mr-1"></i> ${callData.status === 'connected' ? 'Active Call...' : 'Calling...'}`;
-                                lastTime = Date.now(); // কল একটিভ থাকা অবস্থায় এটি লিস্টের সবার শীর্ষে ফোর্স পুশ করবে
+                                if(callData.status === 'dialing' || callData.status === 'connected') {
+                                    lastMsg = `<span class="text-[#D4AF37]"><i class="fas fa-video mr-1 animate-pulse"></i> Call Active...</span>`;
+                                    lastTime = Date.now(); 
+                                }
                             }
 
                             return { ...uData, lastMsg, lastTime, hasUnread };
@@ -245,7 +244,7 @@
                 const results = await Promise.all(promises);
                 chatData = results.filter(c => c !== null);
 
-                // মেসেঞ্জার অ্যালগরিদম সোর্টিং: যার সর্বশেষ মেসেজ/কল ইভেন্ট নতুন, সে সবার উপরে থাকবে
+                // মেসেঞ্জারের মূল শর্টিং লজিক
                 chatData.sort((a, b) => b.lastTime - a.lastTime);
 
                 list.innerHTML = chatData.length === 0 ? `<div class="text-center py-20 text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Conversations</div>` : "";
@@ -271,14 +270,13 @@
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-[12px] ${u.hasUnread ? 'text-white font-bold' : 'text-gray-400'} truncate flex-1 font-medium">${u.lastMsg}</p>
                                     ${u.hasUnread ? `<div class="unread-dot flex-shrink-0"></div>` : ''}
-                                }
+                                </div>
                             </div>
                         </a>`;
                 });
             });
         }
 
-        // গ্লোবাল মাস্টার সার্চ ফিল্টারিং মেকানিজম
         document.getElementById('chatSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             
