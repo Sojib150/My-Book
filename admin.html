@@ -225,7 +225,7 @@
         const MASTER_ADMIN_UID = "EV18nmlS4vaq3tuPFmUTvf0wHe13"; 
         let mStatus = false;
         let activeTargetUserId = null; 
-        let cachedUsersList = []; // ⚡ মেমোরি এবং রিড লুপ অপ্টিমাইজেশন ক্যাশিং অবজেক্ট
+        let cachedUsersList = []; 
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -266,7 +266,6 @@
             event.currentTarget.classList.add('tab-active');
         };
 
-        // ⚡ ইউজার ইন্টারফেস রেন্ডারিং মেকানিজম (মেমোরি সেভ মেথড)
         function renderUsers(usersArray) {
             const grid = document.getElementById('userGrid'); 
             grid.innerHTML = "";
@@ -302,7 +301,7 @@
         }
 
         function initSupremeSystem() {
-            // 🛡️ ১. স্ন্যাপশট রিসোর্স লুপ হোল ফিক্সড (লিসেনার আলাদা করা হয়েছে)
+            // ১. রিয়েল-টাইম ইউজার লিসেনার ও ক্যাশিং
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 cachedUsersList = [];
@@ -311,20 +310,19 @@
                     cachedUsersList.push({ id: d.id, data: d.data() });
                 });
                 
-                // ইনিশিয়াল রেন্ডার
                 const filterText = document.getElementById('uSearch').value.toLowerCase();
                 const filtered = cachedUsersList.filter(u => (u.data.name || 'Anonymous User').toLowerCase().includes(filterText));
                 renderUsers(filtered);
             });
 
-            // ⚡ ২. ক্লায়েন্ট-সাইড ফিল্টারিং মেকানিজম (সার্ভার রিকোয়েস্ট ০ করা হয়েছে)
+            // ২. ক্লায়েন্ট-সাইড মেমোরি সার্চ ফিল্টারিং 
             document.getElementById('uSearch').oninput = (e) => {
                 const searchVal = e.target.value.toLowerCase();
                 const filtered = cachedUsersList.filter(u => (u.data.name || 'Anonymous User').toLowerCase().includes(searchVal));
                 renderUsers(filtered);
             };
 
-            // ৩. গ্লোবাল ওয়াচটাওয়ার কন্টেন্ট স্ট্রিম লিসেনার
+            // ৩. গ্লোবাল ওয়াচটাওয়ার রিলস ও পোস্ট মনিটর স্ট্রিম
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 const postGrid = document.getElementById('globalPostGrid');
                 postGrid.innerHTML = "";
@@ -335,18 +333,18 @@
                     
                     let mediaRender = "";
                     if(p.fileUrl) {
-                        if(p.fileType === 'video') {
+                        if(p.fileType === 'video' || p.isVideo) {
                             mediaRender = `<div class="relative h-28 bg-black rounded-xl overflow-hidden"><video src="${p.fileUrl}" class="w-full h-full object-cover" muted></video><div class="absolute bottom-2 right-2 w-5 h-5 bg-black/60 rounded-md flex items-center justify-center text-white text-[8px]"><i class="fas fa-play"></i></div></div>`;
                         } else {
                             mediaRender = `<img src="${p.fileUrl}" class="w-full h-28 object-cover rounded-xl bg-black">`;
                         }
                     } else {
-                        mediaRender = `<div class="h-28 rounded-xl bg-gradient-to-tr from-slate-900 to-indigo-950 p-2 flex items-center justify-center text-center text-[9px] font-bold text-indigo-200 line-clamp-3">${p.text || 'CAPTION EMPTY'}</div>`;
+                        mediaRender = `<div class="h-28 rounded-xl bg-gradient-to-tr from-slate-900 to-indigo-950 p-2 flex items-center justify-center text-center text-[9px] font-bold text-indigo-200 line-clamp-3">${p.text || p.caption || 'CAPTION EMPTY'}</div>`;
                     }
 
                     pCard.innerHTML = `
                         <div class="flex items-center gap-1.5 truncate">
-                            <img src="${p.userPic || 'https://via.placeholder.com/100'}" class="w-5 h-5 rounded-full object-cover border border-white/10">
+                            <img src="${p.userPic || p.profilePic || 'https://via.placeholder.com/100'}" class="w-5 h-5 rounded-full object-cover border border-white/10">
                             <span class="text-[9px] font-bold text-gray-400 truncate">@${p.userName || 'creator'}</span>
                         </div>
                         ${mediaRender}
@@ -359,7 +357,7 @@
                 });
             });
 
-            // 8. মেইনটেন্যান্স ওভাররাইড রিয়েল-টাইম কানেকশন
+            // ৪. মেইনটেন্যান্স ওভাররাইড রিয়েল-টাইম কানেকশন
             onSnapshot(doc(db, "appSettings", "maintenance"), d => {
                 if(d.exists()) {
                     mStatus = d.data().isOn;
@@ -377,11 +375,12 @@
                 } 
             });
 
-            // ৬. প্ল্যাটফর্ম গ্লোবাল এলগরিদম CPM ট্র্যাকার লিসেনার
+            // ৬. প্ল্যাটফর্ম গ্লোবাল এলগরিদম CPM ট্র্যাকার লিসেনার (Fixed to algorithmic database match)
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { 
                 if(d.exists()) {
-                    document.getElementById('displayCPM').innerText = "৳" + parseFloat(d.data().trendBoost || 0).toFixed(2);
-                    document.getElementById('cpmRateInput').value = d.data().trendBoost || 0;
+                    const cpmVal = parseFloat(d.data().trendBoost || 0);
+                    document.getElementById('displayCPM').innerText = "৳" + cpmVal.toFixed(4);
+                    document.getElementById('cpmRateInput').value = cpmVal;
                 }
             });
 
@@ -401,7 +400,7 @@
                     card.className = "p-4 border border-white/5 rounded-xl space-y-3 glass bg-black/20";
                     card.innerHTML = `
                         <div class="flex justify-between items-center font-black text-xs">
-                            <span class="text-amber-400 uppercase tracking-widest text-[10px] bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/10">${r.method}</span>
+                            <span class="text-amber-400 uppercase tracking-widest text-[10px] bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/10">${r.method || 'Bkash/Nagad'}</span>
                             <span class="text-white">৳${parseFloat(r.amount).toFixed(2)}</span>
                         </div>
                         <p class="text-[10px] text-gray-400 break-all font-mono bg-black/40 p-2 rounded-lg border border-white/5">${r.accountDetails || r.number || 'Missing Routing Parameters'}</p>
@@ -470,20 +469,32 @@
             });
         }
 
-        // Functional Operations Logic
+        // --- Core Functional Operations ---
         window.deleteAnyPost = async (id) => {
             if(confirm('Purge this content payload node permanently?')) await deleteDoc(doc(db, "posts", id));
         };
 
+        // 🛡️ মনিটাইজেশন অন/অফ ট্র্যাকার লজিক (রিলস পেজের সাথে ম্যাচ করার জন্য ফিক্সড)
         window.toggleMonetize = async (uid, currentStatus) => {
-            const newStatus = !currentStatus;
-            await updateDoc(doc(db, "users", uid), { isMonetized: newStatus });
-            const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
-            const snap = await getDocs(postQuery);
-            const batch = writeBatch(db);
-            snap.forEach(p => batch.update(doc(db, "posts", p.id), { isCreatorMonetized: newStatus }));
-            await batch.commit();
-            Swal.fire({ icon: 'success', title: 'Ledger Swapped', text: 'User Profile & Posts Sync Complete' });
+            try {
+                const newStatus = !currentStatus;
+                await updateDoc(doc(db, "users", uid), { isMonetized: newStatus });
+                
+                // ব্যবহারকারীর সকল পোস্টের ইন-স্ট্রিম ফ্ল্যাগ সিঙ্ক করা হচ্ছে
+                const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
+                const snap = await getDocs(postQuery);
+                const batch = writeBatch(db);
+                snap.forEach(p => {
+                    batch.update(doc(db, "posts", p.id), { 
+                        isCreatorMonetized: newStatus,
+                        isMonetized: newStatus // রিলস ইঞ্জিনের সহজ ট্র্যাকিং ভেরিয়েবল
+                    });
+                });
+                await batch.commit();
+                Swal.fire({ icon: 'success', title: 'Ledger Swapped', text: 'User Profile & All Reels Video Tracks Synchronized!' });
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Sync Error', text: err.message });
+            }
         };
 
         window.processPayout = async (docId, status, uid = null, amt = 0) => {
@@ -510,7 +521,11 @@
 
         window.updateCPM = async () => {
             const val = parseFloat(document.getElementById('cpmRateInput').value) || 0;
-            await setDoc(doc(db, "appSettings", "algorithm"), { trendBoost: val }, { merge: true });
+            // রিলস পেজে যাতে ইনকাম ট্র্যাকিং করতে পারে তাই গ্লোবাল ভ্যালু ও ট্রেন্ড বুস্ট দুটিই রাইট করা হচ্ছে
+            await setDoc(doc(db, "appSettings", "algorithm"), { 
+                trendBoost: val,
+                globalCPM: val 
+            }, { merge: true });
             Swal.fire({ icon: 'success', title: 'Algorithm Adjusted', text: 'Global System CPM value updated successfully.' });
         };
 
@@ -561,7 +576,6 @@
             activeTargetUserId = null; 
         };
 
-        // 🛡️ লগইন গেটওয়ের সাথে ম্যাচ করার জন্য ফিল্ড ফিক্সড (`isHardBanned`)
         window.hardBanUser = async (id) => { 
             if(confirm('Exile this user account configuration permanently from node network?')) {
                 await updateDoc(doc(db, "users", id), { isHardBanned: true }); 
@@ -569,7 +583,6 @@
             }
         };
 
-        // ⚡ ৫০০+ ইউজার চাঙ্কিং টেকনিকসহ ব্রডকাস্ট সিস্টেম (ফায়ারবেস সেফ ব্যাচ মেথড)
         window.sendBroadcast = async () => {
             const msg = document.getElementById('broadcastMsg').value.trim();
             if(!msg) return;
@@ -586,7 +599,7 @@
                     batch.set(notifRef, { message: msg, type: "admin", time: serverTimestamp(), status: "unread" });
                     count++;
 
-                    if (count === 400) { // ৫০০ লিমিট ক্রস করার আগেই সেভ চাঙ্ক কমিক করা হচ্ছে
+                    if (count === 400) { 
                         await batch.commit();
                         batch = writeBatch(db);
                         count = 0;
@@ -602,7 +615,6 @@
             }
         };
 
-        // ⚡ ৫০০+ ইউজার চাঙ্কিং টেকনিকসহ ব্যালেন্স রিসেট ইঞ্জিন
         window.resetAllBalances = async () => {
             if(!confirm('🚨 CRITICAL WARNING: Wipe and set ALL system account ledger balances back to 0?')) return;
             
