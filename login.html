@@ -95,7 +95,6 @@ body{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// 📌 এখানে collection, query, where, onSnapshot ইম্পোর্ট করা হয়েছে গ্লোবাল লাইভ কল ট্র্যাকিংয়ের জন্য
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
@@ -119,6 +118,21 @@ try { messaging = getMessaging(app); } catch(e) { console.log("FCM Not Supported
 const msg = document.getElementById("msg");
 const loginBtn = document.getElementById("loginBtn");
 
+// 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE
+function syncUserWithOneSignal(uid) {
+    if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
+        window.gonative.push.onesignal.setExternalUserId(uid, function(result){
+            if(result.success) {
+                console.log("OneSignal Native External ID Linked for UID:", uid);
+            } else {
+                console.log("OneSignal Sync Failed.");
+            }
+        });
+    } else {
+        console.log("Running in standard browser. Median Native Bridge not active.");
+    }
+}
+
 // 🛡️ SECURE AUTO LOGIN (Banned/Pending ইউজার ভ্যালিডেশন এবং 🚨 লাইভ কল লিসেনার যুক্ত)
 onAuthStateChanged(auth, async (user) => {
     if(user){
@@ -131,8 +145,10 @@ onAuthStateChanged(auth, async (user) => {
                     return;
                 }
                 
+                // 📱 নেটিভ নোটিফিকেশন সিস্টেমের সাথে ফায়ারবেস UID সিঙ্ক করা হচ্ছে
+                syncUserWithOneSignal(user.uid);
+                
                 // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন
-                // ইউজার অ্যাপে থাকা অবস্থায় ফায়ারবেসের "calls" কলেকশনে তার আইডিতে কোনো 'ringing' কল আসলে তা ট্র্যাক করবে
                 const inboundCallQuery = query(
                     collection(db, "calls"),
                     where("receiverId", "==", user.uid),
@@ -144,7 +160,6 @@ onAuthStateChanged(auth, async (user) => {
                         const callData = changeDoc.data();
                         const callId = changeDoc.id;
 
-                        // ইনকামিং কল ডিটেক্ট হওয়ামাত্রই ইউজারকে সরাসরি রিংটোনসহ কলিং পেজে ট্রান্সমিট করে দেওয়া হবে
                         window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
                     });
                 });
@@ -182,7 +197,6 @@ async function setupNotifications(uid){
             vapidKey:"BN-grjGNFoN-TIiiEvRUYqAjDE_Sq21ZAEvB_7q-fT2nIMHsAkyrV0cIST4Q__PHMDc4xTdhI6g6V9Iua4T7Bdo"
         });
         if(token){
-            // setDoc-এর সাথে merge: true ব্যবহার করায় ফিল্ড ক্রিয়েট না থাকলেও এরর আসবে না
             await setDoc(doc(db,"users",uid), { fcmToken: token }, { merge: true });
             console.log("Notification Token Saved Successfully");
         }
@@ -232,12 +246,16 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
             // POST LOGIN OPERATIONS
             await setupNotifications(user.uid);
+            
+            // 📱 সফলভাবে ফর্ম সাবমিট করে লগইন করলে ওয়ানসিগন্যাল ইঞ্জিন ফায়ার করা হচ্ছে
+            syncUserWithOneSignal(user.uid);
+            
             await deleteDoc(doc(db,"calls",user.uid)).catch(()=>{});
 
             msg.innerText = "Login Successful!";
             msg.style.color = "lime";
 
-            setTimeout(() => { window.location.href = "home.html"; }, 1000);
+            setTimeout(() => { window.location.href = "reels.html"; }, 1000);
         } else {
             msg.innerText = "User data not found on server!";
             msg.style.color = "red";
