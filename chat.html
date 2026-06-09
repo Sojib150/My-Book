@@ -2,381 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Chat Elite - My Book</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Session - Bondo AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #050508; 
-            color: white; 
-            overflow: hidden; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* এলিট প্রিমিয়াম ব্যাকগ্রাউন্ড */
-        #chatBox { 
-            background-color: #050508;
-            background-image: radial-gradient(circle at top right, #0f1220, #050508);
-            background-size: cover; 
-            background-position: center; 
-            transition: background 0.5s ease; 
-        }
-
-        /* গ্লাস হেডার */
-        .chat-blur { 
-            background: rgba(11, 15, 25, 0.85); 
-            backdrop-filter: blur(25px); 
-            -webkit-backdrop-filter: blur(25px); 
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
-        }
-
-        /* গোল্ডেন চ্যাট বাবল - আমার জন্য */
-        .msg-me { 
-            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
-            color: #000; 
-            border-radius: 20px 20px 4px 20px; 
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
-        }
-
-        /* ডার্ক লাক্সারি বাবল - অন্যদের জন্য */
-        .msg-them { 
-            background: rgba(255, 255, 255, 0.04); 
-            color: #fff; 
-            border-radius: 20px 20px 20px 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.03); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-
-        /* প্রিমিয়াম ইনপুট এরিয়া ফ্লোটিং টার্মিনাল */
-        .input-wrapper { 
-            position: fixed; 
-            bottom: 20px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 92%; 
-            max-width: 500px; 
-            z-index: 1000; 
-        }
-        .input-area { 
-            background: rgba(11, 15, 25, 0.9); 
-            border-radius: 24px; 
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); 
-            padding: 6px 10px; 
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* ড্রপডাউন অ্যাকশন মেনু */
-        #menuPanel { 
-            position: absolute; 
-            top: 75px; 
-            right: 20px; 
-            background: #0b0f19; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); 
-            display: none; 
-            z-index: 100; 
-            border: 1px solid rgba(212, 175, 55, 0.15); 
-            min-width: 220px; 
-            overflow: hidden;
-        }
-        .menu-item { 
-            padding: 14px 20px; 
-            font-size: 12px; 
-            font-weight: 700; 
-            color: #a0aec0; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            transition: 0.25s;
-            cursor: pointer;
-        }
-        .menu-item:hover { background: rgba(212, 175, 55, 0.08); color: #D4AF37; }
-
-        /* গোল্ডেন অ্যাকশন বাটন */
-        .btn-icon { color: #D4AF37; transition: 0.25s; }
-        .btn-icon:active { transform: scale(0.9); opacity: 0.7; }
-        
-        #sendBtn { 
-            background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
-            color: #000; 
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
-        }
-
-        .status-online { background: #D4AF37; box-shadow: 0 0 12px #D4AF37; }
-
-        /* Custom Elite SweetAlert Style */
-        .elite-popup {
-            background: #0b0f19 !important;
-            border: 1px solid rgba(212, 175, 55, 0.25) !important;
-            color: #fff !important;
-            border-radius: 24px !important;
-        }
-        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; tracking-wide: 1px; }
-        .elite-confirm {
-            background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important;
-            color: #000 !important;
-            font-weight: 800 !important;
-            border-radius: 14px !important;
-            padding: 10px 24px !important;
-            font-size: 12px !important;
-        }
-        .elite-cancel {
-            background: rgba(255, 255, 255, 0.05) !important;
-            color: #a0aec0 !important;
-            font-weight: 700 !important;
-            border-radius: 14px !important;
-            padding: 10px 24px !important;
-            font-size: 12px !important;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050508; color: #e2e8f0; }
+        .glass { background: rgba(11, 15, 25, 0.75); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
+        .msg-inbound { background: rgba(255,255,255,0.04); border-radius: 18px 18px 18px 4px; border: 1px solid rgba(255,255,255,0.02); }
+        .msg-outbound { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border-radius: 18px 18px 4px 18px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2); }
     </style>
 </head>
-<body>
+<body class="h-screen flex flex-col justify-between bg-[#050508] overflow-hidden">
 
-    <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between max-w-md w-full mx-auto shrink-0">
-        <div class="flex items-center gap-2 max-w-[70%]">
-            <a href="messages.html" class="w-9 h-9 flex items-center justify-center text-[#D4AF37] rounded-xl active:scale-90 transition"><i class="fas fa-chevron-left text-sm"></i></a>
-            <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-2.5 cursor-pointer truncate">
-                <div class="relative flex-shrink-0">
-                    <div id="uAvatar" class="w-10 h-10 bg-neutral-900 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
-                    <div id="statusDot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-neutral-600 border-2 border-[#050508] rounded-full transition-all duration-500"></div>
-                </div>
-                <div class="truncate">
-                    <h2 id="uName" class="font-bold text-[13px] text-white tracking-wide truncate">LOADING...</h2>
-                    <p id="uStatusText" class="text-[8px] text-[#D4AF37] font-black uppercase tracking-[2px]">Waiting...</p>
-                </div>
+    <header class="glass px-4 py-3 border-b border-white/5 flex justify-between items-center z-50">
+        <div class="flex items-center gap-3 truncate max-w-[60%]">
+            <button onclick="location.href='messages.html'" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400"><i class="fas fa-arrow-left text-xs"></i></button>
+            <img id="targetPic" src="https://via.placeholder.com/100" class="w-9 h-9 rounded-xl object-cover border border-white/10 bg-black">
+            <div class="truncate">
+                <h2 id="targetName" class="font-black text-xs text-white truncate">Loading User...</h2>
+                <p id="targetStatus" class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Secure Node</p>
             </div>
         </div>
         
-        <div class="flex items-center gap-1.5">
-            <button onclick="startCall('audio')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-phone-alt text-xs"></i></button>
-            <button onclick="startCall('video')" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-video text-xs"></i></button>
-            <button onclick="toggleMenu()" class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center btn-icon border border-white/5"><i class="fas fa-ellipsis-v text-xs"></i></button>
+        <div class="flex gap-2">
+            <button onclick="initiateCall('audio')" class="w-9 h-9 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl flex items-center justify-center transition border border-emerald-500/10"><i class="fas fa-phone text-xs"></i></button>
+            <button onclick="initiateCall('video')" class="w-9 h-9 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-xl flex items-center justify-center transition border border-indigo-500/10"><i class="fas fa-video text-xs"></i></button>
         </div>
+    </header>
 
-        <div id="menuPanel">
-            <div class="menu-item border-b border-white/5" onclick="document.getElementById('wallpaperInput').click()"><i class="fas fa-image"></i> Change Elite Wallpaper</div>
-            <div class="menu-item text-red-400" onclick="clearChat()"><i class="fas fa-trash-alt"></i> Clear Chat History</div>
+    <main id="chatStream" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
+        </main>
+
+    <footer class="p-3 bg-[#050508] border-t border-white/5">
+        <div class="flex items-center gap-2 max-w-md mx-auto relative">
+            <input type="text" id="msgInput" placeholder="Type encrypted message node..." class="w-full bg-black/50 text-xs text-white border border-white/5 rounded-2xl pl-4 pr-12 py-3.5 outline-none focus:border-indigo-500 transition">
+            <button id="sendBtn" class="absolute right-2 top-2 w-9 h-9 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center transition active:scale-95"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
-        <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="changeWallpaper(event)">
-    </nav>
-
-    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-5 pb-36 no-scrollbar max-w-md w-full mx-auto"></div>
-
-    <div class="input-wrapper">
-        <div class="flex items-center gap-2 input-area">
-            <button onclick="document.getElementById('imageInput').click()" class="w-10 h-10 text-[#D4AF37] opacity-80 active:scale-90 transition flex items-center justify-center"><i class="fas fa-camera text-lg"></i></button>
-            <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="uploadImage(event)">
-            
-            <input type="text" id="msgInput" placeholder="Write a secure message..." class="flex-1 bg-transparent border-none py-3 px-1 text-xs outline-none text-white placeholder-gray-500 font-medium">
-            
-            <button id="sendBtn" class="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition flex-shrink-0"><i class="fas fa-paper-plane text-xs"></i></button>
-        </div>
-    </div>
+    </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
-            projectId: "seen-a1d92",
-            appId: "1:868584044532:web:51f07436a883f88332eba1" 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1"
         };
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         const urlParams = new URLSearchParams(window.location.search);
-        window.targetId = urlParams.get('id');
-        let myId = null;
-        let chatID = null;
+        let roomId = urlParams.get('roomId');
+        const targetId = urlParams.get('targetId');
+        let currentUserId = null;
 
-        onAuthStateChanged(auth, user => {
-            if(user) { 
-                myId = user.uid; 
-                chatID = [myId, targetId].sort().join("_");
-                loadWallpaper();
-                initChat(); 
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                if (!roomId && targetId) { roomId = generateRoomId(currentUserId, targetId); }
+                loadTargetProfile();
+                listenMessages();
+                clearUnreadCounter();
             } else {
-                window.location.href = "index.html";
+                window.location.href = "login.html";
             }
         });
 
-        window.startCall = async (type) => {
-            if(!myId || !targetId) return;
-            const mySnap = await getDoc(doc(db, "users", myId));
-            const myName = mySnap.exists() ? mySnap.data().name : "Elite Member";
-            
-            await setDoc(doc(db, "calls", targetId), {
-                callerId: myId,
-                callerName: myName,
-                status: "ringing",
-                type: type,
-                timestamp: Date.now()
-            });
-
-            window.location.href = `call.html?id=${targetId}&type=${type}&action=calling`;
-        };
-
-        window.toggleMenu = () => {
-            const menu = document.getElementById('menuPanel');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        };
-
-        window.changeWallpaper = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = () => {
-                const url = reader.result;
-                document.getElementById('chatBox').style.backgroundImage = `url(${url})`;
-                localStorage.setItem('chat_bg_'+targetId, url);
-                toggleMenu();
-            };
-            reader.readAsDataURL(file);
-        };
-
-        function loadWallpaper() {
-            const savedBg = localStorage.getItem('chat_bg_'+targetId);
-            if(savedBg) document.getElementById('chatBox').style.backgroundImage = `url(${savedBg})`;
+        function generateRoomId(uid1, uid2) {
+            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
         }
 
-        window.clearChat = async () => {
-            Swal.fire({
-                title: 'CLEAR ELITE MESSAGES?',
-                text: "এই চ্যাটের সব মেসেজ ডিলিট হয়ে যাবে!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'YES, DELETE',
-                cancelButtonText: 'CANCEL',
-                customClass: {
-                    popup: 'elite-popup',
-                    title: 'elite-title',
-                    confirmButton: 'elite-confirm',
-                    cancelButton: 'elite-cancel'
-                }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    const q = query(collection(db, "chats", chatID, "messages"));
-                    const snap = await getDocs(q);
-                    snap.forEach(async (d) => {
-                        await deleteDoc(doc(db, "chats", chatID, "messages", d.id));
-                    });
-                    toggleMenu();
-                    Swal.fire({
-                        title: 'DELETED!',
-                        text: 'চ্যাট ক্লিয়ার করা হয়েছে।',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false,
-                        customClass: { popup: 'elite-popup', title: 'elite-title' }
-                    });
-                }
-            });
-        };
-
-        window.uploadImage = async (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", "sojida_videos");
-            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner animate-spin text-black"></i>';
-            try {
-                const res = await fetch("https://api.cloudinary.com/v1_1/seen-a1d92/image/upload", { method: "POST", body: formData });
-                const data = await res.json();
-                if(data.secure_url) {
-                    await addDoc(collection(db, "chats", chatID, "messages"), {
-                        senderId: myId,
-                        type: "image",
-                        image: data.secure_url,
-                        timestamp: serverTimestamp()
-                    });
-                }
-            } catch (err) { 
-                Swal.fire({
-                    title: 'UPLOAD FAILED',
-                    text: 'ইমেজ আপলোড করতে সমস্যা হয়েছে!',
-                    icon: 'error',
-                    customClass: { popup: 'elite-popup', title: 'elite-title' }
-                });
+        async function loadTargetProfile() {
+            const d = await getDoc(doc(db, "users", targetId));
+            if(d.exists()) {
+                document.getElementById('targetName').innerText = d.data().name || "Creator";
+                document.getElementById('targetPic').src = d.data().profilePic || "https://via.placeholder.com/100";
+                document.getElementById('targetStatus').innerText = d.data().isVerified ? "Verified Elite" : "Active Node";
             }
-            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane text-xs"></i>';
-        };
+        }
 
-        async function initChat() {
-            onSnapshot(doc(db, "users", targetId), (snap) => {
-                if(snap.exists()) {
-                    const u = snap.data();
-                    document.getElementById('uName').innerText = u.name.toUpperCase();
-                    if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
-                    
-                    const isOnline = u.isOnline || u.online;
-                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
-                    document.getElementById('uStatusText').innerText = isOnline ? "Active Now" : "Offline";
-                }
-            });
-
-            const q = query(collection(db, "chats", chatID, "messages"), orderBy("timestamp", "asc"));
-            onSnapshot(q, s => {
-                const box = document.getElementById('chatBox');
-                box.innerHTML = "";
-                s.forEach(d => {
-                    const m = d.data();
-                    const isMe = m.senderId === myId;
-                    const div = document.createElement('div');
-                    div.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
-                    let content = m.text;
-                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
-                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">${content}</div>`;
-                    box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+        async function clearUnreadCounter() {
+            if(roomId) { await setDoc(doc(db, "chats", roomId), { unreadCount: 0 }, { merge: true }); }
         }
 
         document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('msgInput').onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
+
         async function sendMessage() {
             const input = document.getElementById('msgInput');
-            if(!input.value.trim()) return;
-            const text = input.value;
-            input.value = "";
-            
-            await addDoc(collection(db, "chats", chatID, "messages"), { 
-                senderId: myId, 
-                text: text, 
-                type: "text", 
-                timestamp: serverTimestamp() 
-            });
+            const text = input.value.trim();
+            if(!text) return;
 
-            const chatRef = doc(db, "chats", chatID);
-            const chatUpdate = {
-                lastMessage: text,
-                lastMessageTimestamp: serverTimestamp()
+            input.value = "";
+
+            const msgData = {
+                senderId: currentUserId,
+                text: text,
+                timestamp: serverTimestamp()
             };
 
-            await updateDoc(chatRef, chatUpdate).catch(async () => {
-                await setDoc(chatRef, chatUpdate);
+            // মেসেজ সাব-কলেকেশনে অ্যাড হচ্ছে
+            await addDoc(collection(db, "chats", roomId, "messages"), msgData);
+
+            // মেইন চ্যাট ডক আপডেট (ইনবক্স ট্র্যাকিংয়ের জন্য)
+            await setDoc(doc(db, "chats", roomId), {
+                participants: [currentUserId, targetId],
+                lastMessage: text,
+                lastMessageTime: serverTimestamp(),
+                lastSenderId: currentUserId,
+                unreadCount: 1 
+            }, { merge: true });
+        }
+
+        function listenMessages() {
+            const q = query(collection(db, "chats", roomId, "messages"), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const stream = document.getElementById('chatStream');
+                stream.innerHTML = "";
+                
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `max-w-[75%] p-3.5 my-1 text-xs font-semibold ${m.senderId === currentUserId ? 'msg-outbound text-white self-end' : 'msg-inbound text-gray-200 self-start'}`;
+                    wrapper.innerText = m.text;
+                    stream.appendChild(wrapper);
+                });
+                stream.scrollTop = stream.scrollHeight;
             });
         }
 
-        document.getElementById('msgInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendMessage();
-        });
+        // 📞 আউটগোয়িং কল ট্রিগার লজিক (যা call.html ওপেন করবে)
+        window.initiateCall = async (type) => {
+            const callId = currentUserId + "_" + Date.now(); // ইউনিক কল আইডি
+            
+            // ফায়ারবেসে একটি ইনকামিং কল নোড তৈরি করা হচ্ছে
+            await setDoc(doc(db, "calls", callId), {
+                callerId: currentUserId,
+                callerName: auth.currentUser.displayName || "Bondo User",
+                receiverId: targetId,
+                type: type, // 'audio' বা 'video'
+                status: "ringing",
+                createdAt: serverTimestamp()
+            });
+
+            // কল স্ক্রিনে ডাটা পাস করে রিডাইরেক্ট করা হচ্ছে
+            window.location.href = `call.html?callId=${callId}&type=${type}&role=caller&targetId=${targetId}`;
+        };
     </script>
 </body>
 </html>
