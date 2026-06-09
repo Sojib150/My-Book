@@ -10,7 +10,7 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
-        body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         .reels-container { height: calc(100vh - 70px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
         .reel-card { height: calc(100vh - 70px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -18,20 +18,22 @@
         .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #111; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
-        /* 📱 টপ প্রিমিয়াম হেডার এবং সার্চ ডিজাইন */
-        .elite-header { position: fixed; top: 0; left: 0; right: 0; height: 75px; bg-gradient-to-b from-black/90 to-transparent; display: flex; items-center; justify-content: space-between; padding: 0 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 60%, transparent); }
+        /* 📱 নচ ফ্রেন্ডলি এলিট হেডার এবং সার্চ ডিজাইন */
+        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 12px); padding-bottom: 14px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.95) 75%, transparent); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
         .tab-btn { position: relative; font-size: 14px; font-weight: 800; color: #64748b; transition: all 0.25s ease; padding: 6px 4px; }
         .tab-btn.active-tab { color: #fff; }
         .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -2px; left: 20%; right: 20%; height: 2.5px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 8px #1877f2; }
-        .search-glass-box { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; height: 38px; width: 130px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search-glass-box:focus-within { width: 160px; border-color: rgba(24, 119, 242, 0.4); background: rgba(255, 255, 255, 0.12); }
+        .search-glass-box { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; height: 38px; width: 130px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .search-glass-box:focus-within { width: 160px; border-color: rgba(24, 119, 242, 0.4); background: rgba(255, 255, 255, 0.14); }
+        .pointer-events-auto { pointer-events: auto; }
 
         /* 📱 সাইড বার এবং বটম ইনফো অ্যাডজাস্টমেন্ট */
         .side-bar { position: absolute; right: 14px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-        .bottom-info { position: absolute; bottom: 165px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+        .bottom-info { position: absolute; bottom: 185px; left: 15px; right: 80px; z-index: 10; text-shadow: 0 2px 8px rgba(0,0,0,0.9); transition: bottom 0.3s ease; }
+        .bottom-info.expanded-info { bottom: 215px; } /* ক্যাপশন বড় হলে একটু ওপরে উঠবে */
         
-        /* 📱 ব্যানার অ্যাড পজিশন */
-        .bottom-ad-slot { position: absolute; bottom: 80px; width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 90%, transparent); padding: 10px 15px 12px 15px; display: flex; flex-direction: column; justify-content: center; min-height: 75px; z-index: 20; border-top: 1px dashed rgba(24, 119, 242, 0.25); }
+        /* 📱 ফেসবুক স্টাইল প্রফেশনাল স্পনসর্ড অ্যাড স্লট */
+        .bottom-ad-slot { position: absolute; bottom: 80px; width: 100%; background: #0c101a; padding: 12px 16px; display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 20; border-top: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5); }
         .action-btn { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; }
         .action-btn:active { transform: scale(0.9); }
         
@@ -52,18 +54,21 @@
 
         .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: translate(-50%, 50%) scale(0); } 100% { transform: translate(-50%, 50%) scale(1); } }
+        
+        /* 👑 অ্যাডমিন ও ভেরিফাইড গ্লোয়িং বর্ডার */
+        .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #fbbf24, #f59e0b, #ef4444); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
     </style>
 </head>
 <body>
 
     <div class="elite-header max-w-md mx-auto">
-        <div class="search-glass-box">
+        <div class="search-glass-box pointer-events-auto">
             <i class="fas fa-search text-gray-400 text-xs mr-2"></i>
             <input type="text" id="creatorSearchInput" placeholder="Search user..." class="w-full bg-transparent text-white text-xs outline-none placeholder-gray-500 font-medium">
             <i id="clearSearchBtn" class="fas fa-times-circle text-gray-500 text-xs hidden cursor-pointer ml-1"></i>
         </div>
 
-        <div class="flex gap-5 items-center justify-center mr-2">
+        <div class="flex gap-5 items-center justify-center mr-2 pointer-events-auto">
             <button id="tabFollowing" class="tab-btn">Following</button>
             <button id="tabForYou" class="tab-btn active-tab">For You</button>
         </div>
@@ -133,7 +138,6 @@
         let isAudioEnabled = false;
         let reelsViewTrack = {}; 
         
-        // 💎 অ্যালগরিদম কন্ট্রোল ভেরিয়েবলস
         let cachedRawPosts = []; 
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
@@ -144,7 +148,7 @@
                 try {
                     const uSnap = await getDoc(doc(db, "users", user.uid));
                     if(uSnap.exists()) userData = uSnap.data();
-                    loadRawDataFromFirebase(); // ফায়ারবেস থেকে র ডাটা ক্যাশ লোড করা হবে
+                    loadRawDataFromFirebase();
                 } catch(e) {
                     loadRawDataFromFirebase();
                 }
@@ -155,7 +159,11 @@
 
         document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
-        // 💎 ডাটাবেস থেকে একবারে মাস্টার ডাটা পুল করা হচ্ছে যেন রিয়েল-টাইম ফিল্টারিং ফাস্ট হয়
+        // Median অ্যাপের ডিফল্ট Pull-to-refresh বন্ধ করার ইঞ্জিন
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.gonative) { window.gonative.android.setPullToRefresh(false); }
+        });
+
         async function loadRawDataFromFirebase() {
             const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
             if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
@@ -164,6 +172,7 @@
             wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING MOTOR ENGINE...</div>'; 
 
             try {
+                // এডমিন নোটিশ/পোস্ট এবং নরমাল ভিডিও রিয়েল-টাইমে ব্যালেন্স করার জন্য লিমিট ৫০ রাখা হলো
                 const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(50));
                 const snap = await getDocs(q);
                 cachedRawPosts = [];
@@ -172,7 +181,7 @@
                     cachedRawPosts.push({ id: d.id, ...d.data() });
                 });
 
-                processAndRenderPipeline(); // মাস্টার অ্যালগরিদম ইঞ্জিন রান করা হলো
+                processAndRenderPipeline();
 
             } catch(err) {
                 console.error(err);
@@ -180,11 +189,10 @@
             }
         }
 
-        // 💎 মাস্টার ইন্টেলিজেন্ট অ্যালগরিদম ইঞ্জিন (Shuffling + Like/Comment Trend Scoring System)
+        // 👑 গ্লোবাল সুপার ইন্টেলিজেন্ট অ্যালগরিদম ইঞ্জিন (With Admin Pinned Boost Setup)
         function processAndRenderPipeline() {
             let filtered = [...cachedRawPosts];
 
-            // ১. সার্চবার ইনপুট ফিল্টারিং লজিক
             if(currentSearchQuery.trim() !== "") {
                 const queryLower = currentSearchQuery.toLowerCase();
                 filtered = filtered.filter(p => 
@@ -193,29 +201,54 @@
                 );
             }
 
-            // ২. ডাবল ট্যাব লজিক প্রসেসর
             if(activeTab === "following") {
                 const myFollowing = userData?.following || [];
                 filtered = filtered.filter(p => myFollowing.includes(p.userId));
             } else {
-                // 🔥 FOR YOU অ্যালগরিদম: ট্রেন্ডিং স্কোরিং ফর্মুলা (লাইক + কমেন্ট ওয়েট বুস্টার)
+                // 🔥 অ্যাডমিন বুস্ট এবং পিন্ড সিস্টেম লজিক অপারেশন
                 filtered.sort((a, b) => {
+                    // লজিক A: এডমিন পিন করা পোস্ট বা এডমিনের স্পেশাল বার্থডে/অ্যানাউন্সমেন্ট পোস্ট সবার ওপরে থাকবে
+                    const isAPinned = a.isPinned === true || a.isAdminPost === true;
+                    const isBPinned = b.isPinned === true || b.isAdminPost === true;
+                    
+                    if (isAPinned && !isBPinned) return -1;
+                    if (!isAPinned && isBPinned) return 1;
+
+                    // লজিক B: পিন্ড বাদে নরমাল ভিডিওগুলো লাইক-কমেন্ট ট্রেন্ড স্কোর অনুযায়ী সাজবে
                     const scoreA = (a.likedBy?.length || 0) * 3 + (a.commentCount || 0) * 5;
                     const scoreB = (b.likedBy?.length || 0) * 3 + (b.commentCount || 0) * 5;
-                    return scoreB - scoreA; // বেশি লাইক-কমেন্ট ওয়ালা পোস্ট ওপরে থাকবে
+                    return scoreB - scoreA;
                 });
 
-                // ⚡️ র্যান্ডম মিক্সিং ট্রিক: প্রতিবার লোডে একই ভিডিও যেন ওপরে না ঝুলে থাকে, ওপরের টপ ৫টি ট্রেন্ডিং রিল বাদে বাকিগুলো র্যান্ডম সাফল (Shuffle) করা হবে
-                if(filtered.length > 5) {
-                    let trendingTop = filtered.slice(0, 4);
-                    let normalPool = filtered.slice(4);
-                    normalPool.sort(() => Math.random() - 0.5); // র‍্যান্ডম সাফল ট্রিক
+                // পিন ছাড়া বাকি পেছনের ভিডিওগুলো র্যান্ডম সাফল করার ট্রিক
+                let pinnedCount = filtered.filter(p => p.isPinned === true || p.isAdminPost === true).length;
+                let topIndex = Math.max(5, pinnedCount);
+
+                if(filtered.length > topIndex) {
+                    let trendingTop = filtered.slice(0, topIndex);
+                    let normalPool = filtered.slice(topIndex);
+                    normalPool.sort(() => Math.random() - 0.5);
                     filtered = trendingTop.concat(normalPool);
                 }
             }
 
             renderViewDOM(filtered);
         }
+
+        // 📱 ক্যাপশন "See More / Less" টগল কন্ট্রোলার লজিক
+        window.toggleCaption = (btn, postId) => {
+            const pText = document.getElementById(`caption-${postId}`);
+            const infoBox = document.getElementById(`info-box-${postId}`);
+            if(pText.classList.contains('line-clamp-3')) {
+                pText.classList.remove('line-clamp-3');
+                btn.innerText = "less";
+                infoBox.classList.add('expanded-info');
+            } else {
+                pText.classList.add('line-clamp-3');
+                btn.innerText = "more";
+                infoBox.classList.remove('expanded-info');
+            }
+        };
 
         // 💎 ইন্টারফেস রেন্ডারিং ইঞ্জিন
         async function renderViewDOM(postsArray) {
@@ -228,7 +261,6 @@
                         <div class="flex flex-col items-center justify-center h-full px-10 text-center">
                             <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-3"><i class="fas fa-users text-gray-500 text-sm"></i></div>
                             <div class="text-gray-400 text-xs font-bold tracking-wide uppercase">No Following Updates</div>
-                            <p class="text-[10px] text-gray-600 mt-1">You aren't following anyone who posted a video yet. Switch to For You tab!</p>
                         </div>`;
                 } else {
                     wrapper.innerHTML = '<div class="text-gray-500 text-center py-40 text-xs uppercase font-bold tracking-wider">No reels match your search.</div>';
@@ -245,6 +277,10 @@
                 const isLiked = p.likedBy?.includes(currentUser?.uid);
                 const isMonetized = p.isCreatorMonetized === true;
                 const shouldShowFollowPlus = (p.userId !== currentUser?.uid) && !myFollowing.includes(p.userId);
+                const isAdmin = p.isAdminPost === true || p.isPinned === true;
+
+                // ক্যাপশন যদি বেশি বড় হয় তবে "more" বাটন দেখানোর কন্ডিশন সেটআপ
+                const isLongText = p.text && p.text.length > 90;
 
                 const card = document.createElement('div');
                 card.className = "reel-card";
@@ -264,10 +300,11 @@
                         </div>
                         <button onclick="window.shareReel('${id}')" class="action-btn text-lg"><i class="fas fa-paper-plane"></i></button>
                     </div>
-                    <div class="bottom-info">
+                    
+                    <div class="bottom-info" id="info-box-${id}">
                         <div class="flex items-center gap-2.5 mb-2.5 relative">
                             <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full border border-white/20 object-cover">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border border-white/20'}">
                                 ${shouldShowFollowPlus ? `
                                     <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px]">
                                         <i class="fas fa-plus"></i>
@@ -275,18 +312,29 @@
                                 ` : ''}
                             </div>
                             <div class="cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <h4 class="text-white font-black text-xs flex items-center gap-1">@${p.userName || 'creator'}</h4>
-                                ${isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : ''}
+                                <h4 class="text-white font-black text-xs flex items-center gap-1">
+                                    @${p.userName || 'creator'}
+                                    ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>` : ''}
+                                </h4>
+                                ${isAdmin ? `<span class="bg-gradient-to-r from-red-500 to-amber-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-star mr-0.5"></i>ADMIN ANNOUNCEMENT</span>` : (isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : '')}
                             </div>
                         </div>
-                        <p class="text-white/80 text-[11px] leading-relaxed line-clamp-2">${p.text || ''}</p>
+                        
+                        <div class="text-white/90 text-[11px] leading-relaxed pr-2">
+                            <p id="caption-${id}" class="inline line-clamp-3 transition-all duration-300 break-words">${p.text || ''}</p>
+                            ${isLongText ? `<button onclick="window.toggleCaption(this, '${id}')" class="text-gray-400 font-bold ml-1 outline-none text-[10px] lowercase focus:text-blue-400">more</button>` : ''}
+                        </div>
                     </div>
                     
                     <div class="bottom-ad-slot ${isMonetized ? '' : 'hidden'}" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}">
-                        <div class="flex justify-between w-full text-[7px] font-black text-gray-500 uppercase tracking-widest mb-1">
-                            <span>Sponsored Distribution Node</span><i class="fas fa-circle-info"></i>
+                        <div class="flex justify-between items-center w-full text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-earth-americas text-blue-500 text-[9px]"></i>
+                                <span>Sponsored Distribution</span>
+                            </div>
+                            <i class="fas fa-ellipsis-h text-gray-500 cursor-pointer"></i>
                         </div>
-                        <div class="w-full bg-white/5 rounded-xl p-1 overflow-hidden border border-white/5" id="ad-content-target-${id}"></div>
+                        <div class="w-full bg-white/[0.02] rounded-xl overflow-hidden border border-white/5" id="ad-content-target-${id}"></div>
                     </div>
                 `;
                 wrapper.appendChild(card);
@@ -295,7 +343,6 @@
             setTimeout(initObserver, 200);
         }
 
-        // 💎 ট্যাব কন্ট্রোলার ইভেন্ট লিসেনার ইন্টিগ্রেশন
         document.getElementById('tabFollowing').onclick = () => {
             if(activeTab === "following") return;
             activeTab = "following";
@@ -312,7 +359,6 @@
             processAndRenderPipeline();
         };
 
-        // 💎 রিয়েল-টাইম লাইভ সার্চ সিস্টেম কন্ট্রোলার
         const searchInput = document.getElementById('creatorSearchInput');
         const clearBtn = document.getElementById('clearSearchBtn');
 
@@ -341,7 +387,6 @@
                 await updateDoc(myRef, { following: arrayUnion(targetCreatorId) });
                 await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
                 
-                // গ্লোবাল ডাটা স্ট্রাকচার রিফ্রেশ
                 if(userData) {
                     if(!userData.following) userData.following = [];
                     userData.following.push(targetCreatorId);
@@ -390,7 +435,7 @@
                                     adTarget.appendChild(fragment);
                                 } catch(adErr) { adTarget.innerHTML = rawAd; }
                             } else {
-                                adTarget.innerHTML = '<div class="text-center text-[9px] py-1 text-blue-400 font-bold uppercase tracking-wider">Loading Revenue Partner Ads...</div>';
+                                adTarget.innerHTML = '<div class="text-center text-[9px] py-2 text-blue-400 font-bold uppercase tracking-wider">Loading Revenue Partner Ads...</div>';
                             }
                         }
                         viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
@@ -452,7 +497,6 @@
                 if(btn) { btn.classList.remove('text-red-500'); btn.classList.add('text-white'); btn.innerHTML = '<i class="far fa-heart"></i>'; }
                 if(countSpan) countSpan.innerText = Math.max(0, likedArr.length - 1);
                 
-                // ক্যাশ আপডেট
                 const cIdx = cachedRawPosts.findIndex(x => x.id === id);
                 if(cIdx !== -1) cachedRawPosts[cIdx].likedBy = likedArr.filter(uid => uid !== currentUser.uid);
             } else {
@@ -460,7 +504,6 @@
                 if(btn) { btn.classList.remove('text-white'); btn.classList.add('text-red-500'); btn.innerHTML = '<i class="fas fa-heart"></i>'; }
                 if(countSpan) countSpan.innerText = likedArr.length + 1;
                 
-                // ক্যাশ আপডেট
                 const cIdx = cachedRawPosts.findIndex(x => x.id === id);
                 if(cIdx !== -1) {
                     if(!cachedRawPosts[cIdx].likedBy) cachedRawPosts[cIdx].likedBy = [];
@@ -499,7 +542,6 @@
             });
         };
 
-        /* 📱 কমেন্ট বক্স টান দিয়ে ক্লোজ করার লজিক */
         const sheet = document.getElementById('commentSheet');
         let startY = 0;
         let currentY = 0;
@@ -568,7 +610,6 @@
             await addDoc(collection(db, "posts", activePostId, "comments"), commentData);
             await updateDoc(doc(db, "posts", activePostId), { commentCount: increment(1) });
             
-            // মাস্টার ক্যাশ আপডেট
             const cIdx = cachedRawPosts.findIndex(x => x.id === activePostId);
             if(cIdx !== -1) cachedRawPosts[cIdx].commentCount = (cachedRawPosts[cIdx].commentCount || 0) + 1;
 
