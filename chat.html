@@ -142,6 +142,18 @@
             padding: 10px 24px !important;
             font-size: 12px !important;
         }
+
+        /* রিয়েল-টাইম সিন স্ট্যাটাস টেক্সট */
+        .seen-status {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3px;
+            text-align: right;
+            font-weight: 600;
+        }
+        .msg-me .seen-status {
+            color: rgba(0, 0, 0, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -205,6 +217,7 @@
         window.targetId = urlParams.get('id');
         let myId = null;
         let chatID = null;
+        let targetUserOnlineStatus = false; // অপর প্রান্তের ইউজারের অনলাইন ট্র্যাক রাখার জন্য
 
         onAuthStateChanged(auth, user => {
             if(user) { 
@@ -304,6 +317,7 @@
                         senderId: myId,
                         type: "image",
                         image: data.secure_url,
+                        isSeen: false, // ডিফল্ট আনসিন
                         timestamp: serverTimestamp()
                     });
                 }
@@ -325,9 +339,9 @@
                     document.getElementById('uName').innerText = u.name.toUpperCase();
                     if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
                     
-                    const isOnline = u.isOnline || u.online;
-                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${isOnline ? 'status-online' : 'bg-neutral-600'}`;
-                    document.getElementById('uStatusText').innerText = isOnline ? "Active Now" : "Offline";
+                    targetUserOnlineStatus = u.isOnline || u.online;
+                    document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${targetUserOnlineStatus ? 'status-online' : 'bg-neutral-600'}`;
+                    document.getElementById('uStatusText').innerText = targetUserOnlineStatus ? "Active Now" : "Offline";
                 }
             });
 
@@ -338,11 +352,33 @@
                 s.forEach(d => {
                     const m = d.data();
                     const isMe = m.senderId === myId;
+                    
+                    // রিয়েল-টাইমে কেউ মেসেজ ওপেন রাখলে বা সে অনলাইনে থাকলে 'Seen' দেখানোর কন্ডিশন
+                    let statusTick = "Sent";
+                    if (m.isSeen || targetUserOnlineStatus) {
+                        statusTick = "Seen ✓✓";
+                    } else {
+                        statusTick = "Sent ✓";
+                    }
+
+                    // যদি অপর প্রান্তের ইউজার মেসেজ পাঠায়, তবে তার ইভেন্টে মেসেজগুলো অটোমেটিক 'isSeen: true' আপডেট হবে
+                    if(!isMe && m.isSeen === false) {
+                        updateDoc(doc(db, "chats", chatID, "messages", d.id), { isSeen: true });
+                    }
+
                     const div = document.createElement('div');
-                    div.className = `flex w-full mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
+                    div.className = `flex flex-col w-full mb-4 ${isMe ? 'items-end' : 'items-start'}`;
+                    
                     let content = m.text;
                     if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
-                    div.innerHTML = `<div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">${content}</div>`;
+                    
+                    // বাবল বডিতে কনটেন্ট এবং মেসেজের নিচে সিন স্ট্যাটাস অ্যাড করা হয়েছে
+                    div.innerHTML = `
+                        <div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">
+                            ${content}
+                        </div>
+                        ${isMe ? `<div class="seen-status px-1">${statusTick}</div>` : ''}
+                    `;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
@@ -360,6 +396,7 @@
                 senderId: myId, 
                 text: text, 
                 type: "text", 
+                isSeen: false, // নতুন মেসেজ পাঠানোর সময় ডিফল্ট ফলস থাকবে
                 timestamp: serverTimestamp() 
             });
 
