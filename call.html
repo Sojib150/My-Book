@@ -2,405 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Call - My Book Elite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bondo Voice & Video Core - Call Session</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght=700;900&family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #030305; color: #e2e8f0; overflow: hidden; }
+        .glass { background: rgba(15, 15, 25, 0.55); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.03); }
         
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #020205; 
-            color: white; 
-            overflow: hidden; 
-            height: 100vh; 
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* ডাইনামিক পালস অ্যানিমেশন (রিং টোন ফিল) */
+        .pulse-ring { position: relative; }
+        .pulse-ring::before, .pulse-ring::after { content: ''; position: absolute; inset: -20px; rounded-radius: inherit; border-radius: 50%; background: rgba(99, 102, 241, 0.15); animation: pulseEmit 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .pulse-ring::after { animation-delay: 1s; }
         
-        /* মেইন রিমোট এইচডি ভিডিও স্ক্রিন */
-        #remote-player { 
-            position: absolute; 
-            inset: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            z-index: 10; 
-            background: radial-gradient(circle, #0c0f1d 0%, #020205 100%); 
-            transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        @keyframes pulseEmit {
+            0% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
         }
         
-        /* নিজের ফ্লিপ করা লোকাল ক্যামেরা উইন্ডো - লেয়ার সবার ওপরে সেট করা হয়েছে */
-        #local-player { 
-            position: absolute; 
-            top: 45px; 
-            right: 20px; 
-            width: 110px; 
-            height: 165px; 
-            border-radius: 20px; 
-            overflow: hidden; 
-            z-index: 60; /* জেন-ইনডেক্স বাড়িয়ে ৬০ করা হলো যেন আলোর ওপরে থাকে */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.25); 
-            border: 1.5px solid rgba(212, 175, 55, 0.6); 
-            background: #0b0f19;
-            transition: all 0.3s ease;
-        }
-
-        /* প্রফেশনাল ফ্ল্যাশলাইট ইফেক্ট ওভারলে (লোকাল প্লেয়ারের নিচে থাকবে) */
-        #night-flash-overlay {
-            position: fixed; 
-            inset: 0; 
-            background: rgba(255, 255, 255, 0);
-            z-index: 15; /* রিমোট প্লেয়ারের ওপরে কিন্তু ফ্রন্ট ক্যামেরা ও ডকের নিচে */
-            pointer-events: none; 
-            transition: background 0.3s ease;
-        }
-        .flash-active #night-flash-overlay {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: inset 0 0 100px rgba(255,255,255,1);
-        }
-
-        /* কন্ট্রোল ডক বার */
-        .glass-controls { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 90%; 
-            max-width: 420px; 
-            background: rgba(11, 15, 25, 0.8); 
-            backdrop-filter: blur(25px); 
-            -webkit-backdrop-filter: blur(25px); 
-            border-radius: 35px; 
-            padding: 12px; 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            z-index: 100;
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
-        }
-
-        .control-btn { 
-            width: 48px; 
-            height: 48px; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px; 
-            transition: all 0.25s ease;
-        }
-
-        .bg-blur-btn { 
-            background: rgba(255, 255, 255, 0.05); 
-            color: #a0aec0; 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .bg-blur-btn.active-gold {
-            background: rgba(212, 175, 55, 0.15);
-            color: #D4AF37;
-            border-color: rgba(212, 175, 55, 0.4);
-        }
-        
-        .bg-red-btn { 
-            background: linear-gradient(135deg, #ff3b30, #d6241a); 
-            color: white; 
-            width: 54px; 
-            height: 54px; 
-            font-size: 18px; 
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
-        }
-        .bg-red-btn:active { transform: scale(0.92); }
-
-        /* রিয়েল-টাইম ফ্লোটিং ইন-কল চ্যাট উইন্ডো */
-        #inCallChatPanel {
-            position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
-            width: 90%; max-width: 420px; height: 260px; background: rgba(11, 15, 25, 0.92);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 24px;
-            z-index: 90; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        }
-        #inCallChatPanel.open { transform: translateX(-50%) translateY(0); }
-
-        /* ফিল্টার ইন্টিগ্রেশন স্লাইডার */
-        #filterPanel {
-            position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
-            width: 90%; max-width: 420px; background: rgba(11, 15, 25, 0.9);
-            border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.15);
-            z-index: 95; transition: transform 0.3s ease; padding: 12px;
-        }
-        #filterPanel.open { transform: translateX(-50%) translateY(0); }
-
-        /* ফিল্টার প্রিসেটস স্টাইল */
-        .filter-node { filter: none; }
-        .filter-gold { filter: sepia(0.3) saturate(1.4) hue-rotate(-10deg) contrast(1.1); }
-        .filter-cinematic { filter: contrast(1.2) saturate(1.1) brightness(0.9); }
-        .filter-retro { filter: sepia(0.5) contrast(0.95); }
-        .filter-bw { filter: grayscale(1); }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .timer-font { font-family: 'Orbitron', sans-serif; }
     </style>
 </head>
-<body>
+<body class="h-screen w-screen flex flex-col justify-between items-center p-8 bg-[#030305] relative">
 
-    <div id="night-flash-overlay"></div>
-
-    <div id="permission-overlay" class="fixed inset-0 bg-[#020205] z-[200] flex flex-col items-center justify-center text-center">
-        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5 shadow-inner">
-            <i class="fas fa-shield-alt text-[#D4AF37] text-xl"></i>
-        </div>
-        <h2 class="text-xl font-black tracking-wider text-white uppercase">MY BOOK <span class="text-[#D4AF37]">ELITE</span></h2>
-        <p class="text-gray-400 text-xs mt-1 mb-8 font-medium tracking-wide">Secure Ultra HD 1080p Engine</p>
-        <button id="startCallBtn" class="bg-gradient-to-r from-[#D4AF37] to-[#8A6E2F] text-black font-extrabold text-xs tracking-widest uppercase px-8 py-3.5 rounded-full shadow-lg shadow-yellow-600/10 active:scale-95 transition">Accept & Enter</button>
-    </div>
-
-    <audio id="ringtoneAudio" loop src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3"></audio>
-    <audio id="dialingAudio" loop src="https://www.soundjay.com/phone/phone-calling-1.mp3"></audio>
-
-    <div id="remote-player" class="filter-node"></div>
-    <div id="local-player"></div>
-
-    <div class="absolute top-12 left-6 z-40">
-        <h1 id="uName" class="text-2xl font-black tracking-wide text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">Connecting...</h1>
-        <p id="callStatus" class="text-[9px] text-[#D4AF37] font-black uppercase tracking-[3px] mt-0.5 flex items-center drop-shadow-md">
-            <span class="w-2 h-2 bg-[#D4AF37] rounded-full inline-block mr-2 shadow-[0_0_8px_#D4AF37] animate-pulse"></span>Live Stream
-        </p>
-    </div>
-
-    <div id="inCallChatPanel">
-        <div class="p-3 bg-white/5 border-b border-white/5 flex justify-between items-center px-4">
-            <span class="text-xs font-bold text-[#D4AF37] tracking-wider uppercase"><i class="fas fa-comments mr-1.5"></i>Live Chat</span>
-            <button onclick="togglePanel('inCallChatPanel')" class="text-gray-500 hover:text-white text-sm"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="inCallMsgBox" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs no-scrollbar"></div>
-        <div class="p-2.5 bg-black/40 border-t border-white/5 flex gap-2 items-center">
-            <input type="text" id="inCallInput" placeholder="Type a message..." class="flex-1 bg-white/5 rounded-xl px-3 py-2 text-xs outline-none text-white placeholder-gray-500 border border-white/5">
-            <button id="inCallSendBtn" class="w-9 h-9 bg-gradient-to-r from-[#D4AF37] to-[#8A6E2F] text-black rounded-xl flex items-center justify-center font-bold text-xs"><i class="fas fa-paper-plane"></i></button>
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 bg-indigo-600/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
+    <div id="videoContainer" class="absolute inset-0 bg-black hidden z-0">
+        <div class="absolute bottom-6 right-6 w-28 h-40 bg-zinc-900 rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+            <div class="w-full h-full bg-slate-800 flex items-center justify-center text-[10px] text-gray-500 font-bold">Your Cam</div>
         </div>
     </div>
 
-    <div id="filterPanel">
-        <div class="flex justify-between items-center mb-2.5 px-1">
-            <span class="text-[10px] font-black text-[#D4AF37] uppercase tracking-wider"><i class="fas fa-sliders-h mr-1.5"></i>HD Video Filters</span>
-            <button onclick="togglePanel('filterPanel')" class="text-gray-500 text-xs"><i class="fas fa-times"></i></button>
+    <header class="w-full max-w-sm text-center space-y-2 z-10 pt-8">
+        <div class="inline-flex items-center gap-2 bg-white/5 border border-white/5 px-3 py-1.5 rounded-full backdrop-blur-md">
+            <span id="callTypeBadge" class="text-[9px] font-black tracking-widest uppercase text-indigo-400">ENCRYPTED VOICE NODE</span>
         </div>
-        <div class="flex gap-2 overflow-x-auto no-scrollbar py-1">
-            <button onclick="applyFilter('filter-node')" class="px-3 py-1.5 bg-white/5 rounded-lg text-[11px] font-bold border border-white/5 shrink-0">Normal</button>
-            <button onclick="applyFilter('filter-gold')" class="px-3 py-1.5 bg-[#D4AF37]/10 text-[#D4AF37] rounded-lg text-[11px] font-bold border border-[#D4AF37]/20 shrink-0">Elite Gold</button>
-            <button onclick="applyFilter('filter-cinematic')" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg text-[11px] font-bold border border-blue-500/20 shrink-0">Cinematic</button>
-            <button onclick="applyFilter('filter-retro')" class="px-3 py-1.5 bg-orange-500/10 text-orange-400 rounded-lg text-[11px] font-bold border border-orange-500/20 shrink-0">Retro</button>
-            <button onclick="applyFilter('filter-bw')" class="px-3 py-1.5 bg-gray-500/10 text-gray-400 rounded-lg text-[11px] font-bold border border-gray-500/20 shrink-0">B&W</button>
+        <h1 id="remoteUserName" class="text-2xl font-black text-white tracking-tight pt-2">Loading Target...</h1>
+        <p id="callStatusText" class="text-xs text-gray-400 font-semibold uppercase tracking-wider animate-pulse">Connecting Stream...</p>
+        
+        <div id="callTimer" class="timer-font text-xl font-black text-emerald-400 hidden tracking-widest pt-2">00:00</div>
+    </header>
+
+    <div class="z-10 flex flex-col items-center justify-center">
+        <div id="avatarContainer" class="w-32 h-32 rounded-full pulse-ring bg-gradient-to-tr from-indigo-600 to-purple-600 p-1 shadow-2xl shadow-indigo-500/10">
+            <img id="remoteUserPic" src="https://via.placeholder.com/150" class="w-full h-full object-cover rounded-full border-4 border-[#030305]">
         </div>
     </div>
 
-    <div class="glass-controls">
-        <button id="micBtn" class="control-btn bg-blur-btn active-gold"><i class="fas fa-microphone"></i></button>
-        <button id="flashBtn" onclick="toggleFlashLight()" class="control-btn bg-blur-btn"><i class="fas fa-lightbulb"></i></button>
-        <button onclick="endCall()" class="control-btn bg-red-btn"><i class="fas fa-phone-slash"></i></button>
-        <button id="filterBtn" onclick="togglePanel('filterPanel')" class="control-btn bg-blur-btn"><i class="fas fa-magic"></i></button>
-        <button id="chatBtn" onclick="togglePanel('inCallChatPanel')" class="control-btn bg-blur-btn"><i class="fas fa-comment-alt"></i></button>
-        <button id="camBtn" class="control-btn bg-blur-btn active-gold"><i class="fas fa-video"></i></button>
-    </div>
+    <footer class="w-full max-w-sm z-10 pb-8">
+        
+        <div id="incomingActions" class="hidden grid grid-cols-2 gap-6 w-full">
+            <button onclick="handleIncomingCallAction('ended')" class="glass hover:bg-red-600/20 text-red-400 hover:text-white py-4 rounded-2xl flex flex-col items-center justify-center gap-2 border border-red-500/10 transition active:scale-95 group">
+                <div class="w-11 h-11 bg-red-600 rounded-full flex items-center justify-center text-white text-sm shadow-lg shadow-red-600/20 group-hover:scale-105 transition"><i class="fas fa-phone-slash rotate-[135deg]"></i></div>
+                <span class="text-[10px] font-black uppercase tracking-wider">Decline</span>
+            </button>
+            <button onclick="handleIncomingCallAction('accepted')" class="glass hover:bg-emerald-600/20 text-emerald-400 hover:text-white py-4 rounded-2xl flex flex-col items-center justify-center gap-2 border border-emerald-500/10 transition active:scale-95 group">
+                <div class="w-11 h-11 bg-emerald-600 rounded-full flex items-center justify-center text-white text-sm shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition"><i class="fas fa-phone"></i></div>
+                <span class="text-[10px] font-black uppercase tracking-wider">Answer</span>
+            </button>
+        </div>
+
+        <div id="activeActions" class="hidden w-full">
+            <button onclick="disconnectCallPipeline()" class="w-full glass hover:bg-red-600/20 text-red-400 hover:text-white py-4 rounded-2xl flex flex-col items-center justify-center gap-2 border border-red-500/10 transition active:scale-95 group">
+                <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white text-base shadow-lg shadow-red-600/20 group-hover:scale-105 transition"><i class="fas fa-phone-slash rotate-[135deg]"></i></div>
+                <span class="text-[10px] font-black uppercase tracking-wider">End Transmission Connection</span>
+            </button>
+        </div>
+
+    </footer>
+
+    <audio id="ringtoneAudio" src="https://assets.mixkit.co/active_storage/sfx/1359/1359-84.wav" loop></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, deleteDoc, getDoc, collection, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", projectId: "seen-a1d92" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        const APP_ID = "b73c0ab95ca94cb0a11b4216f3e9b616"; 
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetId = urlParams.get('id');
-        const action = urlParams.get('action');
-        
-        let myId = null;
-        let chatID = null;
-        let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        let localTracks = { audio: null, video: null };
-
-        const ringtone = document.getElementById('ringtoneAudio');
-        const dialing = document.getElementById('dialingAudio');
-
-        document.getElementById('startCallBtn').onclick = () => {
-            document.getElementById('permission-overlay').style.display = 'none';
-            startAgora();
-            handleRingtone();
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1"
         };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async user => {
-            if(user) {
-                myId = user.uid;
-                chatID = [myId, targetId].sort().join("_");
-                loadTargetName();
-                listenForEnd();
-                initInCallChat();
+        const urlParams = new URLSearchParams(window.location.search);
+        const callId = urlParams.get('callId');
+        const role = urlParams.get('role'); // 'caller' বা 'receiver'
+        const type = urlParams.get('type'); // 'audio' বা 'video'
+        const targetId = urlParams.get('targetId');
+
+        let currentUserId = null;
+        let timerInterval = null;
+        let callSeconds = 0;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                initCallInterface();
+                listenCallDocEngine();
+            } else {
+                window.location.href = "login.html";
             }
         });
 
-        // ব্রাইটনেস ফ্রন্ট প্যানেল ট্র্যাকার বাটন (আপডেটেড ও অপ্টিমাইজড)
-        window.toggleFlashLight = () => {
-            document.body.classList.toggle('flash-active');
-            const flashBtn = document.getElementById('flashBtn');
-            const localPlayer = document.getElementById('local-player');
-            const isActive = document.body.classList.contains('flash-active');
-            
-            flashBtn.className = `control-btn bg-blur-btn ${isActive ? 'active-gold' : ''}`;
-            
-            // নাইট মোড একটিভ হলে লোকাল ক্যামেরার লাইটিং ও ব্রাইটনেস সফটওয়্যার বুস্ট করবে
-            if(isActive) {
-                localPlayer.style.filter = "brightness(1.3) contrast(1.15)";
-                localPlayer.style.boxShadow = "0 0 35px rgba(255, 255, 255, 0.6)";
+        async function initCallInterface() {
+            // ১. ইন্টারফেস টাইপ সেটআপ করা
+            if(type === 'video') {
+                document.getElementById('callTypeBadge').innerText = "SECURE VIDEO PIPELINE";
+                document.getElementById('callTypeBadge').classList.replace('text-indigo-400', 'text-purple-400');
+            }
+
+            // ২. রোল অনুযায়ী বাটন ভিজিবিলিটি ফিল্টারিং 
+            if(role === 'caller') {
+                document.getElementById('activeActions').classList.remove('hidden');
+                document.getElementById('callStatusText').innerText = "Ringing Outgoing Node...";
             } else {
-                localPlayer.style.filter = "none";
-                localPlayer.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(212, 175, 55, 0.25)";
+                document.getElementById('incomingActions').classList.remove('hidden');
+                document.getElementById('callStatusText').innerText = "Inbound Network Call...";
+                document.getElementById('ringtoneAudio').play().catch(()=>{}); // রিংটোন প্লে প্লেব্যাক সেফটি
             }
-        };
 
-        // ফিল্টার আর্কিটেকচার সুইচার মেথড
-        window.applyFilter = (filterClass) => {
-            const player = document.getElementById('remote-player');
-            player.className = `absolute inset-0 w-full h-full object-cover z-10 ${filterClass}`;
-        };
-
-        // ইউনিভার্সাল প্যানেল ডক সুইচার টগল মেথড
-        window.togglePanel = (panelId) => {
-            const panel = document.getElementById(panelId);
-            const isOpen = panel.classList.contains('open');
-            document.getElementById('filterPanel').classList.remove('open');
-            document.getElementById('inCallChatPanel').classList.remove('open');
-            if(!isOpen) panel.classList.add('open');
-        };
-
-        function handleRingtone() {
-            if(action === 'calling') {
-                dialing.play().catch(e => console.error(e));
-                document.getElementById('callStatus').innerText = "Dialing Elite...";
-            } else {
-                ringtone.play().catch(e => console.error(e));
-                document.getElementById('callStatus').innerText = "Incoming Call...";
+            // ৩. টার্গেট ইউজারের প্রোফাইল ডাটা ফেচিং
+            if(targetId) {
+                const uDoc = await getDoc(doc(db, "users", targetId));
+                if(uDoc.exists()) {
+                    document.getElementById('remoteUserName').innerText = uDoc.data().name || "Bondo Creator";
+                    if(uDoc.data().profilePic) document.getElementById('remoteUserPic').src = uDoc.data().profilePic;
+                }
             }
         }
 
-        async function loadTargetName() {
-            if(!targetId) return;
-            const snap = await getDoc(doc(db, "users", targetId));
-            if(snap.exists()) document.getElementById('uName').innerText = snap.data().name.toUpperCase();
-        }
+        function listenCallDocEngine() {
+            if(!callId) return;
 
-        async function startAgora() {
-            try {
-                const channel = chatID;
-                client.on("user-published", async (user, mediaType) => {
-                    await client.subscribe(user, mediaType);
-                    stopAllAudio();
-                    document.getElementById('callStatus').innerText = "Secure Call • 1080p HD";
-                    if (mediaType === "video") user.videoTrack.play("remote-player");
-                    if (mediaType === "audio") user.audioTrack.play();
-                });
+            // ৪. ফায়ারবেস রিয়েল-টাইম কল স্ট্যাটাস মনিটরিং লুপ
+            onSnapshot(doc(db, "calls", callId), (snapshot) => {
+                if(!snapshot.exists()) {
+                    terminateUIFlow();
+                    return;
+                }
 
-                await client.join(APP_ID, channel, null, null);
-                localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
-                
-                // প্রফেশনাল আল্ট্রা এইচডি ভিডিও কোয়ালিটি এনকোডার কনফিগারেশন সেটআপ
-                localTracks.video = await AgoraRTC.createCameraVideoTrack({ 
-                    encoderConfig: "1080p_1" 
-                });
-                
-                localTracks.video.play("local-player");
-                await client.publish([localTracks.audio, localTracks.video]);
+                const cData = snapshot.data();
 
-            } catch (err) {
-                console.error(err);
-                alert("Camera and Mic permissions are strictly required for Ultra HD calling.");
-            }
-        }
-
-        function listenForEnd() {
-            onSnapshot(doc(db, "calls", targetId), snap => {
-                if(!snap.exists()) endCall();
-            });
-        }
-
-        function stopAllAudio() {
-            ringtone.pause();
-            dialing.pause();
-        }
-
-        window.endCall = async () => {
-            stopAllAudio();
-            localTracks.audio?.stop();
-            localTracks.audio?.close();
-            localTracks.video?.stop();
-            localTracks.video?.close();
-            await client.leave();
-            await deleteDoc(doc(db, "calls", targetId)).catch(()=>{});
-            window.location.href = "messages.html";
-        };
-
-        // রিয়েল-টাইম চ্যাট সিস্টেম
-        function initInCallChat() {
-            const q = query(collection(db, "chats", chatID, "messages"), orderBy("timestamp", "asc"));
-            onSnapshot(q, s => {
-                const msgBox = document.getElementById('inCallMsgBox');
-                msgBox.innerHTML = "";
-                s.forEach(d => {
-                    const m = d.data();
-                    if(m.type === 'text') {
-                        const isMe = m.senderId === myId;
-                        const msgDiv = document.createElement('div');
-                        msgDiv.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'}`;
-                        msgDiv.innerHTML = `<div class="${isMe ? 'bg-[#D4AF37] text-black font-semibold' : 'bg-white/10 text-white'} px-3 py-1.5 rounded-xl max-w-[75%] break-words">${m.text}</div>`;
-                        msgBox.appendChild(msgDiv);
+                if(cData.status === 'accepted') {
+                    // কল রিসিভ হয়েছে! 
+                    document.getElementById('ringtoneAudio').pause();
+                    document.getElementById('callStatusText').innerText = "Connection Secure Live";
+                    document.getElementById('callStatusText').classList.remove('animate-pulse');
+                    document.getElementById('callStatusText').classList.add('text-emerald-400');
+                    
+                    // ইনকামিং বাটন হাইড করে ডিসকানেক্ট বাটন শো করানো হচ্ছে
+                    document.getElementById('incomingActions').classList.add('hidden');
+                    document.getElementById('activeActions').classList.remove('hidden');
+                    
+                    if(type === 'video') {
+                        document.getElementById('videoContainer').classList.remove('hidden');
+                        document.getElementById('avatarContainer').classList.add('hidden');
                     }
-                });
-                msgBox.scrollTop = msgBox.scrollHeight;
-            });
 
-            document.getElementById('inCallSendBtn').onclick = sendInCallMessage;
-            document.getElementById('inCallInput').addEventListener('keypress', (e) => {
-                if(e.key === 'Enter') sendInCallMessage();
-            });
-        }
+                    startCallTimerCount();
+                }
 
-        async function sendInCallMessage() {
-            const input = document.getElementById('inCallInput');
-            if(!input.value.trim()) return;
-            const text = input.value;
-            input.value = "";
-
-            await addDoc(collection(db, "chats", chatID, "messages"), {
-                senderId: myId,
-                text: text,
-                type: "text",
-                timestamp: serverTimestamp()
+                if(cData.status === 'ended') {
+                    terminateUIFlow();
+                }
             });
         }
 
-        // হার্ডওয়্যার টগলস (মাইক ও ক্যামেরা অন/অফ)
-        document.getElementById('micBtn').onclick = async () => {
-            if(!localTracks.audio) return;
-            const state = !localTracks.audio.enabled;
-            await localTracks.audio.setEnabled(state);
-            const micBtn = document.getElementById('micBtn');
-            micBtn.innerHTML = state ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash text-red-500"></i>';
-            micBtn.className = `control-btn bg-blur-btn ${state ? 'active-gold' : ''}`;
+        // ৫. রিসিভার সাইড অ্যাকশন হ্যান্ডলার (Answer/Decline)
+        window.handleIncomingCallAction = async (actionState) => {
+            document.getElementById('ringtoneAudio').pause();
+            await updateDoc(doc(db, "calls", callId), {
+                status: actionState,
+                answeredAt: serverTimestamp()
+            });
+            if(actionState === 'ended') terminateUIFlow();
         };
 
-        document.getElementById('camBtn').onclick = async () => {
-            if(!localTracks.video) return;
-            const state = !localTracks.video.enabled;
-            await localTracks.video.setEnabled(state);
-            const camBtn = document.getElementById('camBtn');
-            camBtn.innerHTML = state ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash text-red-500"></i>';
-            camBtn.className = `control-btn bg-blur-btn ${state ? 'active-gold' : ''}`;
+        // ৬. কলার বা রানিং কল কেটে দেওয়ার সিস্টেম
+        window.disconnectCallPipeline = async () => {
+            await updateDoc(doc(db, "calls", callId), { status: 'ended' });
+            terminateUIFlow();
         };
+
+        function startCallTimerCount() {
+            if(timerInterval) return;
+            document.getElementById('callTimer').classList.remove('hidden');
+            timerInterval = setInterval(() => {
+                callSeconds++;
+                const mins = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+                const secs = String(callSeconds % 60).padStart(2, '0');
+                document.getElementById('callTimer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function terminateUIFlow() {
+            document.getElementById('ringtoneAudio').pause();
+            if(timerInterval) clearInterval(timerInterval);
+            // কল শেষ হলে অটোমেটিক ব্যাক ট্র্যাকে ফেরত যাবে
+            history.back();
+        }
     </script>
 </body>
 </html>
