@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         .reels-container { height: calc(100vh - 70px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
@@ -148,6 +148,27 @@
                 try {
                     const uSnap = await getDoc(doc(db, "users", user.uid));
                     if(uSnap.exists()) userData = uSnap.data();
+                    
+                    // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার নোড
+                    // রিলস স্ক্রোল করার ফাঁকে কেউ কল দিলে সাথে সাথে 'call.html'-এ পাঠিয়ে দেবে
+                    const inboundCallQuery = query(
+                        collection(db, "calls"),
+                        where("receiverId", "==", user.uid),
+                        where("status", "==", "ringing")
+                    );
+
+                    onSnapshot(inboundCallQuery, (snapshot) => {
+                        snapshot.forEach(changeDoc => {
+                            const callData = changeDoc.data();
+                            const callId = changeDoc.id;
+                            
+                            // চলমান রিলস মিউট/পজ করে কল পেজে পাঠানো হচ্ছে
+                            document.querySelectorAll('.reel-video').forEach(v => v.pause());
+                            window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
+                        });
+                    });
+                    // 🚨 [END] গ্লোবাল ইনকামিং কল লিসেনার নোড
+
                     loadRawDataFromFirebase();
                 } catch(e) {
                     loadRawDataFromFirebase();
@@ -172,7 +193,6 @@
             wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING MOTOR ENGINE...</div>'; 
 
             try {
-                // এডমিন নোটিশ/পোস্ট এবং নরমাল ভিডিও রিয়েল-টাইমে ব্যালেন্স করার জন্য লিমিট ৫০ রাখা হলো
                 const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(50));
                 const snap = await getDocs(q);
                 cachedRawPosts = [];
@@ -189,7 +209,6 @@
             }
         }
 
-        // 👑 গ্লোবাল সুপার ইন্টেলিজেন্ট অ্যালগরিদম ইঞ্জিন (With Admin Pinned Boost Setup)
         function processAndRenderPipeline() {
             let filtered = [...cachedRawPosts];
 
@@ -205,22 +224,18 @@
                 const myFollowing = userData?.following || [];
                 filtered = filtered.filter(p => myFollowing.includes(p.userId));
             } else {
-                // 🔥 অ্যাডমিন বুস্ট এবং পিন্ড সিস্টেম লজিক অপারেশন
                 filtered.sort((a, b) => {
-                    // লজিক A: এডমিন পিন করা পোস্ট বা এডমিনের স্পেশাল বার্থডে/অ্যানাউন্সমেন্ট পোস্ট সবার ওপরে থাকবে
                     const isAPinned = a.isPinned === true || a.isAdminPost === true;
                     const isBPinned = b.isPinned === true || b.isAdminPost === true;
                     
                     if (isAPinned && !isBPinned) return -1;
                     if (!isAPinned && isBPinned) return 1;
 
-                    // লজিক B: পিন্ড বাদে নরমাল ভিডিওগুলো লাইক-কমেন্ট ট্রেন্ড স্কোর অনুযায়ী সাজবে
                     const scoreA = (a.likedBy?.length || 0) * 3 + (a.commentCount || 0) * 5;
                     const scoreB = (b.likedBy?.length || 0) * 3 + (b.commentCount || 0) * 5;
                     return scoreB - scoreA;
                 });
 
-                // পিন ছাড়া বাকি পেছনের ভিডিওগুলো র্যান্ডম সাফল করার ট্রিক
                 let pinnedCount = filtered.filter(p => p.isPinned === true || p.isAdminPost === true).length;
                 let topIndex = Math.max(5, pinnedCount);
 
@@ -235,7 +250,6 @@
             renderViewDOM(filtered);
         }
 
-        // 📱 ক্যাপশন "See More / Less" টগল কন্ট্রোলার লজিক
         window.toggleCaption = (btn, postId) => {
             const pText = document.getElementById(`caption-${postId}`);
             const infoBox = document.getElementById(`info-box-${postId}`);
@@ -250,7 +264,6 @@
             }
         };
 
-        // 💎 ইন্টারফেস রেন্ডারিং ইঞ্জিন
         async function renderViewDOM(postsArray) {
             const wrapper = document.getElementById('reelsWrapper');
             wrapper.innerHTML = "";
@@ -278,8 +291,6 @@
                 const isMonetized = p.isCreatorMonetized === true;
                 const shouldShowFollowPlus = (p.userId !== currentUser?.uid) && !myFollowing.includes(p.userId);
                 const isAdmin = p.isAdminPost === true || p.isPinned === true;
-
-                // ক্যাপশন যদি বেশি বড় হয় তবে "more" বাটন দেখানোর কন্ডিশন সেটআপ
                 const isLongText = p.text && p.text.length > 90;
 
                 const card = document.createElement('div');
