@@ -136,7 +136,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -149,72 +149,98 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        let cachedUsers = {}; // বার বার ফায়ারবেস কল এড়াতে লোকাল মেমোরি ক্যাশ ডাটাবেজ
+
         onAuthStateChanged(auth, user => {
             if(user) {
-                loadAllUsers(user.uid);
-                loadRecentChats(user.uid);
+                initInboxEngine(user.uid);
             } else { window.location.href = "index.html"; }
         });
 
-        // ১. উপরের সেকশন: মেসেঞ্জারের মতো গোল বৃত্তাকার একটিভ মেম্বারদের তালিকা
-        async function loadAllUsers(myId) {
-            onSnapshot(collection(db, "users"), (snap) => {
-                const container = document.getElementById('userSuggestions');
-                container.innerHTML = "";
-                snap.forEach(d => {
-                    if(d.id !== myId) {
-                        const u = d.data();
-                        // শুধুমাত্র অনলাইন ইউজার ফিল্টার করতে চাইলে u.isOnline চেক করা যাবে
-                        container.innerHTML += `
-                            <a href="chat.html?id=${d.id}" class="flex-shrink-0 text-center w-14 group active:scale-90 transition">
-                                <div class="w-[56px] h-[56px] active-story-ring mx-auto mb-1 relative p-[1.5px]">
-                                    <div class="w-full h-full bg-[#050508] rounded-full p-[2px]">
-                                        <div class="w-full h-full bg-neutral-900 rounded-full overflow-hidden border border-white/5 flex items-center justify-center">
-                                            ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-[#D4AF37] text-sm">${u.name?.[0] || '?'}</div>`}
-                                        </div>
-                                    </div>
-                                    ${u.isOnline ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#D4AF37] border-2 border-[#050508] rounded-full"></div>` : ''}
-                                </div>
-                                <p class="text-[10px] font-medium text-gray-400 truncate px-0.5">${u.name?.split(' ')[0] || 'User'}</p>
-                            </a>`;
-                    }
+        // মাস্টার ডাটাবেজ হ্যান্ডলার: ইউজার ও চ্যাট লিস্ট একসাথে অপ্টিমাইজড হ্যান্ডলিং
+        function initInboxEngine(myId) {
+            // প্রথমে ইউজার ডাটা একবারে রিড করে লোকাল অবজেক্টে ক্যাশ রাখা হচ্ছে
+            onSnapshot(collection(db, "users"), (userSnap) => {
+                userSnap.forEach(d => {
+                    cachedUsers[d.id] = { id: d.id, ...d.data() };
                 });
-                if(container.innerHTML === "") {
-                    container.innerHTML = `<div class="text-gray-600 text-[10px] font-bold uppercase py-2">No Active Nodes</div>`;
-                }
+                
+                // ইউজার ডাটা রেডি হলে ভিউ রেন্ডার হবে
+                renderActiveStories(myId);
+                loadRecentChats(myId);
             });
         }
 
-        // ২. নিচের সেকশন: মেসেঞ্জারের মতো ধাপে ধাপে ইনবক্স চ্যাট লিস্ট (যাদের সাথে চ্যাট হয়েছে)
+        // ১. উপরের সেকশন: একটিভ ও অন-বোর্ড মেম্বার রিং রেন্ডারার
+        function renderActiveStories(myId) {
+            const container = document.getElementById('userSuggestions');
+            container.innerHTML = "";
+            
+            Object.values(cachedUsers).forEach(u => {
+                if(u.id !== myId) {
+                    container.innerHTML += `
+                        <a href="chat.html?id=${u.id}" class="story-node flex-shrink-0 text-center w-14 group active:scale-90 transition">
+                            <div class="w-[56px] h-[56px] active-story-ring mx-auto mb-1 relative p-[1.5px]">
+                                <div class="w-full h-full bg-[#050508] rounded-full p-[2px]">
+                                    <div class="w-full h-full bg-neutral-900 rounded-full overflow-hidden border border-white/5 flex items-center justify-center">
+                                        ${u.profilePic ? `<img src="${u.profilePic}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-bold text-[#D4AF37] text-sm">${u.name?.[0] || '?'}</div>`}
+                                    </div>
+                                </div>
+                                ${u.isOnline || u.online ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#D4AF37] border-2 border-[#050508] rounded-full"></div>` : ''}
+                            </div>
+                            <p class="story-name text-[10px] font-medium text-gray-400 truncate px-0.5">${u.name?.split(' ')[0] || 'User'}</p>
+                        </a>`;
+                }
+            });
+            
+            if(container.innerHTML === "") {
+                container.innerHTML = `<div class="text-gray-600 text-[10px] font-bold uppercase py-2">No Active Nodes</div>`;
+            }
+        }
+
+        // ২. নিচের সেকশন: অপ্টিমাইজড রিসেন্ট ইনবক্স চ্যাট লিস্ট লিসেনার
         function loadRecentChats(myId) {
             onSnapshot(collection(db, "chats"), async (snapshot) => {
                 const list = document.getElementById('chatList');
                 let chatData = [];
 
-                const promises = snapshot.docs.map(async (chatDoc) => {
+                for (let chatDoc of snapshot.docs) {
                     const ids = chatDoc.id.split('_');
                     if(ids.includes(myId)) {
                         const targetId = ids.find(id => id !== myId);
                         const data = chatDoc.data();
                         const lastMsg = data.lastMessage || "Tap to chat";
                         const lastTime = data.lastMessageTimestamp?.toMillis() || 0;
-                        const uSnap = await getDoc(doc(db, "users", targetId));
                         
-                        if(uSnap.exists()) {
-                            return { id: targetId, ...uSnap.data(), lastMsg, lastTime };
+                        // ক্যাশ থেকে ইনস্ট্যান্ট ডাটা নেওয়া হচ্ছে, কোনো ডাবল ডক রিকোয়েস্ট নেই
+                        const uData = cachedUsers[targetId];
+                        
+                        if(uData) {
+                            // সাব-কালেকশন থেকে লাস্ট মেসেজের সিন স্ট্যাটাস ডাইনামিকলি ট্র্যাকিং
+                            let hasUnread = false;
+                            const msgQuery = query(collection(db, "chats", chatDoc.id, "messages"), orderBy("timestamp", "desc"), limit(1));
+                            const msgSnap = await getDocs(msgQuery);
+                            if(!msgSnap.empty) {
+                                const lastMsgData = msgSnap.docs[0].data();
+                                if(lastMsgData.senderId !== myId && lastMsgData.isSeen === false) {
+                                    hasUnread = true;
+                                }
+                            }
+
+                            chatData.push({ ...uData, lastMsg, lastTime, hasUnread });
                         }
                     }
-                    return null;
-                });
+                }
 
-                const results = await Promise.all(promises);
-                chatData = results.filter(c => c !== null).sort((a, b) => b.lastTime - a.lastTime);
+                // টাইমস্ট্যাম্প অনুযায়ী শর্টিং (নতুন মেসেজ সবার উপরে আসবে)
+                chatData.sort((a, b) => b.lastTime - a.aLastTime);
 
                 list.innerHTML = chatData.length === 0 ? `<div class="text-center py-20 text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Conversations</div>` : "";
 
                 chatData.forEach(u => {
                     const timeString = u.lastTime ? new Date(u.lastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-                    const statusColor = u.isOnline ? 'bg-[#D4AF37]' : 'bg-neutral-600';
+                    const isOnline = u.isOnline || u.online;
+                    const statusColor = isOnline ? 'bg-[#D4AF37]' : 'bg-neutral-600';
                     
                     list.innerHTML += `
                         <a href="chat.html?id=${u.id}" class="msg-card flex items-center gap-3.5 px-5 py-3.5 hover:bg-white/[0.01]">
@@ -226,12 +252,12 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-baseline mb-0.5">
-                                    <h4 class="font-semibold text-[14px] text-white truncate pr-2">${u.name || 'User'}</h4>
-                                    <span class="text-[10px] text-gray-500 font-medium flex-shrink-0">${timeString}</span>
+                                    <h4 class="font-semibold text-[14px] ${u.hasUnread ? 'text-white font-extrabold' : 'text-gray-300'} truncate pr-2">${u.name || 'User'}</h4>
+                                    <span class="text-[10px] ${u.hasUnread ? 'text-[#D4AF37] font-bold' : 'text-gray-500'} font-medium flex-shrink-0">${timeString}</span>
                                 </div>
                                 <div class="flex items-center justify-between gap-2">
-                                    <p class="text-[12px] text-gray-400 truncate flex-1 font-medium">${u.lastMsg}</p>
-                                    ${u.unreadCount > 0 ? `<div class="unread-dot flex-shrink-0"></div>` : ''}
+                                    <p class="text-[12px] ${u.hasUnread ? 'text-white font-bold' : 'text-gray-400'} truncate flex-1 font-medium">${u.lastMsg}</p>
+                                    ${u.hasUnread ? `<div class="unread-dot flex-shrink-0"></div>` : ''}
                                 </div>
                             </div>
                         </a>`;
@@ -239,12 +265,20 @@
             });
         }
 
-        // ক্লায়েন্ট-সাইড ফিল্টারিং সার্চ মেকানিজম
+        // গ্লোবাল মাস্টার সার্চ ফিল্টারিং মেকানিজম (টপ স্টোরি এবং নিচের লিস্ট দুটিই একসাথে কাজ করবে)
         document.getElementById('chatSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
+            
+            // ১. নিচের লিস্ট ফিল্টার
             document.querySelectorAll('.msg-card').forEach(card => {
                 const name = card.querySelector('h4').innerText.toLowerCase();
                 card.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+
+            // ২. উপরের স্টোরি বাবল ফিল্টার
+            document.querySelectorAll('.story-node').forEach(node => {
+                const name = node.querySelector('.story-name').innerText.toLowerCase();
+                node.style.display = name.includes(term) ? 'block' : 'none';
             });
         });
     </script>
