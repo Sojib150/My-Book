@@ -65,7 +65,7 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* বটম এলিট নেভিগেশন বার */
+        /* বটম绕ল এলিট নেভিগেশন বার */
         .nav-elite {
             background: rgba(11, 15, 25, 0.85);
             backdrop-filter: blur(25px);
@@ -125,7 +125,7 @@
     </div>
 
     <nav class="nav-elite fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] rounded-[30px] p-3.5 flex justify-around items-center z-[100]">
-        <a href="home.html" class="text-gray-500 text-base transition-all active:scale-90"><i class="fas fa-th-large"></i></a>
+        <a href="reels.html" class="text-gray-500 text-base transition-all active:scale-90"><i class="fas fa-th-large"></i></a>
         <a href="search.html" class="text-gray-500 text-base transition-all active:scale-90"><i class="fas fa-compass"></i></a>
         <div onclick="location.href='post.html'" class="plus-btn w-11 h-11 rounded-xl flex items-center justify-center active:scale-90 transition cursor-pointer">
             <i class="fas fa-plus text-sm"></i>
@@ -149,7 +149,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let cachedUsers = {}; // বার বার ফায়ারবেস কল এড়াতে লোকাল মেমোরি ক্যাশ ডাটাবেজ
+        let cachedUsers = {}; 
 
         onAuthStateChanged(auth, user => {
             if(user) {
@@ -157,21 +157,17 @@
             } else { window.location.href = "index.html"; }
         });
 
-        // মাস্টার ডাটাবেজ হ্যান্ডলার: ইউজার ও চ্যাট লিস্ট একসাথে অপ্টিমাইজড হ্যান্ডলিং
         function initInboxEngine(myId) {
-            // প্রথমে ইউজার ডাটা একবারে রিড করে লোকাল অবজেক্টে ক্যাশ রাখা হচ্ছে
             onSnapshot(collection(db, "users"), (userSnap) => {
                 userSnap.forEach(d => {
                     cachedUsers[d.id] = { id: d.id, ...d.data() };
                 });
                 
-                // ইউজার ডাটা রেডি হলে ভিউ রেন্ডার হবে
                 renderActiveStories(myId);
                 loadRecentChats(myId);
             });
         }
 
-        // ১. উপরের সেকশন: একটিভ ও অন-বোর্ড মেম্বার রিং রেন্ডারার
         function renderActiveStories(myId) {
             const container = document.getElementById('userSuggestions');
             container.innerHTML = "";
@@ -198,25 +194,26 @@
             }
         }
 
-        // ২. নিচের সেকশন: অপ্টিমাইজড রিসেন্ট ইনবক্স চ্যাট লিস্ট লিসেনার
+        // মেসেঞ্জার ইন্টেলিজেন্ট সোর্টিং ইঞ্জিন (মেসেজ বা কল ইভেন্ট আপডেটে অটো টপ-আপ পজিশন)
         function loadRecentChats(myId) {
             onSnapshot(collection(db, "chats"), async (snapshot) => {
                 const list = document.getElementById('chatList');
                 let chatData = [];
 
-                for (let chatDoc of snapshot.docs) {
+                // ফায়ারবেস চ্যাট এবং কল রিয়েল-টাইম কম্বাইন্ড ট্র্যাকিং লাস্ট টাইমস্ট্যাম্প
+                const promises = snapshot.docs.map(async (chatDoc) => {
                     const ids = chatDoc.id.split('_');
                     if(ids.includes(myId)) {
                         const targetId = ids.find(id => id !== myId);
                         const data = chatDoc.data();
-                        const lastMsg = data.lastMessage || "Tap to chat";
-                        const lastTime = data.lastMessageTimestamp?.toMillis() || 0;
                         
-                        // ক্যাশ থেকে ইনস্ট্যান্ট ডাটা নেওয়া হচ্ছে, কোনো ডাবল ডক রিকোয়েস্ট নেই
+                        let lastMsg = data.lastMessage || "Tap to chat";
+                        let lastTime = data.lastMessageTimestamp?.toMillis() || 0;
+                        
                         const uData = cachedUsers[targetId];
                         
                         if(uData) {
-                            // সাব-কালেকশন থেকে লাস্ট মেসেজের সিন স্ট্যাটাস ডাইনামিকলি ট্র্যাকিং
+                            // ১. ইন-কল বা ডাইনামিক মেসেজ ট্র্যাকিং
                             let hasUnread = false;
                             const msgQuery = query(collection(db, "chats", chatDoc.id, "messages"), orderBy("timestamp", "desc"), limit(1));
                             const msgSnap = await getDocs(msgQuery);
@@ -225,15 +222,31 @@
                                 if(lastMsgData.senderId !== myId && lastMsgData.isSeen === false) {
                                     hasUnread = true;
                                 }
+                                // যদি রিয়েল-টাইম মেসেজের নিজস্ব টাইমস্ট্যাম্প ডক মেটাডাটার চেয়ে নতুন হয়
+                                if(lastMsgData.timestamp?.toMillis() > lastTime) {
+                                    lastTime = lastMsgData.timestamp.toMillis();
+                                }
                             }
 
-                            chatData.push({ ...uData, lastMsg, lastTime, hasUnread });
+                            // ২. কল ট্রিগার চেকিং (ইনকামিং বা আউটগোয়িং কল থাকলে সোর্টিং টাইম বুস্ট হবে)
+                            const callSnap = await getDoc(doc(db, "calls", targetId)).catch(()=>{});
+                            if(callSnap && callSnap.exists()) {
+                                const callData = callSnap.data();
+                                lastMsg = `<i class="fas fa-video text-[#D4AF37] mr-1"></i> ${callData.status === 'connected' ? 'Active Call...' : 'Calling...'}`;
+                                lastTime = Date.now(); // কল একটিভ থাকা অবস্থায় এটি লিস্টের সবার শীর্ষে ফোর্স পুশ করবে
+                            }
+
+                            return { ...uData, lastMsg, lastTime, hasUnread };
                         }
                     }
-                }
+                    return null;
+                });
 
-                // টাইমস্ট্যাম্প অনুযায়ী শর্টিং (নতুন মেসেজ সবার উপরে আসবে)
-                chatData.sort((a, b) => b.lastTime - a.aLastTime);
+                const results = await Promise.all(promises);
+                chatData = results.filter(c => c !== null);
+
+                // মেসেঞ্জার অ্যালগরিদম সোর্টিং: যার সর্বশেষ মেসেজ/কল ইভেন্ট নতুন, সে সবার উপরে থাকবে
+                chatData.sort((a, b) => b.lastTime - a.lastTime);
 
                 list.innerHTML = chatData.length === 0 ? `<div class="text-center py-20 text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Conversations</div>` : "";
 
@@ -258,24 +271,22 @@
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-[12px] ${u.hasUnread ? 'text-white font-bold' : 'text-gray-400'} truncate flex-1 font-medium">${u.lastMsg}</p>
                                     ${u.hasUnread ? `<div class="unread-dot flex-shrink-0"></div>` : ''}
-                                </div>
+                                }
                             </div>
                         </a>`;
                 });
             });
         }
 
-        // গ্লোবাল মাস্টার সার্চ ফিল্টারিং মেকানিজম (টপ স্টোরি এবং নিচের লিস্ট দুটিই একসাথে কাজ করবে)
+        // গ্লোবাল মাস্টার সার্চ ফিল্টারিং মেকানিজম
         document.getElementById('chatSearch').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             
-            // ১. নিচের লিস্ট ফিল্টার
             document.querySelectorAll('.msg-card').forEach(card => {
                 const name = card.querySelector('h4').innerText.toLowerCase();
                 card.style.display = name.includes(term) ? 'flex' : 'none';
             });
 
-            // ২. উপরের স্টোরি বাবল ফিল্টার
             document.querySelectorAll('.story-node').forEach(node => {
                 const name = node.querySelector('.story-name').innerText.toLowerCase();
                 node.style.display = name.includes(term) ? 'block' : 'none';
