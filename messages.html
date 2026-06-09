@@ -17,7 +17,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* মেসেঞ্জার স্টাইল টপ হেডার গ্লাস */
         .messenger-header { 
             background: rgba(5, 5, 8, 0.85); 
             backdrop-filter: blur(25px); 
@@ -25,7 +24,6 @@
             border-bottom: 1px solid rgba(212, 175, 55, 0.1); 
         }
         
-        /* সার্চ বক্স পোলিশ */
         .search-box { 
             background: rgba(255, 255, 255, 0.04); 
             border-radius: 20px; 
@@ -38,16 +36,12 @@
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.08);
         }
         
-        /* চ্যাট লিস্ট কার্ড */
-        .msg-card { 
-            transition: all 0.2s ease; 
-        }
+        .msg-card { transition: all 0.2s ease; }
         .msg-card:active { 
             background-color: rgba(255, 255, 255, 0.03); 
             transform: scale(0.98); 
         }
         
-        /* মেসেঞ্জার রাউন্ডেড অ্যাক্টিভ স্টোরি রিং */
         .active-story-ring {
             background: linear-gradient(45deg, #D4AF37, #F9E498, #AA8A3A);
             padding: 2px;
@@ -65,7 +59,6 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* বটম এলিট নেভিগেশন বার */
         .nav-elite {
             background: rgba(11, 15, 25, 0.85);
             backdrop-filter: blur(25px);
@@ -79,9 +72,47 @@
             color: #000;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
+
+        /* কল পপআপ গ্লাস মেটেরিয়াল অ্যানিমেশন */
+        .call-popup-glass {
+            background: rgba(10, 11, 18, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%) scale(0.9); opacity: 0; }
+            to { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body class="pb-32">
+
+    <div id="incomingCallPopup" class="hidden fixed top-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[380px] call-popup-glass rounded-[28px] p-5 z-[99999] flex items-center gap-4">
+        <div class="relative">
+            <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-[#D4AF37] shadow-lg animate-pulse" id="callerImageContainer">
+                <img id="callerPopupImg" src="" class="w-full h-full object-cover" alt="">
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-[#D4AF37] rounded-full flex items-center justify-center border-2 border-[#050508]">
+                <i class="fas fa-video text-[9px] text-black animate-spin"></i>
+            </div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-sm text-white truncate" id="callerPopupName">Incoming Call...</h3>
+            <p class="text-xs text-gray-400 font-medium tracking-wide animate-pulse">My Book Elite Video Call</p>
+        </div>
+        <div class="flex gap-2.5">
+            <button id="declineCallBtn" class="w-10 h-10 bg-red-600 hover:bg-red-700 active:scale-90 transition rounded-full flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-phone-slash text-sm"></i>
+            </button>
+            <button id="acceptCallBtn" class="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 active:scale-90 transition rounded-full flex items-center justify-center text-black shadow-lg">
+                <i class="fas fa-phone text-sm"></i>
+            </button>
+        </div>
+    </div>
 
     <nav class="messenger-header sticky top-0 z-50 px-5 pt-6 pb-4 max-w-md mx-auto">
         <div>
@@ -136,7 +167,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, deleteDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -150,10 +181,13 @@
         const auth = getAuth(app);
 
         let cachedUsers = {}; 
+        let ringtoneAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-84.wav'); // লাক্সারি রিংটোন টোন
+        ringtoneAudio.loop = true;
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 initInboxEngine(user.uid);
+                listenForIncomingCalls(user.uid); // ইনকামিং কল লিসেনার একটিভ করা হলো
             } else { window.location.href = "index.html"; }
         });
 
@@ -164,6 +198,51 @@
                 });
                 renderActiveStories(myId);
                 loadRecentChats(myId);
+            });
+        }
+
+        // রিয়েল-টাইম গ্লোবাল ইনকামিং কল রিসিভ ট্র্যাকার অ্যালগরিদম
+        function listenForIncomingCalls(myId) {
+            onSnapshot(collection(db, "calls"), (snapshot) => {
+                let activeCallFound = false;
+
+                snapshot.forEach((callDoc) => {
+                    const callData = callDoc.data();
+                    // যদি কলের targetId আমি হই এবং স্ট্যাটাস যদি 'dialing' হয়
+                    if (callData.targetId === myId && callData.status === 'dialing') {
+                        activeCallFound = true;
+                        const callerId = callData.callerId;
+                        const callerInfo = cachedUsers[callerId] || { name: "Elite User", profilePic: "" };
+
+                        // পপআপ UI আপডেট
+                        document.getElementById('callerPopupName').innerText = callerInfo.name;
+                        document.getElementById('callerPopupImg').src = callerInfo.profilePic || 'https://via.placeholder.com/150';
+                        document.getElementById('incomingCallPopup').classList.remove('hidden');
+                        
+                        // রিংটোন প্লে করার চেষ্টা (ব্রাউজার পলিসি হ্যান্ডেলসহ)
+                        ringtoneAudio.play().catch(()=>{});
+
+                        // রিসিভ বাটনের অ্যাকশন
+                        document.getElementById('acceptCallBtn').onclick = async () => {
+                            ringtoneAudio.pause();
+                            await updateDoc(doc(db, "calls", callDoc.id), { status: 'connected' });
+                            window.location.href = `chat.html?id=${callerId}&room=${callDoc.id}`;
+                        };
+
+                        // রিজেক্ট বাটনের অ্যাকশন
+                        document.getElementById('declineCallBtn').onclick = async () => {
+                            ringtoneAudio.pause();
+                            await deleteDoc(doc(db, "calls", callDoc.id));
+                            document.getElementById('incomingCallPopup').classList.add('hidden');
+                        };
+                    }
+                });
+
+                // যদি কোনো একটিভ কল ডাটাবেজে না থাকে তবে পপআপ হাইড ও রিংটোন বন্ধ হবে
+                if (!activeCallFound) {
+                    ringtoneAudio.pause();
+                    document.getElementById('incomingCallPopup').classList.add('hidden');
+                }
             });
         }
 
@@ -225,16 +304,6 @@
                                 }
                             }
 
-                            // কল স্ট্যাটাস রিয়েল-টাইম চেকিং ও শর্টিং পুশ
-                            const callSnap = await getDoc(doc(db, "calls", targetId)).catch(()=>{});
-                            if(callSnap && callSnap.exists()) {
-                                const callData = callSnap.data();
-                                if(callData.status === 'dialing' || callData.status === 'connected') {
-                                    lastMsg = `<span class="text-[#D4AF37]"><i class="fas fa-video mr-1 animate-pulse"></i> Call Active...</span>`;
-                                    lastTime = Date.now(); 
-                                }
-                            }
-
                             return { ...uData, lastMsg, lastTime, hasUnread };
                         }
                     }
@@ -244,7 +313,6 @@
                 const results = await Promise.all(promises);
                 chatData = results.filter(c => c !== null);
 
-                // মেসেঞ্জারের মূল শর্টিং লজিক
                 chatData.sort((a, b) => b.lastTime - a.lastTime);
 
                 list.innerHTML = chatData.length === 0 ? `<div class="text-center py-20 text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Conversations</div>` : "";
