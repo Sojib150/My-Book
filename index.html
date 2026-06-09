@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Book - Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050508; color: #ffffff; font-family: sans-serif; }
+        .loader {
+            width: 35px;
+            height: 35px;
+            border: 3px solid rgba(255,255,255,0.03);
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center gap-4">
+
+    <div class="flex flex-col items-center gap-3">
+        <div class="loader"></div>
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest animate-pulse">Syncing Secure Session...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM",
+            authDomain: "seen-a1d92.firebaseapp.com",
+            projectId: "seen-a1d92",
+            storageBucket: "seen-a1d92.firebasestorage.app",
+            messagingSenderId: "868584044532",
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 🛡️ গ্লোবাল গেটওয়ে সেশন চেকার
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        
+                        // যদি ইউজার হার্ড ব্যান বা পেন্ডিং অবস্থায় থাকে
+                        if (userData.isHardBanned || userData.accountStatus === "waiting_approval") {
+                            await signOut(auth);
+                            window.location.href = "login.html";
+                            return;
+                        }
+                        
+                        // সব ঠিক থাকলে সরাসরি অ্যাপের ভেতরে রিডাইরেক্ট
+                        window.location.href = "reels.html";
+                    } else {
+                        // ডাটাবেজে ইউজার প্রোফাইল না থাকলে লগইনে পাঠাবে
+                        window.location.href = "login.html";
+                    }
+                } catch (e) {
+                    console.log("Gateway Error:", e);
+                    window.location.href = "login.html";
+                }
+            } else {
+                // ইউজার লগইন করা না থাকলে সোজাসুজি লগইন পেজে ট্রান্সফার
+                window.location.href = "login.html";
+            }
+        });
+    </script>
+</body>
+</html>
