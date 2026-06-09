@@ -142,6 +142,21 @@
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
 
+        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE
+        function syncUserWithOneSignal(uid) {
+            if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
+                window.gonative.push.onesignal.setExternalUserId(uid, function(result){
+                    if(result.success) {
+                        console.log("OneSignal Native External ID Linked in Reels for UID:", uid);
+                    } else {
+                        console.log("OneSignal Reels Sync Failed.");
+                    }
+                });
+            } else {
+                console.log("Running in standard browser. Median Native Bridge not active in Reels.");
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
                 currentUser = user; 
@@ -149,8 +164,10 @@
                     const uSnap = await getDoc(doc(db, "users", user.uid));
                     if(uSnap.exists()) userData = uSnap.data();
                     
+                    // 📱 অ্যাপ ওপেন করে রিলস পেজে ঢোকামাত্র ওয়ানসিগন্যাল সিঙ্ক ফায়ার করা হচ্ছে
+                    syncUserWithOneSignal(user.uid);
+                    
                     // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার নোড
-                    // রিলস স্ক্রোল করার ফাঁকে কেউ কল দিলে সাথে সাথে 'call.html'-এ পাঠিয়ে দেবে
                     const inboundCallQuery = query(
                         collection(db, "calls"),
                         where("receiverId", "==", user.uid),
@@ -162,7 +179,6 @@
                             const callData = changeDoc.data();
                             const callId = changeDoc.id;
                             
-                            // চলমান রিলস মিউট/পজ করে কল পেজে পাঠানো হচ্ছে
                             document.querySelectorAll('.reel-video').forEach(v => v.pause());
                             window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
                         });
