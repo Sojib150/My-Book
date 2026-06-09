@@ -1,156 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Session - Bondo AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>রিয়েল-টাইম চ্যাট</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050508; color: #e2e8f0; }
-        .glass { background: rgba(11, 15, 25, 0.75); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); }
-        .msg-inbound { background: rgba(255,255,255,0.04); border-radius: 18px 18px 18px 4px; border: 1px solid rgba(255,255,255,0.02); }
-        .msg-outbound { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); border-radius: 18px 18px 4px 18px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0a0e17; color: #ffffff; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* প্রফেশনাল চ্যাট হেডার */
+        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #111726; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
+        .back-user { display: flex; align-items: center; gap: 12px; }
+        .back-user a { color: #d4af37; text-decoration: none; font-size: 18px; }
+        .active-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #d4af37; }
+        .active-username { font-size: 16px; font-weight: 600; }
+        
+        /* কলিং বাটন গ্রুপ (ওপরের কর্নারে) */
+        .call-actions { display: flex; gap: 18px; }
+        .call-actions a { color: #d4af37; font-size: 18px; text-decoration: none; transition: 0.2s; }
+        .call-actions a:hover { transform: scale(1.1); }
+
+        /* মেসেজিং এরিয়া */
+        .chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .bubble-wrapper { display: flex; flex-direction: column; max-width: 75%; }
+        .bubble-wrapper.incoming { align-self: flex-start; }
+        .bubble-wrapper.outgoing { align-self: flex-end; }
+
+        .msg-bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; }
+        .incoming .msg-bubble { background: #111726; border: 1px solid rgba(212, 175, 55, 0.05); color: #fff; border-top-left-radius: 2px; }
+        .outgoing .msg-bubble { background: linear-gradient(135deg, #d4af37 0%, #aa841e 100%); color: #0a0e17; font-weight: 500; border-top-right-radius: 2px; }
+        
+        /* টাইম ও সিন (Seen) স্ট্যাটাস */
+        .status-row { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; color: #a0aec0; margin-top: 3px; }
+        .outgoing .status-row { color: #d4af37; }
+        .seen-tick { font-size: 11px; }
+
+        /* বটম ইনপুট বার */
+        .input-container { padding: 12px; background: #111726; display: flex; gap: 10px; align-items: center; border-top: 1px solid rgba(212, 175, 55, 0.1); }
+        .input-container input { flex: 1; background: #0a0e17; border: 1px solid rgba(212, 175, 55, 0.2); padding: 12px 18px; border-radius: 25px; color: #ffffff; outline: none; }
+        .input-container input:focus { border-color: #d4af37; }
+        .send-message-btn { background: #d4af37; border: none; width: 44px; height: 44px; border-radius: 50%; color: #0a0e17; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="h-screen flex flex-col justify-between bg-[#050508] overflow-hidden">
+<body>
 
-    <header class="glass px-4 py-3 border-b border-white/5 flex justify-between items-center z-50">
-        <div class="flex items-center gap-3 truncate max-w-[60%]">
-            <button onclick="location.href='messages.html'" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400"><i class="fas fa-arrow-left text-xs"></i></button>
-            <img id="targetPic" src="https://via.placeholder.com/100" class="w-9 h-9 rounded-xl object-cover border border-white/10 bg-black">
-            <div class="truncate">
-                <h2 id="targetName" class="font-black text-xs text-white truncate">Loading User...</h2>
-                <p id="targetStatus" class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Secure Node</p>
+    <div class="chat-header">
+        <div class="back-user">
+            <a href="messages.html"><i class="fas fa-arrow-left"></i></a>
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" class="active-avatar" alt="">
+            <span class="active-username">টিনা শর্মা</span>
+        </div>
+        <div class="call-actions">
+            <a href="call.html?type=audio"><i class="fas fa-phone-alt"></i></a>
+            <a href="call.html?type=video"><i class="fas fa-video"></i></a>
+        </div>
+    </div>
+
+    <div class="chat-box">
+        <div class="bubble-wrapper incoming">
+            <div class="msg-bubble">হ্যালো, ফ্রি আছো? একটা দরকারি কথা ছিল।</div>
+            <div class="status-row"><span>10:55 PM</span></div>
+        </div>
+
+        <div class="bubble-wrapper outgoing">
+            <div class="msg-bubble">হ্যাঁ ফ্রি আছি, বলো কী বলবে।</div>
+            <div class="status-row">
+                <span>10:56 PM</span>
+                <i class="fas fa-check-double seen-tick"></i> Seen
             </div>
         </div>
-        
-        <div class="flex gap-2">
-            <button onclick="initiateCall('audio')" class="w-9 h-9 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl flex items-center justify-center transition border border-emerald-500/10"><i class="fas fa-phone text-xs"></i></button>
-            <button onclick="initiateCall('video')" class="w-9 h-9 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-xl flex items-center justify-center transition border border-indigo-500/10"><i class="fas fa-video text-xs"></i></button>
-        </div>
-    </header>
+    </div>
 
-    <main id="chatStream" class="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
-        </main>
+    <div class="input-container">
+        <input type="text" placeholder="মেসেজ টাইপ করুন...">
+        <button class="send-message-btn"><i class="fas fa-paper-plane"></i></button>
+    </div>
 
-    <footer class="p-3 bg-[#050508] border-t border-white/5">
-        <div class="flex items-center gap-2 max-w-md mx-auto relative">
-            <input type="text" id="msgInput" placeholder="Type encrypted message node..." class="w-full bg-black/50 text-xs text-white border border-white/5 rounded-2xl pl-4 pr-12 py-3.5 outline-none focus:border-indigo-500 transition">
-            <button id="sendBtn" class="absolute right-2 top-2 w-9 h-9 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center transition active:scale-95"><i class="fas fa-paper-plane text-xs"></i></button>
-        </div>
-    </footer>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let roomId = urlParams.get('roomId');
-        const targetId = urlParams.get('targetId');
-        let currentUserId = null;
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                if (!roomId && targetId) { roomId = generateRoomId(currentUserId, targetId); }
-                loadTargetProfile();
-                listenMessages();
-                clearUnreadCounter();
-            } else {
-                window.location.href = "login.html";
-            }
-        });
-
-        function generateRoomId(uid1, uid2) {
-            return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`;
-        }
-
-        async function loadTargetProfile() {
-            const d = await getDoc(doc(db, "users", targetId));
-            if(d.exists()) {
-                document.getElementById('targetName').innerText = d.data().name || "Creator";
-                document.getElementById('targetPic').src = d.data().profilePic || "https://via.placeholder.com/100";
-                document.getElementById('targetStatus').innerText = d.data().isVerified ? "Verified Elite" : "Active Node";
-            }
-        }
-
-        async function clearUnreadCounter() {
-            if(roomId) { await setDoc(doc(db, "chats", roomId), { unreadCount: 0 }, { merge: true }); }
-        }
-
-        document.getElementById('sendBtn').onclick = sendMessage;
-        document.getElementById('msgInput').onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
-
-        async function sendMessage() {
-            const input = document.getElementById('msgInput');
-            const text = input.value.trim();
-            if(!text) return;
-
-            input.value = "";
-
-            const msgData = {
-                senderId: currentUserId,
-                text: text,
-                timestamp: serverTimestamp()
-            };
-
-            // মেসেজ সাব-কলেকেশনে অ্যাড হচ্ছে
-            await addDoc(collection(db, "chats", roomId, "messages"), msgData);
-
-            // মেইন চ্যাট ডক আপডেট (ইনবক্স ট্র্যাকিংয়ের জন্য)
-            await setDoc(doc(db, "chats", roomId), {
-                participants: [currentUserId, targetId],
-                lastMessage: text,
-                lastMessageTime: serverTimestamp(),
-                lastSenderId: currentUserId,
-                unreadCount: 1 
-            }, { merge: true });
-        }
-
-        function listenMessages() {
-            const q = query(collection(db, "chats", roomId, "messages"), orderBy("timestamp", "asc"));
-            onSnapshot(q, (snapshot) => {
-                const stream = document.getElementById('chatStream');
-                stream.innerHTML = "";
-                
-                snapshot.forEach(doc => {
-                    const m = doc.data();
-                    const wrapper = document.createElement('div');
-                    wrapper.className = `max-w-[75%] p-3.5 my-1 text-xs font-semibold ${m.senderId === currentUserId ? 'msg-outbound text-white self-end' : 'msg-inbound text-gray-200 self-start'}`;
-                    wrapper.innerText = m.text;
-                    stream.appendChild(wrapper);
-                });
-                stream.scrollTop = stream.scrollHeight;
-            });
-        }
-
-        // 📞 আউটগোয়িং কল ট্রিগার লজিক (যা call.html ওপেন করবে)
-        window.initiateCall = async (type) => {
-            const callId = currentUserId + "_" + Date.now(); // ইউনিক কল আইডি
-            
-            // ফায়ারবেসে একটি ইনকামিং কল নোড তৈরি করা হচ্ছে
-            await setDoc(doc(db, "calls", callId), {
-                callerId: currentUserId,
-                callerName: auth.currentUser.displayName || "Bondo User",
-                receiverId: targetId,
-                type: type, // 'audio' বা 'video'
-                status: "ringing",
-                createdAt: serverTimestamp()
-            });
-
-            // কল স্ক্রিনে ডাটা পাস করে রিডাইরেক্ট করা হচ্ছে
-            window.location.href = `call.html?callId=${callId}&type=${type}&role=caller&targetId=${targetId}`;
-        };
-    </script>
 </body>
 </html>
