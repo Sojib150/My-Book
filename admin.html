@@ -301,7 +301,7 @@
         }
 
         function initSupremeSystem() {
-            // ১. রিয়েল-টাইম ইউজার লিসেনার ও ক্যাশিং
+            // ১. রিয়েল-টাইম ইউজার লিসেনার ও ক্যাশ
             onSnapshot(collection(db, "users"), snap => {
                 document.getElementById('countUsers').innerText = snap.size;
                 cachedUsersList = [];
@@ -322,14 +322,16 @@
                 renderUsers(filtered);
             };
 
-            // ৩. গ্লোবাল ওয়াচটাওয়ার রিলস ও পোস্ট মনিটর স্ট্রিম
+            // ৩. গ্লোবাল ওয়াচটাওয়ার রিলস ও পোস্ট মনিটর স্ট্রিম (📌 আপগ্রেডেড পিন বাটন ইন্টারফেসসহ)
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
                 const postGrid = document.getElementById('globalPostGrid');
                 postGrid.innerHTML = "";
                 snap.forEach(d => {
                     const p = d.data(); const pid = d.id;
                     const pCard = document.createElement('div');
-                    pCard.className = "post-card-admin glass p-2.5 flex flex-col justify-between gap-2.5";
+                    
+                    // পিন করা পোস্টের বর্ডার হাইলাইট ক্লাস
+                    pCard.className = `post-card-admin glass p-2.5 flex flex-col justify-between gap-2.5 ${p.isPinned ? 'border-2 border-indigo-500 shadow-lg shadow-indigo-500/20' : ''}`;
                     
                     let mediaRender = "";
                     if(p.fileUrl) {
@@ -343,12 +345,18 @@
                     }
 
                     pCard.innerHTML = `
-                        <div class="flex items-center gap-1.5 truncate">
-                            <img src="${p.userPic || p.profilePic || 'https://via.placeholder.com/100'}" class="w-5 h-5 rounded-full object-cover border border-white/10">
-                            <span class="text-[9px] font-bold text-gray-400 truncate">@${p.userName || 'creator'}</span>
+                        <div class="flex justify-between items-center truncate">
+                            <div class="flex items-center gap-1.5 truncate max-w-[70%]">
+                                <img src="${p.userPic || p.profilePic || 'https://via.placeholder.com/100'}" class="w-5 h-5 rounded-full object-cover border border-white/10">
+                                <span class="text-[9px] font-bold text-gray-400 truncate">@${p.userName || 'creator'}</span>
+                            </div>
+                            ${p.isPinned ? `<span class="text-[8px] bg-indigo-500 text-white font-black px-1.5 py-0.5 rounded-md"><i class="fas fa-thumbtack mr-1"></i>PINNED</span>` : ''}
                         </div>
                         ${mediaRender}
                         <div class="flex gap-1.5 mt-0.5">
+                            <button onclick="togglePinPost('${pid}', ${p.isPinned || false})" class="px-2.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-lg text-[9px] flex items-center justify-center transition border border-indigo-500/20" title="Pin / Unpin Post">
+                                <i class="fas fa-thumbtack"></i>
+                            </button>
                             <button onclick="deleteAnyPost('${pid}')" class="flex-1 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider transition border border-red-500/10">Wipe</button>
                             <button onclick="window.open('${p.fileUrl || '#'}', '_blank')" class="bg-white/5 hover:bg-white/10 text-gray-300 w-8 rounded-lg text-[9px] flex items-center justify-center border border-white/5 transition"><i class="fas fa-external-link-alt"></i></button>
                         </div>
@@ -375,7 +383,7 @@
                 } 
             });
 
-            // ৬. প্ল্যাটফর্ম গ্লোবাল এলগরিদম CPM ট্র্যাকার লিসেনার (Fixed to algorithmic database match)
+            // ৬. প্ল্যাটফর্ম গ্লোবাল এলগরিদম CPM ট্র্যাকার লিসেনার
             onSnapshot(doc(db, "appSettings", "algorithm"), d => { 
                 if(d.exists()) {
                     const cpmVal = parseFloat(d.data().trendBoost || 0);
@@ -469,25 +477,43 @@
             });
         }
 
-        // --- Core Functional Operations ---
+        // --- Core Action Operations Backends ---
         window.deleteAnyPost = async (id) => {
             if(confirm('Purge this content payload node permanently?')) await deleteDoc(doc(db, "posts", id));
         };
 
-        // 🛡️ মনিটাইজেশন অন/অফ ট্র্যাকার লজিক (রিলস পেজের সাথে ম্যাচ করার জন্য ফিক্সড)
+        // 📌 পিন ও আনপিন টগল ট্র্যাকার ফাংশন (এডমিন প্যানেল কন্ট্রোল নোড)
+        window.togglePinPost = async (postId, currentPinStatus) => {
+            try {
+                const newPinStatus = !currentPinStatus;
+                
+                // ফায়ারবেসের ওই নির্দিষ্ট রিলস/পোস্ট ডক আইডিতে স্টেট সোয়াপ করা হচ্ছে
+                await updateDoc(doc(db, "posts", postId), {
+                    isPinned: newPinStatus
+                });
+
+                if (newPinStatus) {
+                    Swal.fire({ icon: 'success', title: 'Video Pinned!', text: 'পোস্টটি সফলভাবে সবার উপরে পিন করা হয়েছে!', timer: 1500, showConfirmButton: false });
+                } else {
+                    Swal.fire({ icon: 'info', title: 'Video Unpinned!', text: 'পোস্টটি সফলভাবে আনপিন করা হয়েছে।', timer: 1500, showConfirmButton: false });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Pin Operation Failed', text: err.message });
+            }
+        };
+
         window.toggleMonetize = async (uid, currentStatus) => {
             try {
                 const newStatus = !currentStatus;
                 await updateDoc(doc(db, "users", uid), { isMonetized: newStatus });
                 
-                // ব্যবহারকারীর সকল পোস্টের ইন-স্ট্রিম ফ্ল্যাগ সিঙ্ক করা হচ্ছে
                 const postQuery = query(collection(db, "posts"), where("userId", "==", uid));
                 const snap = await getDocs(postQuery);
                 const batch = writeBatch(db);
                 snap.forEach(p => {
                     batch.update(doc(db, "posts", p.id), { 
                         isCreatorMonetized: newStatus,
-                        isMonetized: newStatus // রিলস ইঞ্জিনের সহজ ট্র্যাকিং ভেরিয়েবল
+                        isMonetized: newStatus 
                     });
                 });
                 await batch.commit();
@@ -521,7 +547,6 @@
 
         window.updateCPM = async () => {
             const val = parseFloat(document.getElementById('cpmRateInput').value) || 0;
-            // রিলস পেজে যাতে ইনকাম ট্র্যাকিং করতে পারে তাই গ্লোবাল ভ্যালু ও ট্রেন্ড বুস্ট দুটিই রাইট করা হচ্ছে
             await setDoc(doc(db, "appSettings", "algorithm"), { 
                 trendBoost: val,
                 globalCPM: val 
