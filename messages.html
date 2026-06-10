@@ -184,11 +184,20 @@
         let ringtoneAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-84.wav'); 
         ringtoneAudio.loop = true;
 
+        // গ্লোবাল সেশন সিঙ্ক ও সংশোধিত লগইন রিডাইরেকশন লজিক
         onAuthStateChanged(auth, user => {
             if(user) {
                 initInboxEngine(user.uid);
                 listenForIncomingCalls(user.uid); 
-            } else { window.location.href = "index.html"; }
+            } else { 
+                // আগের index.html সম্পূর্ণ বাদ দিয়ে login.html এখানে পারফেক্টলি সেট করা হলো
+                const loginPage = "login.html"; 
+                
+                // কারেন্ট পেজ যদি অলরেডি লগইন পেজ না হয়, তবেই কেবল রিডাইরেক্ট করবে (ক্র্যাশ লুপ প্রোটেকশন)
+                if (!window.location.href.toLowerCase().includes(loginPage.toLowerCase())) {
+                    window.location.href = loginPage; 
+                }
+            }
         });
 
         function initInboxEngine(myId) {
@@ -210,10 +219,10 @@
                     const callData = callDoc.data();
                     const docId = callDoc.id;
 
-                    // লজিক চেক: ১. যদি ডকুমেন্ট আইডি আমার UID হয় ২. অথবা ফিল্ডের targetId আমার সাথে মিলে ৩. অথবা কম্পোজিট আইডি (caller_target) এর শেষ অংশ আমার হয়
+                    // লজিক চেক: ডকুমেন্ট আইডি, ফিল্ডের targetId অথবা কম্পোজিট আইডির শেষ অংশ আমার UID এর সাথে মিললে
                     if (docId === myId || callData.targetId === myId || docId.endsWith(`_${myId}`)) {
                         
-                        // স্ট্যাটাস ট্র্যাকিং লজিক (dialing অথবা ringing যেকোনো একটি হলেই রান হবে)
+                        // স্ট্যাটাস ট্র্যাকিং লজিক
                         if (callData.status === 'dialing' || callData.status === 'ringing') {
                             activeCallFound = true;
                             
