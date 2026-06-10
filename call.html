@@ -209,16 +209,16 @@
         const auth = getAuth(app);
 
         const APP_ID = "b73c0ab95ca94cb0a11b4216f3e9b616"; 
-        
-        // ওয়ান-সিগন্যাল অ্যাপ আইডি (আপনার ওয়ান-সিগন্যাল ড্যাশবোর্ড থেকে এখানে বসিয়ে দিবেন)
         const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; 
         
         const urlParams = new URLSearchParams(window.location.search);
-        const targetId = urlParams.get('id');
-        const action = urlParams.get('action'); 
+        
+        // 🔄 [FIXED] ইন্ডেক্স/নোটিফিকেশন উভয় প্যারামিটার হ্যান্ডেল করার লজিক
+        const targetId = urlParams.get('targetId') || urlParams.get('id');
+        const action = urlParams.get('action') || urlParams.get('role'); 
         
         let myId = null;
-        let myName = "Elite User"; // ডিফল্ট নাম
+        let myName = "Elite User"; 
         let chatID = null;
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
@@ -237,7 +237,6 @@
                 myId = user.uid;
                 chatID = [myId, targetId].sort().join("_");
                 
-                // নিজের নাম রিকোয়েস্ট ট্র্যাকিংয়ের জন্য লোড করা হচ্ছে
                 const mySnap = await getDoc(doc(db, "users", myId));
                 if(mySnap.exists()) myName = mySnap.data().name;
 
@@ -277,34 +276,38 @@
             if(!isOpen) panel.classList.add('open');
         };
 
+        // 🔄 [FIXED] কল রিসিভারদের জন্য ফায়ারবেস ট্র্যাকিং এবং রিংটোন ম্যানেজমেন্ট
         function handleRingtone() {
             if(action === 'calling') {
                 dialing.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Dialing Elite...";
-                
-                // কলিং অ্যাকশন হওয়া মাত্রই ওয়ান-সিগন্যাল গ্লোবাল পুশ ট্রিগার কল করা হবে
                 triggerOneSignalNotification();
-            } else {
+            } 
+            // যদি রিসিভার এন্ড থেকে ঢুকে থাকে
+            else if(action === 'answering' || action === 'receiver') {
                 ringtone.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Incoming Call...";
+                
+                // রিসিভার বাটনে ক্লিক করা মাত্রই ডেটাবেজে কানেক্টেড স্ট্যাটাস পুশ হবে
                 const callRef = doc(db, "calls", myId);
-                updateDoc(callRef, { status: "connected" }).catch(()=>{});
+                updateDoc(callRef, { status: "connected" }).catch((err)=>{
+                    console.log("Firebase direct bridge failed:", err);
+                });
             }
         }
 
-        // ওয়ান-সিগন্যাল গ্লোবাল পুশ নোটিফিকেশন ইঞ্জিন (রিয়েল-টাইম ব্যাকগ্রাউন্ড আর্কিটেকচার)
         function triggerOneSignalNotification() {
-            if(!targetId || ONESIGNAL_APP_ID === "YOUR_ONESIGNAL_APP_ID_HERE") return;
+            if(!targetId) return;
 
             const notificationData = {
                 app_id: ONESIGNAL_APP_ID,
-                include_aliases: { "external_id": [targetId] }, // টার্গেট ইউজারের ফায়ারবেস UID ট্র্যাকিং
+                include_aliases: { "external_id": [targetId] }, 
                 target_channel: "push",
                 headings: { "en": "Incoming Elite Call 📞" },
                 contents: { "en": `${myName} is calling you on My Book Elite. Tap to answer.` },
-                data: { action: "calling", callerId: myId }, // ব্যাকগ্রাউন্ডে ক্লিক করলে অ্যাপ রিডাইরেক্ট ডেটা
+                data: { action: "calling", callerId: myId }, 
                 android_background_layout: { "headings_color": "D4AF37", "contents_color": "FFFFFF" },
-                priority: 10 // হাই-প্রায়োরিটি ডেলিভারি (ইনস্ট্যান্ট পুশ)
+                priority: 10 
             };
 
             fetch("https://onesignal.com/api/v1/notifications", {
@@ -358,7 +361,7 @@
 
         function listenForCallStatus() {
             const docId = action === 'calling' ? targetId : myId;
-            onSnapshot(doc(db, "calls", docId), snap => {
+            onSnapshot(doc(doc(db, "calls", docId)), snap => {
                 if(!snap.exists()) {
                     endCall();
                 } else {
