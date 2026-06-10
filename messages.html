@@ -73,7 +73,6 @@
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
-        /* কল পপআপ গ্লাস মেটেরিয়াল অ্যানিমেশন */
         .call-popup-glass {
             background: rgba(10, 11, 18, 0.8);
             backdrop-filter: blur(30px);
@@ -184,19 +183,21 @@
         let ringtoneAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-84.wav'); 
         ringtoneAudio.loop = true;
 
-        // গ্লোবাল সেশন সিঙ্ক ও সংশোধিত লগইন রিডাইরেকশন লজিক
+        // সেফটি ডিলে সহ সেশন হ্যান্ডলিং লজিক (ক্র্যাশ প্রোটেকশন)
         onAuthStateChanged(auth, user => {
             if(user) {
                 initInboxEngine(user.uid);
                 listenForIncomingCalls(user.uid); 
             } else { 
-                // আগের index.html সম্পূর্ণ বাদ দিয়ে login.html এখানে পারফেক্টলি সেট করা হলো
-                const loginPage = "login.html"; 
-                
-                // কারেন্ট পেজ যদি অলরেডি লগইন পেজ না হয়, তবেই কেবল রিডাইরেক্ট করবে (ক্র্যাশ লুপ প্রোটেকশন)
-                if (!window.location.href.toLowerCase().includes(loginPage.toLowerCase())) {
-                    window.location.href = loginPage; 
-                }
+                // ওয়ান-সিগন্যাল হ্যান্ডশেক করার জন্য ৩ সেকেন্ড সময় দেওয়া হলো, হুট করে রিডাইরেক্ট করবে না
+                setTimeout(() => {
+                    if(!auth.currentUser) {
+                        const loginPage = "login.html"; 
+                        if (!window.location.href.toLowerCase().includes(loginPage.toLowerCase())) {
+                            window.location.href = loginPage; 
+                        }
+                    }
+                }, 3000);
             }
         });
 
@@ -210,7 +211,6 @@
             });
         }
 
-        // মাল্টি-আর্কিটেকচার গ্লোবাল ইনকামিং কল লিসেনার (১০০% ওয়াটারপ্রুফ লজিক)
         function listenForIncomingCalls(myId) {
             onSnapshot(collection(db, "calls"), (snapshot) => {
                 let activeCallFound = false;
@@ -219,33 +219,25 @@
                     const callData = callDoc.data();
                     const docId = callDoc.id;
 
-                    // লজিক চেক: ডকুমেন্ট আইডি, ফিল্ডের targetId অথবা কম্পোজিট আইডির শেষ অংশ আমার UID এর সাথে মিললে
                     if (docId === myId || callData.targetId === myId || docId.endsWith(`_${myId}`)) {
-                        
-                        // স্ট্যাটাস ট্র্যাকিং লজিক
                         if (callData.status === 'dialing' || callData.status === 'ringing') {
                             activeCallFound = true;
                             
-                            // কলার আইডি এক্সট্রাকশন লজিক
                             const callerId = callData.callerId || docId.split('_')[0];
                             const callerInfo = cachedUsers[callerId] || { name: "Elite User", profilePic: "" };
 
-                            // পপআপ রেন্ডারিং লজিক
                             document.getElementById('callerPopupName').innerText = callerInfo.name;
                             document.getElementById('callerPopupImg').src = callerInfo.profilePic || 'https://via.placeholder.com/150';
                             document.getElementById('incomingCallPopup').classList.remove('hidden');
                             
-                            // ব্রাউজার পলিসি সেফ অডিও প্লে লজিক
                             ringtoneAudio.play().catch(()=>{});
 
-                            // কল রিসিভ অ্যাকশন লজিক
                             document.getElementById('acceptCallBtn').onclick = async () => {
                                 ringtoneAudio.pause();
                                 await updateDoc(doc(db, "calls", docId), { status: 'connected' }).catch(()=>{});
                                 window.location.href = `chat.html?id=${callerId}&room=${docId}`;
                             };
 
-                            // কল রিজেক্ট অ্যাকশন লজিক
                             document.getElementById('declineCallBtn').onclick = async () => {
                                 ringtoneAudio.pause();
                                 await deleteDoc(doc(db, "calls", docId)).catch(()=>{});
@@ -255,7 +247,6 @@
                     }
                 });
 
-                // কোনো এক্টিভ কল না থাকলে বা রিসিভ/ডিক্লাইন হয়ে গেলে ক্লিনিং লজিক ট্রিগার
                 if (!activeCallFound) {
                     ringtoneAudio.pause();
                     document.getElementById('incomingCallPopup').classList.add('hidden');
