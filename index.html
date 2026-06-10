@@ -43,6 +43,24 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE
+        function syncUserWithOneSignal(uid) {
+            if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
+                window.gonative.push.onesignal.setExternalUserId(uid, function(result){
+                    if(result.success) {
+                        console.log("OneSignal Native External ID Linked in Index for UID:", uid);
+                    } else {
+                        console.log("OneSignal Sync Failed in Index.");
+                    }
+                });
+            } else if (window.OneSignal) {
+                window.OneSignal.login(uid);
+                console.log("OneSignal Web Bridge Handshake Done in Index for UID:", uid);
+            } else {
+                console.log("Median Native Bridge not active in this environment.");
+            }
+        }
+
         // 🛡️ গ্লোবাল গেটওয়ে সেশন চেকার
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -58,10 +76,15 @@
                             return;
                         }
                         
-                        // সব ঠিক থাকলে সরাসরি অ্যাপের ভেতরে রিডাইরেক্ট
-                        window.location.href = "reels.html";
+                        // 📱 ওয়ান-সিগন্যাল পুশ নোটিফিকেশনের সাথে আইডি সিঙ্ক করা হচ্ছে
+                        syncUserWithOneSignal(user.uid);
+                        
+                        // সিঙ্ক কমপ্লিট করার জন্য ১.৫ সেকেন্ড সময় দিয়ে তারপর রিডাইরেক্ট করা হচ্ছে
+                        setTimeout(() => {
+                            window.location.href = "reels.html";
+                        }, 1500);
+
                     } else {
-                        // ডাটাবেজে ইউজার প্রোফাইল না থাকলে লগইনে পাঠাবে
                         window.location.href = "login.html";
                     }
                 } catch (e) {
@@ -69,7 +92,6 @@
                     window.location.href = "login.html";
                 }
             } else {
-                // ইউজার লগইন করা না থাকলে সোজাসুজি লগইন পেজে ট্রান্সফার
                 window.location.href = "login.html";
             }
         });
