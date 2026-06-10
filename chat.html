@@ -21,6 +21,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        /* এলিট লাক্সারি ব্যাকগ্রাউন্ড */
         #chatBox { 
             background-color: #050508;
             background-image: radial-gradient(circle at top right, #0f1220, #050508);
@@ -29,6 +30,7 @@
             transition: background 0.5s ease; 
         }
 
+        /* প্রিমিয়াম গ্লাস হেডার */
         .chat-blur { 
             background: rgba(11, 15, 25, 0.85); 
             backdrop-filter: blur(25px); 
@@ -36,14 +38,16 @@
             border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
         }
 
+        /* সিগনেচার গোল্ডেন চ্যাট বাবল */
         .msg-me { 
             background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
             color: #000; 
             border-radius: 20px 20px 4px 20px; 
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15); 
         }
 
+        /* ডার্ক মরফিক বাবল */
         .msg-them { 
             background: rgba(255, 255, 255, 0.04); 
             color: #fff; 
@@ -55,9 +59,10 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* ফ্লোটিং লাক্সারি ইনপুট প্যানেল */
         .input-wrapper { 
             position: fixed; 
-            bottom: 20px; 
+            bottom: 16px; 
             left: 50%; 
             transform: translateX(-50%); 
             width: 92%; 
@@ -65,31 +70,32 @@
             z-index: 1000; 
         }
         .input-area { 
-            background: rgba(11, 15, 25, 0.9); 
+            background: rgba(11, 15, 25, 0.92); 
             border-radius: 24px; 
             border: 1px solid rgba(212, 175, 55, 0.2);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); 
             padding: 6px 10px; 
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
         }
 
+        /* এলিট অ্যাকশন ড্রপডাউন */
         #menuPanel { 
             position: absolute; 
             top: 75px; 
             right: 20px; 
             background: #0b0f19; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); 
+            border-radius: 22px; 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8); 
             display: none; 
             z-index: 100; 
             border: 1px solid rgba(212, 175, 55, 0.15); 
-            min-width: 220px; 
+            min-width: 230px; 
             overflow: hidden;
         }
         .menu-item { 
             padding: 14px 20px; 
-            font-size: 12px; 
+            font-size: 11px; 
             font-weight: 700; 
             color: #a0aec0; 
             display: flex; 
@@ -97,8 +103,10 @@
             gap: 12px; 
             transition: 0.25s;
             cursor: pointer;
+            text-transform: uppercase;
+            tracking-wide: 0.5px;
         }
-        .menu-item:hover { background: rgba(212, 175, 55, 0.08); color: #D4AF37; }
+        .menu-item:hover { background: rgba(212, 175, 55, 0.06); color: #D4AF37; }
 
         .btn-icon { color: #D4AF37; transition: 0.25s; }
         .btn-icon:active { transform: scale(0.9); opacity: 0.7; }
@@ -106,18 +114,19 @@
         #sendBtn { 
             background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
             color: #000; 
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
         }
 
         .status-online { background: #D4AF37; box-shadow: 0 0 12px #D4AF37; }
 
+        /* কাস্টম এলিট সুইট অ্যালার্ট থিম */
         .elite-popup {
             background: #0b0f19 !important;
             border: 1px solid rgba(212, 175, 55, 0.25) !important;
             color: #fff !important;
             border-radius: 24px !important;
         }
-        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; }
+        .elite-title { color: #D4AF37 !important; font-size: 15px !important; font-weight: 800 !important; text-transform: uppercase; tracking-wide: 0.5px; }
         .elite-confirm {
             background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important;
             color: #000 !important;
@@ -135,23 +144,25 @@
             font-size: 12px !important;
         }
 
+        /* সিন/সেন্ট স্ট্যাটাস টিক্স */
         .seen-status {
             font-size: 9px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 3px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
             text-align: right;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.3px;
         }
         .msg-me .seen-status {
-            color: rgba(0, 0, 0, 0.6);
+            color: rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
 <body>
 
     <nav class="chat-blur sticky top-0 z-50 p-4 flex items-center justify-between max-w-md w-full mx-auto shrink-0">
-        <div class="flex items-center gap-2 max-w-[70%]">
-            <a href="messages.html" class="w-9 h-9 flex items-center justify-center text-[#D4AF37] rounded-xl active:scale-90 transition"><i class="fas fa-chevron-left text-sm"></i></a>
+        <div class="flex items-center gap-2 max-w-[65%]">
+            <a href="messages.html" class="w-9 h-9 flex items-center justify-center text-[#D4AF37] rounded-xl active:scale-90 transition bg-white/5 border border-white/5"><i class="fas fa-chevron-left text-xs"></i></a>
             <div onclick="location.href='user.html?id='+targetId" class="flex items-center gap-2.5 cursor-pointer truncate">
                 <div class="relative flex-shrink-0">
                     <div id="uAvatar" class="w-10 h-10 bg-neutral-900 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center font-bold text-[#D4AF37]">?</div>
@@ -177,11 +188,11 @@
         <input type="file" id="wallpaperInput" class="hidden" accept="image/*" onchange="changeWallpaper(event)">
     </nav>
 
-    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-5 pb-36 no-scrollbar max-w-md w-full mx-auto"></div>
+    <div id="chatBox" class="flex-1 overflow-y-auto px-5 pt-5 pb-36 no-scrollbar max-w-md w-full mx-auto space-y-1"></div>
 
     <div class="input-wrapper">
         <div class="flex items-center gap-2 input-area">
-            <button onclick="document.getElementById('imageInput').click()" class="w-10 h-10 text-[#D4AF37] opacity-80 active:scale-90 transition flex items-center justify-center"><i class="fas fa-camera text-lg"></i></button>
+            <button onclick="document.getElementById('imageInput').click()" class="w-10 h-10 text-[#D4AF37] opacity-90 active:scale-90 transition flex items-center justify-center"><i class="fas fa-camera text-base"></i></button>
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="uploadImage(event)">
             
             <input type="text" id="msgInput" placeholder="Write a secure message..." class="flex-1 bg-transparent border-none py-3 px-1 text-xs outline-none text-white placeholder-gray-500 font-medium">
@@ -219,7 +230,6 @@
                 myId = user.uid; 
                 chatID = [myId, targetId].sort().join("_");
                 
-                // নিজের নাম ফেচ করা নোটিফিকেশনে পাঠানোর জন্য
                 const mySnap = await getDoc(doc(db, "users", myId));
                 if(mySnap.exists()) myName = mySnap.data().name || "Elite Member";
 
@@ -302,9 +312,7 @@
             });
         };
 
-        // 🔔 ওয়ান-সিগন্যাল চ্যাট পুশ মেকানিজম
         function triggerChatNotification(messageText, isImage = false) {
-            // যদি অপর পক্ষ অলরেডি অ্যাপে একটিভ থাকে, তবে আলাদা করে পুশ পাঠানোর দরকার নেই
             if (targetUserOnlineStatus === true) return; 
 
             const textToSend = isImage ? "📷 Sent you a photo" : messageText;
@@ -349,7 +357,6 @@
                         timestamp: serverTimestamp()
                     });
 
-                    // 📱 ইমেজ নোটিফিকেশন ফায়ার করা হলো
                     triggerChatNotification(data.secure_url, true);
                 }
             } catch (err) { 
@@ -396,13 +403,13 @@
                     }
 
                     const div = document.createElement('div');
-                    div.className = `flex flex-col w-full mb-4 ${isMe ? 'items-end' : 'items-start'}`;
+                    div.className = `flex flex-col w-full mb-3 ${isMe ? 'items-end' : 'items-start'}`;
                     
                     let content = m.text;
-                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
+                    if(m.type === 'image') content = `<img src="${m.image}" class="rounded-2xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
                     
                     div.innerHTML = `
-                        <div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">
+                        <div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm break-words">
                             ${content}
                         </div>
                         ${isMe ? `<div class="seen-status px-1">${statusTick}</div>` : ''}
@@ -438,7 +445,6 @@
                 await setDoc(chatRef, chatUpdate);
             });
 
-            // 📱 টেক্সট মেসেজ নোটিফিকেশন ফায়ার করা হলো
             triggerChatNotification(text, false);
         }
 
