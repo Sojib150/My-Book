@@ -21,7 +21,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* এলিট প্রিমিয়াম ব্যাকগ্রাউন্ড */
         #chatBox { 
             background-color: #050508;
             background-image: radial-gradient(circle at top right, #0f1220, #050508);
@@ -30,7 +29,6 @@
             transition: background 0.5s ease; 
         }
 
-        /* গ্লাস হেডার */
         .chat-blur { 
             background: rgba(11, 15, 25, 0.85); 
             backdrop-filter: blur(25px); 
@@ -38,7 +36,6 @@
             border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
         }
 
-        /* গোল্ডেন চ্যাট বাবল - আমার জন্য */
         .msg-me { 
             background: linear-gradient(135deg, #D4AF37, #8A6E2F); 
             color: #000; 
@@ -47,7 +44,6 @@
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2); 
         }
 
-        /* ডার্ক লাক্সারি বাবল - অন্যদের জন্য */
         .msg-them { 
             background: rgba(255, 255, 255, 0.04); 
             color: #fff; 
@@ -59,7 +55,6 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* প্রিমিয়াম ইনপুট এরিয়া ফ্লোটিং টার্মিনাল */
         .input-wrapper { 
             position: fixed; 
             bottom: 20px; 
@@ -79,7 +74,6 @@
             -webkit-backdrop-filter: blur(20px);
         }
 
-        /* ড্রপডাউন অ্যাকশন মেনু */
         #menuPanel { 
             position: absolute; 
             top: 75px; 
@@ -106,7 +100,6 @@
         }
         .menu-item:hover { background: rgba(212, 175, 55, 0.08); color: #D4AF37; }
 
-        /* গোল্ডেন অ্যাকশন বাটন */
         .btn-icon { color: #D4AF37; transition: 0.25s; }
         .btn-icon:active { transform: scale(0.9); opacity: 0.7; }
         
@@ -118,14 +111,13 @@
 
         .status-online { background: #D4AF37; box-shadow: 0 0 12px #D4AF37; }
 
-        /* Custom Elite SweetAlert Style */
         .elite-popup {
             background: #0b0f19 !important;
             border: 1px solid rgba(212, 175, 55, 0.25) !important;
             color: #fff !important;
             border-radius: 24px !important;
         }
-        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; tracking-wide: 1px; }
+        .elite-title { color: #D4AF37 !important; font-size: 16px !important; font-weight: 800 !important; }
         .elite-confirm {
             background: linear-gradient(135deg, #D4AF37, #8A6E2F) !important;
             color: #000 !important;
@@ -143,7 +135,6 @@
             font-size: 12px !important;
         }
 
-        /* রিয়েল-টাইম সিন স্ট্যাটাস টেক্সট */
         .seen-status {
             font-size: 9px;
             color: rgba(255, 255, 255, 0.6);
@@ -215,14 +206,23 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         window.targetId = urlParams.get('id');
+        
+        const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; 
+        
         let myId = null;
+        let myName = "Elite User"; 
         let chatID = null;
-        let targetUserOnlineStatus = false; // অপর প্রান্তের ইউজারের অনলাইন ট্র্যাক রাখার জন্য
+        let targetUserOnlineStatus = false; 
 
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async (user) => {
             if(user) { 
                 myId = user.uid; 
                 chatID = [myId, targetId].sort().join("_");
+                
+                // নিজের নাম ফেচ করা নোটিফিকেশনে পাঠানোর জন্য
+                const mySnap = await getDoc(doc(db, "users", myId));
+                if(mySnap.exists()) myName = mySnap.data().name || "Elite Member";
+
                 loadWallpaper();
                 initChat(); 
             } else {
@@ -302,6 +302,34 @@
             });
         };
 
+        // 🔔 ওয়ান-সিগন্যাল চ্যাট পুশ মেকানিজম
+        function triggerChatNotification(messageText, isImage = false) {
+            // যদি অপর পক্ষ অলরেডি অ্যাপে একটিভ থাকে, তবে আলাদা করে পুশ পাঠানোর দরকার নেই
+            if (targetUserOnlineStatus === true) return; 
+
+            const textToSend = isImage ? "📷 Sent you a photo" : messageText;
+
+            const notificationData = {
+                app_id: ONESIGNAL_APP_ID,
+                include_aliases: { "external_id": [targetId] },
+                target_channel: "push",
+                headings: { "en": myName },
+                contents: { "en": textToSend },
+                data: { type: "chat_message", senderId: myId },
+                android_background_layout: { "headings_color": "D4AF37", "contents_color": "FFFFFF" },
+                priority: 10
+            };
+
+            fetch("https://onesignal.com/api/v1/notifications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=utf-8" },
+                body: JSON.stringify(notificationData)
+            })
+            .then(res => res.json())
+            .then(data => console.log("Chat Push Notification Sent:", data))
+            .catch(err => console.error("Chat Push Failed:", err));
+        }
+
         window.uploadImage = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
@@ -317,9 +345,12 @@
                         senderId: myId,
                         type: "image",
                         image: data.secure_url,
-                        isSeen: false, // ডিফল্ট আনসিন
+                        isSeen: false, 
                         timestamp: serverTimestamp()
                     });
+
+                    // 📱 ইমেজ নোটিফিকেশন ফায়ার করা হলো
+                    triggerChatNotification(data.secure_url, true);
                 }
             } catch (err) { 
                 Swal.fire({
@@ -339,7 +370,7 @@
                     document.getElementById('uName').innerText = u.name.toUpperCase();
                     if(u.profilePic) document.getElementById('uAvatar').innerHTML = `<img src="${u.profilePic}" class="w-full h-full object-cover">`;
                     
-                    targetUserOnlineStatus = u.isOnline || u.online;
+                    targetUserOnlineStatus = u.isOnline || u.online || false;
                     document.getElementById('statusDot').className = `absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 border-2 border-[#050508] rounded-full ${targetUserOnlineStatus ? 'status-online' : 'bg-neutral-600'}`;
                     document.getElementById('uStatusText').innerText = targetUserOnlineStatus ? "Active Now" : "Offline";
                 }
@@ -353,7 +384,6 @@
                     const m = d.data();
                     const isMe = m.senderId === myId;
                     
-                    // রিয়েল-টাইমে কেউ মেসেজ ওপেন রাখলে বা সে অনলাইনে থাকলে 'Seen' দেখানোর কন্ডিশন
                     let statusTick = "Sent";
                     if (m.isSeen || targetUserOnlineStatus) {
                         statusTick = "Seen ✓✓";
@@ -361,7 +391,6 @@
                         statusTick = "Sent ✓";
                     }
 
-                    // যদি অপর প্রান্তের ইউজার মেসেজ পাঠায়, তবে তার ইভেন্টে মেসেজগুলো অটোমেটিক 'isSeen: true' আপডেট হবে
                     if(!isMe && m.isSeen === false) {
                         updateDoc(doc(db, "chats", chatID, "messages", d.id), { isSeen: true });
                     }
@@ -372,7 +401,6 @@
                     let content = m.text;
                     if(m.type === 'image') content = `<img src="${m.image}" class="rounded-xl max-w-full max-h-60 object-cover border border-white/5 shadow-md">`;
                     
-                    // বাবল বডিতে কনটেন্ট এবং মেসেজের নিচে সিন স্ট্যাটাস অ্যাড করা হয়েছে
                     div.innerHTML = `
                         <div class="${isMe ? 'msg-me' : 'msg-them'} ${m.type==='image'?'p-1':'px-4 py-2.5'} max-w-[78%] text-xs font-medium tracking-wide shadow-sm">
                             ${content}
@@ -396,7 +424,7 @@
                 senderId: myId, 
                 text: text, 
                 type: "text", 
-                isSeen: false, // নতুন মেসেজ পাঠানোর সময় ডিফল্ট ফলস থাকবে
+                isSeen: false, 
                 timestamp: serverTimestamp() 
             });
 
@@ -409,6 +437,9 @@
             await updateDoc(chatRef, chatUpdate).catch(async () => {
                 await setDoc(chatRef, chatUpdate);
             });
+
+            // 📱 টেক্সট মেসেজ নোটিফিকেশন ফায়ার করা হলো
+            triggerChatNotification(text, false);
         }
 
         document.getElementById('msgInput').addEventListener('keypress', (e) => {
