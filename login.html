@@ -111,7 +111,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Messaging ক্যাচ ব্লকসহ হ্যান্ডেল করা হয়েছে যাতে ওল্ড ব্রাউজারে ক্র্যাশ না করে
 let messaging = null;
 try { messaging = getMessaging(app); } catch(e) { console.log("FCM Not Supported in this browser", e); }
 
@@ -129,11 +128,17 @@ function syncUserWithOneSignal(uid) {
             }
         });
     } else {
-        console.log("Running in standard browser. Median Native Bridge not active.");
+        // Median ওয়ান-সিগন্যাল প্লাগইন যদি প্লেইন ব্রাউজারে না থাকে, তবে স্ট্যান্ডার্ড ওয়েব এপিআই দিয়েও ব্যাকআপ ট্র্যাকিং হ্যান্ডশেক
+        if (window.OneSignal) {
+            window.OneSignal.login(uid);
+            console.log("OneSignal Web Bridge Handshake Done for UID:", uid);
+        } else {
+            console.log("Running in standard browser. Median Native Bridge not active.");
+        }
     }
 }
 
-// 🛡️ SECURE AUTO LOGIN (Banned/Pending ইউজার ভ্যালিডেশন এবং 🚨 লাইভ কল লিসেনার যুক্ত)
+// 🛡️ SECURE AUTO LOGIN (Banned/Pending ইউজার ভ্যালিডেশন এবং লাইভ কল লিসেনার যুক্ত)
 onAuthStateChanged(auth, async (user) => {
     if(user){
         try {
@@ -165,8 +170,10 @@ onAuthStateChanged(auth, async (user) => {
                 });
                 // 🚨 [END] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন
 
-                // কল ট্র্যাকিং সচল রেখে মেইন স্ক্রিনে রিডাইরেক্ট করা হচ্ছে
-                window.location.href = "reels.html";
+                // ওয়ান-সিগন্যাল ডাটা ডিভাইস সিঙ্ক করার জন্য ১.৫ সেকেন্ড হোল্ড করে রিডাইরেক্ট করা হচ্ছে
+                setTimeout(() => {
+                    window.location.href = "reels.html";
+                }, 1500);
             }
         } catch(e) {
             console.log("Auto-login validation error:", e);
@@ -255,7 +262,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             msg.innerText = "Login Successful!";
             msg.style.color = "lime";
 
-            setTimeout(() => { window.location.href = "reels.html"; }, 1000);
+            // ওয়ান-সিগন্যাল রেজিস্টার এবং ডাটা সিঙ্ক কমপ্লিট হওয়ার জন্য ১.৫ সেকেন্ডের সেফটি বাফার
+            setTimeout(() => { window.location.href = "reels.html"; }, 1500);
         } else {
             msg.innerText = "User data not found on server!";
             msg.style.color = "red";
