@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Notifications Hub - Bondo AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050508; color: #e2e8f0; }
-        .glass { background: rgba(11, 15, 25, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050508; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(11, 15, 25, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body class="min-h-screen pb-20 bg-[#050508]">
 
-    <header class="glass sticky top-0 z-50 px-5 py-4 border-b border-white/5 backdrop-blur-md flex justify-between items-center">
+    <header class="glass sticky top-0 z-50 px-5 py-4 border-b border-white/5 backdrop-blur-md flex justify-between items-center max-w-md mx-auto w-full">
         <div class="flex items-center gap-3">
-            <button onclick="history.back()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400"><i class="fas fa-arrow-left text-xs"></i></button>
-            <h1 class="font-black text-base text-white tracking-wide">Activity Notifications</h1>
+            <a href="messages.html" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 active:scale-90 transition"><i class="fas fa-arrow-left text-xs"></i></a>
+            <h1 class="font-black text-sm text-white tracking-wide uppercase">Activity Center</h1>
         </div>
-        <button onclick="purgeNotificationStreams()" class="text-[10px] font-black text-red-400 uppercase tracking-wider bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/10 hover:bg-red-500 hover:text-white transition">Clear All</button>
+        <button onclick="purgeNotificationStreams()" class="text-[9px] font-black text-red-400 uppercase tracking-wider bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/10 active:scale-95 transition">Clear All</button>
     </header>
 
     <main class="max-w-md mx-auto p-4">
@@ -34,7 +34,12 @@
         import { getFirestore, collection, query, orderBy, onSnapshot, getDocs, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
-            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", authDomain: "seen-a1d92.firebaseapp.com", projectId: "seen-a1d92", storageBucket: "seen-a1d92.firebasestorage.app", messagingSenderId: "868584044532", appId: "1:868584044532:web:51f07436a883f88332eba1"
+            apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
+            authDomain: "seen-a1d92.firebaseapp.com", 
+            projectId: "seen-a1d92", 
+            storageBucket: "seen-a1d92.firebasestorage.app", 
+            messagingSenderId: "868584044532", 
+            appId: "1:868584044532:web:51f07436a883f88332eba1"
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -52,7 +57,6 @@
         });
 
         function streamUserAlerts() {
-            // ইউজারের সাব-কলেকেশন 'notifications' থেকে রিয়েল-টাইম ডাটা রিড করা হচ্ছে
             const q = query(collection(db, "users", currentUserId, "notifications"), orderBy("time", "desc"));
             
             onSnapshot(q, (snapshot) => {
@@ -61,9 +65,9 @@
 
                 if(snapshot.empty) {
                     stack.innerHTML = `
-                        <div class="text-center py-16 space-y-3">
-                            <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto text-gray-600"><i class="fas fa-bell-slash text-base"></i></div>
-                            <p class="text-xs text-gray-600 font-medium">কোনো নোটিফিকেশন ডাটা রেকর্ড নেই ভাই!</p>
+                        <div class="text-center py-16 space-y-3 mx-auto">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto text-gray-600 border border-white/5"><i class="fas fa-bell-slash text-base text-[#D4AF37]"></i></div>
+                            <p class="text-xs text-gray-500 font-medium tracking-wide">কোনো নোটিফিকেশন রেকর্ড নেই ভাই!</p>
                         </div>`;
                     return;
                 }
@@ -71,27 +75,66 @@
                 snapshot.forEach(changeDoc => {
                     const n = changeDoc.data();
                     const card = document.createElement('div');
-                    card.className = "glass p-3.5 rounded-2xl flex items-start gap-3.5 border-l-4 border-indigo-500 bg-black/10 transition";
                     
-                    // সিস্টেম বা চ্যাট অনুযায়ী আইকন সিলেকশন
-                    let iconHtml = `<div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs border border-indigo-500/10"><i class="fas fa-bullhorn"></i></div>`;
-                    if(n.type === 'admin') {
-                        iconHtml = `<div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs border border-purple-500/10"><i class="fas fa-crown"></i></div>`;
+                    // 🎨 ডিফল্ট থিম সেটআপ (সিস্টেম অ্যালার্ট)
+                    let borderClass = "border-l-4 border-indigo-500";
+                    let iconHtml = `<div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs border border-indigo-500/10 flex-shrink-0"><i class="fas fa-bullhorn"></i></div>`;
+                    let redirectUrl = "#";
+
+                    // 💬 চ্যাট মেসেজ নোটিফিকেশন হ্যান্ডলিং
+                    if(n.type === 'chat_message' || n.type === 'chat') {
+                        borderClass = "border-l-4 border-[#D4AF37]";
+                        iconHtml = `<div class="w-9 h-9 rounded-xl bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center text-xs border border-[#D4AF37]/20 flex-shrink-0"><i class="fas fa-comment-alt"></i></div>`;
+                        if(n.senderId || n.callerId) {
+                            redirectUrl = `chat.html?id=${n.senderId || n.callerId}`;
+                        }
+                    }
+                    // 📞 ইনকামিং কল নোটিফিকেশন হ্যান্ডলিং
+                    else if(n.type === 'calling' || n.type === 'call') {
+                        borderClass = "border-l-4 border-red-500";
+                        iconHtml = `<div class="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-xs border border-red-500/20 flex-shrink-0"><i class="fas fa-phone-alt animate-pulse"></i></div>`;
+                        if(n.callerId) {
+                            redirectUrl = `call.html?id=${n.callerId}&type=video&action=answering`;
+                        }
+                    }
+                    // 👑 অ্যাডমিন নোটিফিকেশন হ্যান্ডলিং
+                    else if(n.type === 'admin') {
+                        borderClass = "border-l-4 border-purple-500";
+                        iconHtml = `<div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs border border-purple-500/10 flex-shrink-0"><i class="fas fa-crown"></i></div>`;
+                    }
+
+                    card.className = `glass p-3.5 rounded-2xl flex items-center gap-3.5 bg-black/10 active:bg-white/5 transition duration-200 cursor-pointer ${borderClass}`;
+                    
+                    // ক্লিকেবল রিডাইরেকশন অ্যাকশন
+                    card.onclick = () => {
+                        if(redirectUrl !== "#") window.location.href = redirectUrl;
+                    };
+
+                    // ⏰ টাইম ফরম্যাটিং সেফগার্ড
+                    let timeText = "Just Now";
+                    if(n.time) {
+                        try {
+                            timeText = new Date(n.time.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " • " + new Date(n.time.toDate()).toLocaleDateString();
+                        } catch(e) {
+                            if(typeof n.time === 'number') {
+                                timeText = new Date(n.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            }
+                        }
                     }
 
                     card.innerHTML = `
                         ${iconHtml}
-                        <div class="flex-1 space-y-0.5">
-                            <p class="text-xs text-gray-200 font-semibold leading-relaxed">${n.message}</p>
-                            <span class="text-[9px] text-gray-600 font-bold uppercase tracking-wider">${n.time ? new Date(n.time.toDate()).toLocaleDateString() : 'Live Stream'}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-200 font-semibold leading-relaxed break-words">${n.message || 'New notification generated.'}</p>
+                            <span class="text-[8px] text-gray-500 font-bold uppercase tracking-wider block mt-1">${timeText}</span>
                         </div>
+                        ${redirectUrl !== "#" ? `<div class="text-gray-600 text-xs pl-1"><i class="fas fa-chevron-right text-[10px]"></i></div>` : ''}
                     `;
                     stack.appendChild(card);
                 });
             });
         }
 
-        // নোটিফিকেশন হিস্টোরি ক্লিয়ার করার ব্যাকএন্ড লজিক
         window.purgeNotificationStreams = async () => {
             if(!confirm('সব নোটিফিকেশন ডিলিট করে দিতে চান ভাই?')) return;
             const ref = collection(db, "users", currentUserId, "notifications");
