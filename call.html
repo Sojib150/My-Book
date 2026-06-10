@@ -19,7 +19,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* মেইন রিমোট এইচডি ভিডিও স্ক্রিন */
         #remote-player { 
             position: absolute; 
             inset: 0; 
@@ -31,7 +30,6 @@
             transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* নিজের ফ্লিপ করা লোকাল ক্যামেরা উইন্ডো */
         #local-player { 
             position: absolute; 
             top: 45px; 
@@ -47,7 +45,6 @@
             transition: all 0.3s ease;
         }
 
-        /* প্রফেশনাল ফ্ল্যাশলাইট ইফেক্ট ওভারলে */
         #night-flash-overlay {
             position: fixed; 
             inset: 0; 
@@ -61,7 +58,6 @@
             box-shadow: inset 0 0 100px rgba(255,255,255,1);
         }
 
-        /* কন্ট্রোল ডক বার */
         .glass-controls { 
             position: fixed; 
             bottom: 30px; 
@@ -114,7 +110,6 @@
         }
         .bg-red-btn:active { transform: scale(0.92); }
 
-        /* রিয়েল-টাইম ফ্লোটিং ইন-কল চ্যাট উইন্ডো */
         #inCallChatPanel {
             position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
             width: 90%; max-width: 420px; height: 260px; background: rgba(11, 15, 25, 0.92);
@@ -125,7 +120,6 @@
         }
         #inCallChatPanel.open { transform: translateX(-50%) translateY(0); }
 
-        /* ফিল্টার ইন্টিগ্রেশন স্লাইডার */
         #filterPanel {
             position: fixed; bottom: 105px; left: 50%; transform: translateX(-50%) translateY(150%);
             width: 90%; max-width: 420px; background: rgba(11, 15, 25, 0.9);
@@ -134,7 +128,6 @@
         }
         #filterPanel.open { transform: translateX(-50%) translateY(0); }
 
-        /* ফিল্টার প্রিসেটস স্টাইল */
         .filter-node { filter: none; }
         .filter-gold { filter: sepia(0.3) saturate(1.4) hue-rotate(-10deg) contrast(1.1); }
         .filter-cinematic { filter: contrast(1.2) saturate(1.1) brightness(0.9); }
@@ -216,11 +209,16 @@
         const auth = getAuth(app);
 
         const APP_ID = "b73c0ab95ca94cb0a11b4216f3e9b616"; 
+        
+        // ওয়ান-সিগন্যাল অ্যাপ আইডি (আপনার ওয়ান-সিগন্যাল ড্যাশবোর্ড থেকে এখানে বসিয়ে দিবেন)
+        const ONESIGNAL_APP_ID = "YOUR_ONESIGNAL_APP_ID_HERE"; 
+        
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
-        const action = urlParams.get('action'); // 'calling' বা 'answering'
+        const action = urlParams.get('action'); 
         
         let myId = null;
+        let myName = "Elite User"; // ডিফল্ট নাম
         let chatID = null;
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { audio: null, video: null };
@@ -238,6 +236,11 @@
             if(user) {
                 myId = user.uid;
                 chatID = [myId, targetId].sort().join("_");
+                
+                // নিজের নাম রিকোয়েস্ট ট্র্যাকিংয়ের জন্য লোড করা হচ্ছে
+                const mySnap = await getDoc(doc(db, "users", myId));
+                if(mySnap.exists()) myName = mySnap.data().name;
+
                 loadTargetName();
                 listenForCallStatus();
                 initInCallChat();
@@ -278,13 +281,42 @@
             if(action === 'calling') {
                 dialing.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Dialing Elite...";
+                
+                // কলিং অ্যাকশন হওয়া মাত্রই ওয়ান-সিগন্যাল গ্লোবাল পুশ ট্রিগার কল করা হবে
+                triggerOneSignalNotification();
             } else {
                 ringtone.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Incoming Call...";
-                // রিসিভার অ্যাকসেপ্ট করলে ফায়ারবেসে স্ট্যাটাস আপডেট করার মেকানিজম
                 const callRef = doc(db, "calls", myId);
                 updateDoc(callRef, { status: "connected" }).catch(()=>{});
             }
+        }
+
+        // ওয়ান-সিগন্যাল গ্লোবাল পুশ নোটিফিকেশন ইঞ্জিন (রিয়েল-টাইম ব্যাকগ্রাউন্ড আর্কিটেকচার)
+        function triggerOneSignalNotification() {
+            if(!targetId || ONESIGNAL_APP_ID === "YOUR_ONESIGNAL_APP_ID_HERE") return;
+
+            const notificationData = {
+                app_id: ONESIGNAL_APP_ID,
+                include_aliases: { "external_id": [targetId] }, // টার্গেট ইউজারের ফায়ারবেস UID ট্র্যাকিং
+                target_channel: "push",
+                headings: { "en": "Incoming Elite Call 📞" },
+                contents: { "en": `${myName} is calling you on My Book Elite. Tap to answer.` },
+                data: { action: "calling", callerId: myId }, // ব্যাকগ্রাউন্ডে ক্লিক করলে অ্যাপ রিডাইরেক্ট ডেটা
+                android_background_layout: { "headings_color": "D4AF37", "contents_color": "FFFFFF" },
+                priority: 10 // হাই-প্রায়োরিটি ডেলিভারি (ইনস্ট্যান্ট পুশ)
+            };
+
+            fetch("https://onesignal.com/api/v1/notifications", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                body: JSON.stringify(notificationData)
+            })
+            .then(res => res.json())
+            .then(data => console.log("OneSignal Global Push Triggered: ", data))
+            .catch(err => console.error("OneSignal Global Push Failed: ", err));
         }
 
         async function loadTargetName() {
@@ -301,7 +333,7 @@
                     stopAllAudio();
                     document.getElementById('callStatus').innerText = "Secure Call • 1080p HD";
                     if (mediaType === "video") {
-                        document.getElementById("remote-player").innerHTML = ""; // আগের নোড ক্লিন
+                        document.getElementById("remote-player").innerHTML = ""; 
                         user.videoTrack.play("remote-player");
                     }
                     if (mediaType === "audio") user.audioTrack.play();
@@ -324,7 +356,6 @@
             }
         }
 
-        // কলের লাইভ স্ট্যাটাস ও রিসিভ ট্র্যাকিং লজিক (ফিক্সড)
         function listenForCallStatus() {
             const docId = action === 'calling' ? targetId : myId;
             onSnapshot(doc(db, "calls", docId), snap => {
