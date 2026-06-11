@@ -23,7 +23,7 @@
 
         /* ✨ প্রিমিয়াম হেডার রি-ডিজাইন */
         .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 14px); padding-bottom: 30px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-        .tab-btn { position: relative; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.55); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 4px 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); tracking-wide; uppercase; font-size: 13px; }
+        .tab-btn { position: relative; font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.55); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 4px 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); tracking-wide; uppercase; }
         .tab-btn.active-tab { color: #fff; font-size: 14px; }
         .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2.5px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 12px #1877f2; }
         
@@ -32,7 +32,7 @@
         .search-glass-box:focus-within { width: 145px; border-color: rgba(24, 119, 242, 0.4); background: rgba(0, 0, 0, 0.7); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .pointer-events-auto { pointer-events: auto; }
 
-        /* 📐 ব্যালেন্সড সেফ-স্পেসিংস (যাতে ব্যানার বা নেভ বারের ওপরে নাম ও ছবি সবসময় ভেসে থাকে) */
+        /* 📐 ব্যালেন্সড সেফ-স্পেসিংস */
         .side-bar { position: absolute; right: 14px; bottom: 175px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 35; }
         .bottom-info { position: absolute; bottom: 175px; left: 16px; right: 86px; z-index: 35; text-shadow: 0 2px 8px rgba(0,0,0,0.8); transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .bottom-info.expanded-info { bottom: 240px; } 
@@ -40,7 +40,6 @@
         /* 📺 ট্রান্সপারেন্ট প্রিমিয়াম অ্যাড স্লট ও ওভারলে গ্রাডিয়েন্ট */
         .bottom-ad-slot { position: absolute; bottom: 80px; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 8px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.02); }
         
-        /* যদি কোনো রিলে অ্যাড ব্যানার না থাকে তাহলে এলিমেন্টগুলো আরও নিচে নেমে জায়গা বড় করবে */
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 160px; }
@@ -64,7 +63,6 @@
         .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
         @keyframes popIn { 0% { transform: translate(-50%, 50%) scale(0); } 100% { transform: translate(-50%, 50%) scale(1); } }
         
-        /* 👑 গ্লোয়িং প্রফেশনাল রিং */
         .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #1877f2, #00d2ff); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 10px rgba(24, 119, 242, 0.5); }
     </style>
 </head>
@@ -151,6 +149,32 @@
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
         let callUnsubscribe = null; 
+
+        // 🔔 [ONEDESIGN KEYS] OneSignal কনফিগারেশন প্যারামিটার সমূহ
+        const ONESIGNAL_APP_ID = "2161bda0-efcb-44a6-ae38-fc625bf9c9da"; // আপনার OneSignal App ID
+        const ONESIGNAL_REST_KEY = "N2MwNmVkNGEtNTMxNi00NzU2LWEyYTItNjRiNTYwNmIyMTU1"; // আপনার REST API Key (নিরাপত্তার স্বার্থে এটা ব্যাকএন্ডে রাখা উত্তম, তবে ফ্রন্টএন্ডে টেস্ট করার জন্য এখানে সেট করা হলো)
+
+        // 🌐 রিয়েল-টাইম গ্লোবাল পুশ ট্রিগার ইঞ্জিন
+        async function sendPushNotification(targetUserId, messageTitle, messageBody) {
+            if(!targetUserId || targetUserId === currentUser?.uid) return;
+            try {
+                await fetch("https://onesignal.com/api/v1/notifications", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Basic ${ONESIGNAL_REST_KEY}`
+                    },
+                    body: JSON.stringify({
+                        app_id: ONESIGNAL_APP_ID,
+                        include_aliases: { "external_id": [targetUserId] },
+                        target_channel: "push",
+                        headings: { "en": messageTitle },
+                        contents: { "en": messageBody },
+                        priority: 10
+                    })
+                });
+            } catch(e) { console.log("Push trigger stack tracking failed:", e); }
+        }
 
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
@@ -257,7 +281,7 @@
                     const isBPinned = b.isPinned === true || b.isAdminPost === true;
                     
                     if (isAPinned && !isBPinned) return -1;
-                    if (!isAPinned && isBPinned) return 1;
+                    if (!isAFlipped && isBPinned) return 1;
 
                     const scoreA = (a.likedBy?.length || 0) * 3 + (a.commentCount || 0) * 5;
                     const scoreB = (b.likedBy?.length || 0) * 3 + (b.commentCount || 0) * 5;
@@ -343,7 +367,6 @@
                 const isAdmin = p.isAdminPost === true || p.isPinned === true;
                 const isLongText = p.text && p.text.length > 90;
 
-                // 🔄 [FIXED] ডাটা গ্লিচ প্রোটেকশনের জন্য ফলব্যাক ও ব্যাকআপ ভ্যালু হ্যান্ডলিং স্ট্রং করা হয়েছে
                 const userDisplayName = p.userName ? p.userName : 'creator';
                 const userProfilePic = p.userPic ? p.userPic : 'https://via.placeholder.com/150';
 
@@ -475,6 +498,14 @@
                     read: false,
                     timestamp: serverTimestamp()
                 });
+
+                // 🔔 [ONEDESIGN PUSH] ফলো করার পুশ নোটিফিকেশন ট্রিগার
+                sendPushNotification(
+                    targetCreatorId, 
+                    "New Follower! 🎉", 
+                    `@${userData?.name || "Someone"} আপনাকে ফলো করা শুরু করেছেন।`
+                );
+
             } catch (err) { console.error(err); }
         };
 
@@ -556,7 +587,8 @@
                 const pSnap = await getDoc(ref);
                 if(!pSnap.exists()) return;
                 
-                const likedArr = pSnap.data().likedBy || [];
+                const postData = pSnap.data();
+                const likedArr = postData.likedBy || [];
                 const isLiked = likedArr.includes(currentUser.uid);
                 const btn = document.getElementById(`likeBtn-${id}`);
                 const countSpan = document.getElementById(`likeCount-${id}`);
@@ -578,6 +610,13 @@
                         if(!cachedRawPosts[cIdx].likedBy) cachedRawPosts[cIdx].likedBy = [];
                         cachedRawPosts[cIdx].likedBy.push(currentUser.uid);
                     }
+
+                    // 🔔 [ONEDESIGN PUSH] লাইক করার রিয়েল পুশ নোটিফিকেশন ফায়ার
+                    sendPushNotification(
+                        postData.userId, 
+                        "New Like! ❤️", 
+                        `@${userData?.name || "Someone"} আপনার রিলসটি পছন্দ করেছেন।`
+                    );
                 }
             } catch(e) { console.log(e); }
         };
@@ -688,6 +727,17 @@
 
                 const cc = document.getElementById(`count-${activePostId}`);
                 if(cc) cc.innerText = parseInt(cc.innerText) + 1;
+
+                // 🔔 [ONEDESIGN PUSH] কমেন্ট করার রিয়েল পুশ নোটিফিকেশন ফায়ার
+                const postSnap = await getDoc(doc(db, "posts", activePostId));
+                if(postSnap.exists()) {
+                    const postOwnerId = postSnap.data().userId;
+                    sendPushNotification(
+                        postOwnerId, 
+                        "New Comment! 💬", 
+                        `@${userData?.name || "Someone"} আপনার রিলসে কমেন্ট করেছেন: "${input.value.slice(0, 30)}..."`
+                    );
+                }
                 
                 input.value = "";
             } catch(e){}
