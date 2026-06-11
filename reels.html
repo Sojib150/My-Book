@@ -12,8 +12,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (টিকток স্টাইল) */
-        .reels-container { height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (ভিডিওর ফুল ভিউ নিশ্চিত করার জন্য) */
+        .reels-container { height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; background: #000; }
         .reels-container::-webkit-scrollbar { display: none; }
         
         .reel-card { height: 100vh; height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; }
@@ -22,24 +22,25 @@
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
         /* ✨ প্রিমিয়াম হেডার রি-ডিজাইন */
-        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 14px); padding-bottom: 30px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 14px); padding-bottom: 30px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
         .tab-btn { position: relative; font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.55); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 4px 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); tracking-wide; uppercase; }
         .tab-btn.active-tab { color: #fff; font-size: 14px; }
         .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2.5px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 12px #1877f2; }
         
-        /* 🔍 মিনিমালিস্ট বর্ডারলেস সার্চ বক্স */
+        /* 🔍 মিনিমালিস্ট বর্ডারলেস সার্চ BOX */
         .search-glass-box { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; padding: 0 12px; height: 34px; width: 115px; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
         .search-glass-box:focus-within { width: 145px; border-color: rgba(24, 119, 242, 0.4); background: rgba(0, 0, 0, 0.7); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .pointer-events-auto { pointer-events: auto; }
 
-        /* 📐 ব্যালেন্সড সেফ-স্পেসিংস */
-        .side-bar { position: absolute; right: 14px; bottom: 175px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 35; }
-        .bottom-info { position: absolute; bottom: 175px; left: 16px; right: 86px; z-index: 35; text-shadow: 0 2px 8px rgba(0,0,0,0.8); transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bottom-info.expanded-info { bottom: 240px; } 
+        /* 📐 ব্যালেন্সড সেফ-স্পেসিংস এবং ডাইনামিক পজিশনিং */
+        .side-bar { position: absolute; right: 14px; bottom: 185px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 35; }
+        .bottom-info { position: absolute; bottom: 185px; left: 16px; right: 86px; z-index: 35; text-shadow: 0 2px 8px rgba(0,0,0,0.9); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-info.expanded-info { bottom: 250px; } 
         
-        /* 📺 ট্রান্সপারেন্ট প্রিমিয়াম অ্যাড স্লট ও ওভারলে গ্রাডিয়েন্ট */
-        .bottom-ad-slot { position: absolute; bottom: 80px; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 8px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.02); }
+        /* 📺 ওভারলে অ্যাড স্লট (ভিডিও ফ্রেম নষ্ট করবে না) */
+        .bottom-ad-slot { position: absolute; bottom: 80px; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 4px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; }
         
+        /* যদি অ্যাড না থাকে তবে সাইডবার এবং ইনফো নিচে নেমে যাবে অটোমেটিক */
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 160px; }
@@ -56,8 +57,9 @@
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        .nav-glass { background: rgba(5, 7, 12, 0.93); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { color: #475569; transition: all 0.25s; }
+        /* 🗺️ ট্রান্সপারেন্ট গ্লাসমরফিক নেভিগেশন বার */
+        .nav-glass { background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding-bottom: env(safe-area-inset-bottom); position: fixed; bottom: 0; left: 0; right: 0; height: 80px; z-index: 50; }
+        .nav-btn { color: #64748b; transition: all 0.25s; }
         .nav-btn.active { color: #1877f2; text-shadow: 0 0 12px rgba(24, 119, 242, 0.4); }
 
         .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
@@ -103,7 +105,7 @@
         </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 h-20 nav-glass z-50 flex justify-around items-center px-4 max-w-md mx-auto">
+    <nav class="nav-glass flex justify-around items-center px-4 max-w-md mx-auto">
         <button onclick="location.href='reels.html'" class="nav-btn active flex flex-col items-center gap-1">
             <i class="fa-solid fa-clapperboard text-lg"></i><span class="text-[8px] font-bold uppercase tracking-wider">Reels</span>
         </button>
@@ -162,7 +164,7 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Key ${ONESIGNAL_REST_KEY}` // v2 API এর জন্য 'Basic' এর জায়গায় 'Key' ব্যবহার করা হয়েছে
+                        "Authorization": `Key ${ONESIGNAL_REST_KEY}` 
                     },
                     body: JSON.stringify({
                         app_id: ONESIGNAL_APP_ID,
@@ -590,8 +592,8 @@
                 const postData = pSnap.data();
                 const likedArr = postData.likedBy || [];
                 const isLiked = likedArr.includes(currentUser.uid);
-                const btn = document.getElementById(`likeBtn-${id}`);
-                const countSpan = document.getElementById(`likeCount-${id}`);
+                const btn = document.getElementById('likeBtn-' + id);
+                const countSpan = document.getElementById('likeCount-' + id);
 
                 if (isLiked) {
                     await updateDoc(ref, { likedBy: arrayRemove(currentUser.uid) });
