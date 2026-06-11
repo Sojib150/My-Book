@@ -14,7 +14,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (ভিডিওর ফুল ভিউ নিশ্চিত করার জন্য) */
+        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ */
         .reels-container { height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; background: #000; }
         .reels-container::-webkit-scrollbar { display: none; }
         
@@ -39,10 +39,9 @@
         .bottom-info { position: absolute; bottom: 185px; left: 16px; right: 86px; z-index: 35; text-shadow: 0 2px 8px rgba(0,0,0,0.9); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .bottom-info.expanded-info { bottom: 250px; } 
         
-        /* 📺 ওভারলে অ্যাড স্লট (ভিডিও ফ্রেম নষ্ট করবে না) */
+        /* 📺 ওভারলে অ্যাড স্লট */
         .bottom-ad-slot { position: absolute; bottom: 80px; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 4px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; }
         
-        /* যদি অ্যাড না থাকে তবে সাইডবার এবং ইনফো নিচে নেমে যাবে অটোমেটিক */
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 160px; }
@@ -89,7 +88,9 @@
         </div>
     </div>
 
-    <div class="reels-container" id="reelsWrapper"></div>
+    <div class="reels-container" id="reelsWrapper">
+        <div class="text-white text-center py-40 text-xs tracking-widest animate-pulse">SYNCHRONIZING ENGINE...</div>
+    </div>
 
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col max-w-md mx-auto">
         <div id="commentDragHandler" class="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-5 cursor-grab active:cursor-grabbing"></div>
@@ -154,31 +155,31 @@
         let currentSearchQuery = "";
         let callUnsubscribe = null; 
 
-        // 🔔 [ONEDESIGN KEYS] OneSignal কনফিগারেশন প্যারামিটার সমূহ
         const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; 
         const ONESIGNAL_REST_KEY = "os_v2_app_hzlz2rgidrdidgdy5uakn63miphcmvxpijyuelf5rz3vv6p4bd6az2spcfhzbhh4bjl27wmma2s3te63km7wfsyaqw6thqg2nizycna"; 
 
-        // 🚀 ১. ওয়ানসিগন্যাল মোবাইল ইঞ্জিন ইনিশিয়ালাইজেশন (নতুন যোগ করা হয়েছে)
-        async function initOneSignalNotification() {
+        // 🛡️ ওয়ানসিগন্যাল সেফ ইনিশিয়ালাইজার (মডিউল ফ্রেন্ডলি এবং ক্র্যাশ-প্রুফ)
+        function initOneSignalSafe() {
             try {
-                window.OneSignal = window.OneSignal || [];
-                window.OneSignal.push(function() {
-                    window.OneSignal.init({
-                        appId: ONESIGNAL_APP_ID,
-                        notifyButton: { enable: false },
-                        allowLocalhostAsSecureOrigin: true,
+                if (typeof window.OneSignal !== 'undefined') {
+                    window.OneSignal.push(function() {
+                        window.OneSignal.init({
+                            appId: ONESIGNAL_APP_ID,
+                            notifyButton: { enable: false },
+                            allowLocalhostAsSecureOrigin: true,
+                        }).then(() => {
+                            window.OneSignal.showNativePrompt().catch(e => {});
+                        });
                     });
-                    // মোবাইলে নোটিফিকেশন অ্যাক্সেস পারমিশন পপআপ দেখাবে
-                    window.OneSignal.showNativePrompt();
-                });
-            } catch (e) { console.log("OneSignal Web SDK bypassed safely:", e); }
+                } else {
+                    // ওয়ানসিগন্যাল লোড হতে দেরি হলে এটি ৩ সেকেন্ড পর ট্রাই করবে কিন্তু পেজ আটকে রাখবে না
+                    setTimeout(initOneSignalSafe, 3000);
+                }
+            } catch(e) { console.log("OneSignal stack bypassed safely:", e); }
         }
 
-        // পেজ লোড হবার সাথে সাথে নোটিফিকেশন লিসেনার অন হবে
-        initOneSignalNotification();
-
-        // 🌐 রিয়েল-টাইম গ্লোবাল পুশ ট্রিগার ইঞ্জিন (v2 টোকেন সাপোর্টেড)
-        async function sendPushNotification(targetUserId, messageTitle, messageBody) {
+        // রিয়েল-টাইম পুশ ইঞ্জিন
+        window.sendPushNotification = async function(targetUserId, messageTitle, messageBody) {
             if(!targetUserId || targetUserId === currentUser?.uid) return;
             try {
                 await fetch("https://onesignal.com/api/v1/notifications", {
@@ -199,16 +200,13 @@
             } catch(e) { console.log("Push trigger stack tracking failed:", e); }
         }
 
-        // 🚀 ২. ওয়ানসিগন্যাল ডিভাইসের সাথে রিয়েল ইউজারের আইডি কানেক্ট করা (নতুন যোগ করা হয়েছে)
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
                 try {
-                    // যদি GoNative / Median র‍্যাপার দিয়ে মোবাইল অ্যাপ বিল্ড করা থাকে
                     if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
                         window.gonative.push.onesignal.setExternalUserId(uid);
                     }
-                    // সাধারণ ক্রোম/সাফারি ব্রাউজার বা PWA-তে নোটিফিকেশন পুশ করার জন্য
-                    if (window.OneSignal) {
+                    if (typeof window.OneSignal !== 'undefined') {
                         window.OneSignal.push(function() {
                             window.OneSignal.setExternalUserId(uid);
                         });
@@ -217,6 +215,7 @@
             }, 2000); 
         }
 
+        // ফায়ারবেস অথেনটিকেশন লিসেনার
         onAuthStateChanged(auth, async (user) => {
             if(user) { 
                 currentUser = user; 
@@ -224,7 +223,6 @@
                     const uSnap = await getDoc(doc(db, "users", user.uid));
                     if(uSnap.exists()) userData = uSnap.data();
                     
-                    // ফায়ারবেস লগইন আইডি ওয়ানসিগন্যালে পুশ করা হলো
                     syncUserWithOneSignal(user.uid);
                     
                     if(callUnsubscribe) callUnsubscribe();
@@ -265,6 +263,7 @@
             try {
                 if (window.gonative) { window.gonative.android.setPullToRefresh(false); }
             } catch(e) {}
+            initOneSignalSafe(); // পেজ লোড হবার পর ওয়ানসিগন্যাল রান হবে
         });
 
         async function loadRawDataFromFirebase() {
@@ -272,9 +271,6 @@
                 const algoSnap = await getDoc(doc(db, "appSettings", "algorithm"));
                 if(algoSnap.exists()) globalCPM = algoSnap.data().trendBoost || 0.0001;
             } catch(e){}
-
-            const wrapper = document.getElementById('reelsWrapper');
-            wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING ENGINE...</div>'; 
 
             try {
                 const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(40));
@@ -289,7 +285,7 @@
 
             } catch(err) {
                 console.error(err);
-                wrapper.innerHTML = '<div class="text-red-500 text-center py-40 text-xs">ERR: CORE PIPELINE INITIALIZATION FAILURE.</div>';
+                document.getElementById('reelsWrapper').innerHTML = '<div class="text-red-500 text-center py-40 text-xs">ERR: CORE PIPELINE INITIALIZATION FAILURE.</div>';
             }
         }
 
@@ -531,8 +527,7 @@
                     timestamp: serverTimestamp()
                 });
 
-                // 🔔 [ONEDESIGN PUSH] ফলো করার পুশ নোটিফিকেশন ট্রিগার
-                sendPushNotification(
+                window.sendPushNotification(
                     targetCreatorId, 
                     "New Follower! 🎉", 
                     `@${userData?.name || "Someone"} আপনাকে ফলো করা শুরু করেছেন।`
@@ -643,8 +638,7 @@
                         cachedRawPosts[cIdx].likedBy.push(currentUser.uid);
                     }
 
-                    // 🔔 [ONEDESIGN PUSH] লাইক করার রিয়েল পুশ নোটিফিকেশন ফায়ার
-                    sendPushNotification(
+                    window.sendPushNotification(
                         postData.userId, 
                         "New Like! ❤️", 
                         `@${userData?.name || "Someone"} আপনার রিলসে লাইক দিয়েছেন।`
@@ -760,5 +754,35 @@
                 const cc = document.getElementById(`count-${activePostId}`);
                 if(cc) cc.innerText = parseInt(cc.innerText) + 1;
 
-                // 🔔 [ONEDESIGN PUSH] কমেন্ট করার রিয়েল পুশ নোটিফিকেশন ফায়ার
-                const postSnap = await getDoc(doc(db, "posts", active
+                const postSnap = await getDoc(doc(db, "posts", activePostId));
+                if(postSnap.exists()) {
+                    const postOwnerId = postSnap.data().userId;
+                    window.sendPushNotification(
+                        postOwnerId, 
+                        "New Comment! 💬", 
+                        `@${userData?.name || "Someone"} আপনার রিলসে কমেন্ট করেছেন: "${input.value.slice(0, 30)}..."`
+                    );
+                }
+                
+                input.value = "";
+            } catch(e){}
+        };
+
+        window.closeComments = () => { 
+            sheet.style.transform = "translateY(100%)";
+            sheet.classList.remove('active'); 
+            window.cancelReply(); 
+        };
+
+        window.shareReel = (id) => {
+            try {
+                const url = window.location.origin + "/post-view.html?id=" + id;
+                navigator.clipboard.writeText(url);
+                Swal.fire({ 
+                    title: 'Link Copied!', icon: 'success', background: '#0b0f19', color: '#f1f5f9', timer: 1000, showConfirmButton: false 
+                });
+            } catch(e){}
+        };
+    </script>
+</body>
+</html>
