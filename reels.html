@@ -12,7 +12,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (টিকটক স্টাইল) */
+        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (টিকток স্টাইল) */
         .reels-container { height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
         
@@ -151,10 +151,10 @@
         let callUnsubscribe = null; 
 
         // 🔔 [ONEDESIGN KEYS] OneSignal কনফিগারেশন প্যারামিটার সমূহ
-        const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; // আপনার OneSignal App ID
-        const ONESIGNAL_REST_KEY= "os_v2_app_hzlz2rgidrdidgdy5uakn63miphcmvxpijyuelf5rz3vv6p4bd6az2spcfhzbhh4bjl27wmma2s3te63km7wfsyaqw6thqg2nizycna"; // আপনার REST API Key (নিরাপত্তার স্বার্থে এটা ব্যাকএন্ডে রাখা উত্তম, তবে ফ্রন্টএন্ডে টেস্ট করার জন্য এখানে সেট করা হলো)
+        const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; 
+        const ONESIGNAL_REST_KEY = "os_v2_app_hzlz2rgidrdidgdy5uakn63miphcmvxpijyuelf5rz3vv6p4bd6az2spcfhzbhh4bjl27wmma2s3te63km7wfsyaqw6thqg2nizycna"; 
 
-        // 🌐 রিয়েল-টাইম গ্লোবাল পুশ ট্রিগার ইঞ্জিন
+        // 🌐 রিয়েল-টাইম গ্লোবাল পুশ ট্রিগার ইঞ্জিন (v2 টোকেন সাপোর্টেড)
         async function sendPushNotification(targetUserId, messageTitle, messageBody) {
             if(!targetUserId || targetUserId === currentUser?.uid) return;
             try {
@@ -162,7 +162,7 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Basic ${ONESIGNAL_REST_KEY}`
+                        "Authorization": `Key ${ONESIGNAL_REST_KEY}` // v2 API এর জন্য 'Basic' এর জায়গায় 'Key' ব্যবহার করা হয়েছে
                     },
                     body: JSON.stringify({
                         app_id: ONESIGNAL_APP_ID,
@@ -281,7 +281,7 @@
                     const isBPinned = b.isPinned === true || b.isAdminPost === true;
                     
                     if (isAPinned && !isBPinned) return -1;
-                    if (!isAFlipped && isBPinned) return 1;
+                    if (!isAPinned && isBPinned) return 1;
 
                     const scoreA = (a.likedBy?.length || 0) * 3 + (a.commentCount || 0) * 5;
                     const scoreB = (b.likedBy?.length || 0) * 3 + (b.commentCount || 0) * 5;
@@ -615,7 +615,7 @@
                     sendPushNotification(
                         postData.userId, 
                         "New Like! ❤️", 
-                        `@${userData?.name || "Someone"} আপনার রিলসটি পছন্দ করেছেন।`
+                        `@${userData?.name || "Someone"} আপনার রিলসে লাইক দিয়েছেন।`
                     );
                 }
             } catch(e) { console.log(e); }
