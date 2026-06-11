@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <title>My Book - Login</title>
 
 <link class="manifest" href="manifest.json">
@@ -12,11 +12,13 @@
 body{
     background:#0f172a;
     font-family:sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .glass{
     background:rgba(255,255,255,0.05);
     backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
     border:1px solid rgba(255,255,255,0.08);
 }
 
@@ -112,33 +114,40 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let messaging = null;
-try { messaging = getMessaging(app); } catch(e) { console.log("FCM Not Supported in this browser", e); }
+try { 
+    messaging = getMessaging(app); 
+} catch(e) { 
+    console.log("FCM Not Supported or blocked in Native Webview", e); 
+}
 
 const msg = document.getElementById("msg");
 const loginBtn = document.getElementById("loginBtn");
 
-// 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE
+// 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE (সুরক্ষিত ডিলে মেকানিজম যুক্ত)
 function syncUserWithOneSignal(uid) {
-    if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
-        window.gonative.push.onesignal.setExternalUserId(uid, function(result){
-            if(result.success) {
-                console.log("OneSignal Native External ID Linked for UID:", uid);
+    setTimeout(() => {
+        try {
+            if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
+                window.gonative.push.onesignal.setExternalUserId(uid, function(result){
+                    if(result && result.success) {
+                        console.log("OneSignal Native External ID Linked for UID:", uid);
+                    } else {
+                        console.log("OneSignal Sync Failed.");
+                    }
+                });
+            } else if (window.OneSignal) {
+                window.OneSignal.login(uid);
+                console.log("OneSignal Web Bridge Handshake Done for UID:", uid);
             } else {
-                console.log("OneSignal Sync Failed.");
+                console.log("Running in standard browser. Median Native Bridge not active.");
             }
-        });
-    } else {
-        // Median ওয়ান-সিগন্যাল প্লাগইন যদি প্লেইন ব্রাউজারে না থাকে, তবে স্ট্যান্ডার্ড ওয়েব এপিআই দিয়েও ব্যাকআপ ট্র্যাকিং হ্যান্ডশেক
-        if (window.OneSignal) {
-            window.OneSignal.login(uid);
-            console.log("OneSignal Web Bridge Handshake Done for UID:", uid);
-        } else {
-            console.log("Running in standard browser. Median Native Bridge not active.");
+        } catch(err) {
+            console.log("Native OneSignal Bridge Error Handled:", err);
         }
-    }
+    }, 1000); // ১ সেকেন্ডের সেফটি ডিলে যাতে ডিভাইস ইঞ্জিন ক্র্যাশ না করে
 }
 
-// 🛡️ SECURE AUTO LOGIN (Banned/Pending ইউজার ভ্যালিডেশন এবং লাইভ কল লিসেনার যুক্ত)
+// 🛡️ SECURE AUTO LOGIN (ক্র্যাশ প্রোটেকশনসহ লজিক রিস্ট্রাকচারড)
 onAuthStateChanged(auth, async (user) => {
     if(user){
         try {
@@ -150,27 +159,31 @@ onAuthStateChanged(auth, async (user) => {
                     return;
                 }
                 
-                // 📱 নেটিভ নোটিফিকেশন সিস্টেমের সাথে ফায়ারবেস UID সিঙ্ক করা হচ্ছে
+                // নেটিভ নোটিফিকেশন সিস্টেম সিঙ্ক
                 syncUserWithOneSignal(user.uid);
                 
-                // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন
-                const inboundCallQuery = query(
-                    collection(db, "calls"),
-                    where("receiverId", "==", user.uid),
-                    where("status", "==", "ringing")
-                );
+                // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন (ক্র্যাশ সেফটি ভ্যালিডেশন)
+                try {
+                    const inboundCallQuery = query(
+                        collection(db, "calls"),
+                        where("receiverId", "==", user.uid),
+                        where("status", "==", "ringing")
+                    );
 
-                onSnapshot(inboundCallQuery, (snapshot) => {
-                    snapshot.forEach(changeDoc => {
-                        const callData = changeDoc.data();
-                        const callId = changeDoc.id;
-
-                        window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
-                    });
-                });
+                    onSnapshot(inboundCallQuery, (snapshot) => {
+                        if (!snapshot.empty) {
+                            snapshot.forEach(changeDoc => {
+                                const callData = changeDoc.data();
+                                const callId = changeDoc.id;
+                                window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
+                            });
+                        }
+                    }, (err) => { console.log("Call snapshot error ignored:", err); });
+                } catch(callErr) {
+                    console.log("Call listener engine protected from crash:", callErr);
+                }
                 // 🚨 [END] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন
 
-                // ওয়ান-সিগন্যাল ডাটা ডিভাইস সিঙ্ক করার জন্য ১.৫ সেকেন্ড হোল্ড করে রিডাইরেক্ট করা হচ্ছে
                 setTimeout(() => {
                     window.location.href = "reels.html";
                 }, 1500);
@@ -196,18 +209,19 @@ async function checkMaintenance(){
 }
 checkMaintenance();
 
-// 🔔 SECURE NOTIFICATION SETTER (setDoc Merge ইউজ করা হয়েছে)
+// 🔔 SECURE NOTIFICATION SETTER (ক্র্যাশ প্রোটেকশন ব্লক যুক্ত)
 async function setupNotifications(uid){
     if(!messaging) return;
     try{
         const token = await getToken(messaging,{
             vapidKey:"BN-grjGNFoN-TIiiEvRUYqAjDE_Sq21ZAEvB_7q-fT2nIMHsAkyrV0cIST4Q__PHMDc4xTdhI6g6V9Iua4T7Bdo"
-        });
+        }).catch(e => console.log("Token generation bypassed"));
+        
         if(token){
             await setDoc(doc(db,"users",uid), { fcmToken: token }, { merge: true });
             console.log("Notification Token Saved Successfully");
         }
-    }catch(err){ console.log("FCM Error:", err); }
+    }catch(err){ console.log("FCM Error Protected:", err); }
 }
 
 // 🔑 LOGIN SUBMISSION TERMINAL
@@ -233,7 +247,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         if(userSnap.exists()){
             const userData = userSnap.data();
 
-            // HARD BAN GATEWAY
             if(userData.isHardBanned){
                 await signOut(auth);
                 msg.innerText = "This account is permanently banned.";
@@ -242,7 +255,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
                 return;
             }
 
-            // WAITING APPROVAL GATEWAY
             if(userData.accountStatus === "waiting_approval"){
                 await signOut(auth);
                 msg.innerText = "Account waiting for admin approval.";
@@ -251,10 +263,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
                 return;
             }
 
-            // POST LOGIN OPERATIONS
             await setupNotifications(user.uid);
-            
-            // 📱 সফলভাবে ফর্ম সাবমিট করে লগইন করলে ওয়ানসিগন্যাল ইঞ্জিন ফায়ার করা হচ্ছে
             syncUserWithOneSignal(user.uid);
             
             await deleteDoc(doc(db,"calls",user.uid)).catch(()=>{});
@@ -262,7 +271,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             msg.innerText = "Login Successful!";
             msg.style.color = "lime";
 
-            // ওয়ান-সিগন্যাল রেজিস্টার এবং ডাটা সিঙ্ক কমপ্লিট হওয়ার জন্য ১.৫ সেকেন্ডের সেফটি বাফার
             setTimeout(() => { window.location.href = "reels.html"; }, 1500);
         } else {
             msg.innerText = "User data not found on server!";
@@ -282,12 +290,16 @@ function resetLoginBtn() {
     loginBtn.innerText = "Login";
 }
 
-// ⚙️ SERVICE WORKER REGISTRATION
+// ⚙️ SERVICE WORKER REGISTRATION (ওয়েব-ভিউ ক্র্যাশ ব্রেকার যুক্ত)
 if('serviceWorker' in navigator){
     window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('firebase-messaging-sw.js')
-        .then(()=>{ console.log("Service Worker Ready"); })
-        .catch((err)=>{ console.log(err); });
+        try {
+            navigator.serviceWorker.register('firebase-messaging-sw.js')
+            .then(()=>{ console.log("Service Worker Ready"); })
+            .catch((err)=>{ console.log("Service worker registration bypassed for App compatibility"); });
+        } catch(swErr) {
+            console.log("Service worker not active in Native App Webview");
+        }
     });
 }
 </script>
