@@ -12,40 +12,39 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        /* 📱 সর্বজনীন রেসপনসিভ কন্টেইনার */
+        /* 📱 টিকটক ও ফেসবুক স্টাইল ১০০% ফুল স্ক্রিন ভিউপোর্ট */
         .reels-container { height: calc(100vh - 80px); height: calc(100dvh - 80px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
         
-        /* 📱 ভিডিও কার্ডকে স্ক্রিনের উচ্চতার সাথে ১০০% লক করা হয়েছে */
-        .reel-card { height: calc(100vh - 80px); height: calc(100dvh - 80px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .reel-card { height: calc(100vh - 80px); height: calc(100dvh - 80px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* 📱 অল-মোবাইল অটো ফিট ভিডিও ইঞ্জিন (ভিডিও কাটবে না কখনোই) */
-        .video-wrapper { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: contain; cursor: pointer; background: #000; max-height: 100%; }
+        /* 📱 ট্রু ফুল-স্ক্রিন ভিডিও ইঞ্জিন */
+        .video-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
         /* 📱 নচ ফ্রেন্ডলি এলিট হেডার এবং সার্চ ডিজাইন */
-        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 12px); padding-bottom: 14px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.95) 75%, transparent); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-        .tab-btn { position: relative; font-size: 14px; font-weight: 800; color: #64748b; transition: all 0.25s ease; padding: 6px 4px; }
-        .tab-btn.active-tab { color: #fff; }
-        .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -2px; left: 20%; right: 20%; height: 2.5px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 8px #1877f2; }
-        .search-glass-box { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; height: 38px; width: 130px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search-glass-box:focus-within { width: 160px; border-color: rgba(24, 119, 242, 0.4); background: rgba(255, 255, 255, 0.14); }
+        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 12px); padding-bottom: 25px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+        .tab-btn { position: relative; font-size: 15px; font-weight: 800; color: rgba(255,255,255,0.6); transition: all 0.25s ease; padding: 6px 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .tab-btn.active-tab { color: #fff; font-size: 16px; }
+        .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -2px; left: 25%; right: 25%; height: 3px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 10px #1877f2; }
+        .search-glass-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; height: 38px; width: 130px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .search-glass-box:focus-within { width: 160px; border-color: #1877f2; background: rgba(0, 0, 0, 0.6); }
         .pointer-events-auto { pointer-events: auto; }
 
-        /* 📱 সাইড বার এবং বটম ইনফো অ্যাডজাস্টমেন্ট (নিখুঁত ওভারলে মার্জিন) */
-        .side-bar { position: absolute; right: 14px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 30; }
-        .bottom-info { position: absolute; bottom: 125px; left: 15px; right: 80px; z-index: 30; text-shadow: 0 2px 8px rgba(0,0,0,0.9); transition: bottom 0.3s ease; }
-        .bottom-info.expanded-info { bottom: 185px; } 
+        /* 📱 ফেসবুক ও টিকটক লেআউট অনুযায়ী নিখুঁত পজিশনিং */
+        .side-bar { position: absolute; right: 12px; bottom: 180px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 30; }
+        .bottom-info { position: absolute; bottom: 180px; left: 16px; right: 80px; z-index: 30; text-shadow: 0 2px 6px rgba(0,0,0,0.9); transition: bottom 0.3s ease; }
+        .bottom-info.expanded-info { bottom: 240px; } 
         
-        /* 📱 ফেসবুক স্টাইল প্রফেশনাল স্পনসرد অ্যাড স্লট (ভিডিও ফ্রেমের সাথে রেসপনসিভ) */
-        .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(12, 16, 26, 0.95); backdrop-filter: blur(10px); padding: 10px 16px calc(env(safe-area-inset-bottom) + 10px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5); }
+        /* 📱 ফেসবুক স্টাইল প্রফেশনাল স্পনসর্ড অ্যাড স্লট (Overlay ও গ্লাস ইফেক্টসহ নিচে ফিক্সড) */
+        .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, rgba(0,0,0,0.4) 0%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); display: flex; flex-direction: column; justify-content: center; min-height: 95px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8); }
         
-        /* যখন অ্যাড থাকবে, তখন সাইডবার ও বটম টেক্সট স্বয়ংক্রিয়ভাবে ওপরে উঠে যাবে */
-        .reel-card:has(.bottom-ad-slot:not(.hidden)) .side-bar { bottom: 195px; }
-        .reel-card:has(.bottom-ad-slot:not(.hidden)) .bottom-info { bottom: 200px; }
-        .reel-card:has(.bottom-ad-slot:not(.hidden)) .bottom-info.expanded-info { bottom: 260px; }
+        /* যদি কোনো পোস্টে অ্যাড না থাকে তবে কন্টেন্ট পজিশন অটোমেটিক আরও নিচে নামবে */
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 155px; }
 
-        .action-btn { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        .action-btn { background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .action-btn:active { transform: scale(0.9); }
         
         /* 📱 ফেসবুক স্টাইল বটম শীট কমেন্ট বক্স */
@@ -66,7 +65,7 @@
         .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: translate(-50%, 50%) scale(0); } 100% { transform: translate(-50%, 50%) scale(1); } }
         
-        /* 👑 অ্যাডমিন ও ভেরিফাইড গ্লোয়িং বর্ডার */
+        /* 👑 অ্যাডমিন ও ভেরিভাইড গ্লোয়িং বর্ডার */
         .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #fbbf24, #f59e0b, #ef4444); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
     </style>
 </head>
@@ -153,7 +152,6 @@
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
 
-        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE (সুরক্ষিত সেফটি বাফার মেকানিজম)
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
                 try {
@@ -181,7 +179,6 @@
                     
                     syncUserWithOneSignal(user.uid);
                     
-                    // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার নোড (ক্র্যাশ প্রুফ ফিল্টার যুক্ত)
                     try {
                         const inboundCallQuery = query(
                             collection(db, "calls"),
@@ -201,7 +198,6 @@
                             }
                         }, (err) => { console.log("Call listener matrix ignored"); });
                     } catch(err) { console.log("Call stack execution bypassed safely"); }
-                    // 🚨 [END] গ্লোবাল ইনকামিং কল লিসেনার নোড
 
                     loadRawDataFromFirebase();
                 } catch(e) {
@@ -214,7 +210,6 @@
 
         document.body.addEventListener('click', () => { isAudioEnabled = true; }, { once: true });
 
-        // Median অ্যাপের ডিফল্ট Pull-to-refresh বন্ধ করার ইঞ্জিন
         document.addEventListener("DOMContentLoaded", function() {
             try {
                 if (window.gonative) { window.gonative.android.setPullToRefresh(false); }
@@ -344,19 +339,19 @@
                     <div class="side-bar">
                         <div class="flex flex-col items-center">
                             <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-lg ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
-                            <span id="likeCount-${id}" class="text-[9px] text-gray-400 font-extrabold mt-1.5">${p.likedBy?.length || 0}</span>
+                            <span id="likeCount-${id}" class="text-[10px] text-white font-extrabold mt-1.5 drop-shadow-md">${p.likedBy?.length || 0}</span>
                         </div>
                         <div class="flex flex-col items-center">
                             <button onclick="window.openComments('${id}')" class="action-btn text-lg"><i class="far fa-comment-dots"></i></button>
-                            <span id="count-${id}" class="text-[9px] text-gray-400 font-extrabold mt-1.5">${p.commentCount || 0}</span>
+                            <span id="count-${id}" class="text-[10px] text-white font-extrabold mt-1.5 drop-shadow-md">${p.commentCount || 0}</span>
                         </div>
                         <button onclick="window.shareReel('${id}')" class="action-btn text-lg"><i class="fas fa-paper-plane"></i></button>
                     </div>
                     
                     <div class="bottom-info" id="info-box-${id}">
-                        <div class="flex items-center gap-2.5 mb-2.5 relative">
+                        <div class="flex items-center gap-2.5 mb-2 relative">
                             <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border border-white/20'}">
+                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border-2 border-white/40'}">
                                 ${shouldShowFollowPlus ? `
                                     <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px]">
                                         <i class="fas fa-plus"></i>
@@ -364,17 +359,17 @@
                                 ` : ''}
                             </div>
                             <div class="cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <h4 class="text-white font-black text-xs flex items-center gap-1">
+                                <h4 class="text-white font-black text-sm flex items-center gap-1 drop-shadow">
                                     @${p.userName || 'creator'}
-                                    ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>` : ''}
+                                    ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[11px]"></i>` : ''}
                                 </h4>
-                                ${isAdmin ? `<span class="bg-gradient-to-r from-red-500 to-amber-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-star mr-0.5"></i>ADMIN ANNOUNCEMENT</span>` : (isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : '')}
+                                ${isAdmin ? `<span class="bg-gradient-to-r from-red-500 to-amber-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-star mr-0.5"></i>ADMIN</span>` : (isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : '')}
                             </div>
                         </div>
                         
-                        <div class="text-white/90 text-[11px] leading-relaxed pr-2">
+                        <div class="text-white text-[12px] font-medium leading-relaxed pr-2 drop-shadow-sm">
                             <p id="caption-${id}" class="inline line-clamp-3 transition-all duration-300 break-words">${p.text || ''}</p>
-                            ${isLongText ? `<button onclick="window.toggleCaption(this, '${id}')" class="text-gray-400 font-bold ml-1 outline-none text-[10px] lowercase focus:text-blue-400">more</button>` : ''}
+                            ${isLongText ? `<button onclick="window.toggleCaption(this, '${id}')" class="text-blue-400 font-bold ml-1 outline-none text-[11px] lowercase">more</button>` : ''}
                         </div>
                     </div>
                     
