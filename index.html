@@ -43,7 +43,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC ENGINE
+        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC & PERMISSION ENGINE
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                // অ্যাপ ওপেন হওয়া মাত্রই মোবাইলে পুশ নোটিফিকেশনের পারমিশন চাইবে
+                if (window.gonative && window.gonative.permissions) {
+                    window.gonative.permissions.requestNotificationPermission();
+                }
+            } catch(e) { console.log("Native bridge permission bypassed."); }
+        });
+
         function syncUserWithOneSignal(uid) {
             if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
                 window.gonative.push.onesignal.setExternalUserId(uid, function(result){
