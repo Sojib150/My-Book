@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
         .reels-container { height: calc(100vh - 80px); height: calc(100dvh - 80px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
@@ -20,28 +20,33 @@
         .video-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
-        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 12px); padding-bottom: 25px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-        .tab-btn { position: relative; font-size: 15px; font-weight: 800; color: rgba(255,255,255,0.6); transition: all 0.25s ease; padding: 6px 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
-        .tab-btn.active-tab { color: #fff; font-size: 16px; }
-        .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -2px; left: 25%; right: 25%; height: 3px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 10px #1877f2; }
-        .search-glass-box { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; display: flex; align-items: center; padding: 0 10px; height: 38px; width: 130px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search-glass-box:focus-within { width: 160px; border-color: #1877f2; background: rgba(0, 0, 0, 0.6); }
+        /* ✨ প্রিমিয়াম হেডার রি-ডিজাইন */
+        .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 14px); padding-bottom: 30px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+        .tab-btn { position: relative; font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.55); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 4px 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); tracking-wide; uppercase; font-size: 13px; }
+        .tab-btn.active-tab { color: #fff; font-size: 14px; }
+        .tab-btn.active-tab::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2.5px; background: #1877f2; border-radius: 10px; box-shadow: 0 0 12px #1877f2; }
+        
+        /* 🔍 মিনিমালিস্ট বর্ডারলেস সার্চ বক্স */
+        .search-glass-box { background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; padding: 0 12px; height: 34px; width: 115px; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .search-glass-box:focus-within { width: 145px; border-color: rgba(24, 119, 242, 0.4); background: rgba(0, 0, 0, 0.7); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .pointer-events-auto { pointer-events: auto; }
 
-        .side-bar { position: absolute; right: 12px; bottom: 180px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 30; }
-        .bottom-info { position: absolute; bottom: 180px; left: 16px; right: 80px; z-index: 30; text-shadow: 0 2px 6px rgba(0,0,0,0.9); transition: bottom 0.3s ease; }
-        .bottom-info.expanded-info { bottom: 240px; } 
+        /* 📐 ব্যালেন্সড স্পেসিং ও লেআউট */
+        .side-bar { position: absolute; right: 14px; bottom: 155px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 30; }
+        .bottom-info { position: absolute; bottom: 155px; left: 16px; right: 80px; z-index: 30; text-shadow: 0 1px 8px rgba(0,0,0,0.9); transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-info.expanded-info { bottom: 220px; } 
         
-        .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, rgba(0,0,0,0.4) 0%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); display: flex; flex-direction: column; justify-content: center; min-height: 95px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8); }
+        /* 📺 ট্রান্সপারেন্ট প্রিমিয়াম অ্যাড স্লট */
+        .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.98) 75%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); display: flex; flex-direction: column; justify-content: center; min-height: 90px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.03); }
         
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 155px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 30px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 30px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 90px; }
 
-        .action-btn { background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .action-btn:active { transform: scale(0.9); }
+        .action-btn { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .action-btn:active { transform: scale(0.88); background: rgba(255, 255, 255, 0.15); }
         
-        #commentSheet { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 25px 25px 0 0; border-top: 1px solid rgba(255,255,255,0.08); color: white; touch-action: none; }
+        #commentSheet { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1); z-index: 1000; transform: translateY(100%); background: #070a12; border-radius: 24px 24px 0 0; border-top: 1px solid rgba(255,255,255,0.06); color: white; touch-action: none; }
         #commentSheet.active { transform: translateY(0); }
         #commentSheet.dragging { transition: none; } 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -50,50 +55,51 @@
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        .nav-glass { background: rgba(8, 12, 20, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.04); padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { color: #64748b; transition: all 0.25s; }
-        .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
+        .nav-glass { background: rgba(5, 7, 12, 0.96); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { color: #475569; transition: all 0.25s; }
+        .nav-btn.active { color: #1877f2; text-shadow: 0 0 12px rgba(24, 119, 242, 0.4); }
 
-        .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
         @keyframes popIn { 0% { transform: translate(-50%, 50%) scale(0); } 100% { transform: translate(-50%, 50%) scale(1); } }
         
-        .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #fbbf24, #f59e0b, #ef4444); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
+        /* 👑 গ্লোয়িং প্রফেশনাল রিং */
+        .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #1877f2, #00d2ff); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 10px rgba(24, 119, 242, 0.5); }
     </style>
 </head>
 <body>
 
     <div class="elite-header max-w-md mx-auto">
         <div class="search-glass-box pointer-events-auto">
-            <i class="fas fa-search text-gray-400 text-xs mr-2"></i>
-            <input type="text" id="creatorSearchInput" placeholder="Search user..." class="w-full bg-transparent text-white text-xs outline-none placeholder-gray-500 font-medium">
+            <i class="fas fa-search text-gray-400/70 text-[10px] mr-2"></i>
+            <input type="text" id="creatorSearchInput" placeholder="Search..." class="w-full bg-transparent text-white text-xs outline-none placeholder-gray-500 font-medium">
             <i id="clearSearchBtn" class="fas fa-times-circle text-gray-500 text-xs hidden cursor-pointer ml-1"></i>
         </div>
 
-        <div class="flex gap-5 items-center justify-center mr-2 pointer-events-auto">
+        <div class="flex gap-6 items-center justify-center pointer-events-auto">
             <button id="tabFollowing" class="tab-btn">Following</button>
             <button id="tabForYou" class="tab-btn active-tab">For You</button>
         </div>
         
-        <div class="w-8 flex items-center justify-end">
-            <i class="fas fa-circle-nodes text-blue-500/40 text-xs"></i>
+        <div class="w-6 flex items-center justify-end">
+            <i class="fas fa-bolt text-blue-500/20 text-xs animate-pulse"></i>
         </div>
     </div>
 
     <div class="reels-container" id="reelsWrapper"></div>
 
     <div id="commentSheet" class="fixed bottom-0 left-0 right-0 h-[75vh] p-6 shadow-2xl flex flex-col max-w-md mx-auto">
-        <div id="commentDragHandler" class="w-16 h-1.5 bg-gray-600 rounded-full mx-auto mb-5 cursor-grab active:cursor-grabbing p-1"></div>
-        <h3 class="text-xs font-black uppercase tracking-widest text-blue-500 mb-4">Comments Pipeline</h3>
+        <div id="commentDragHandler" class="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-5 cursor-grab active:cursor-grabbing"></div>
+        <h3 class="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-4">Comments Pipeline</h3>
         <div id="commentList" class="flex-1 overflow-y-auto space-y-6 no-scrollbar pb-24 text-sm" style="touch-action: auto;"></div>
         
-        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-slate-900 flex justify-between items-center text-[10px] border-t border-white/5">
+        <div id="replyPreview" class="hidden absolute bottom-[80px] left-0 right-0 px-6 py-2 bg-slate-950 flex justify-between items-center text-[10px] border-t border-white/5">
             <span id="replyToText" class="text-blue-400 font-bold italic"></span>
             <button onclick="cancelReply()" class="text-white opacity-50"><i class="fas fa-times"></i></button>
         </div>
         
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#0b0f19] flex items-center gap-3 border-t border-white/5">
-            <input type="text" id="commentInput" placeholder="Write a public comment..." class="flex-1 bg-slate-900 rounded-2xl p-4 text-white outline-none text-xs border border-white/5 focus:border-blue-500/50">
-            <button onclick="postComment()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20"><i class="fas fa-paper-plane text-xs"></i></button>
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#070a12] flex items-center gap-3 border-t border-white/5">
+            <input type="text" id="commentInput" placeholder="Write a comment..." class="flex-1 bg-slate-900/60 rounded-xl p-3.5 text-white outline-none text-xs border border-white/5 focus:border-blue-500/30">
+            <button onclick="postComment()" class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/10"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
     </div>
 
@@ -173,7 +179,6 @@
                             limit(1)
                         );
 
-                        // 🔄 [FIXED] নতুন চ্যাট ও ডাইনামিক কল আর্কিটেকচারের সাথে সম্পূর্ণ সিঙ্ক
                         callUnsubscribe = onSnapshot(inboundCallQuery, (snapshot) => {
                             if(!snapshot.empty) {
                                 const changeDoc = snapshot.docs[0];
@@ -181,11 +186,7 @@
                                 const callId = changeDoc.id;
                                 
                                 if(callUnsubscribe) callUnsubscribe(); 
-                                
-                                // ইনকামিং কল আসার সাথে সাথে ব্যাকগ্রাউন্ড রিল ভিডিওগুলো পজ করে দেওয়া হচ্ছে
                                 document.querySelectorAll('.reel-video').forEach(v => v.pause());
-                                
-                                // ফিক্সড ইউআরএল রাউটিং লজিক
                                 window.location.href = `call.html?callId=${callId}&role=receiver&targetId=${callData.callerId}`;
                             }
                         }, (err) => { console.log("Call listener matrix ignored safely"); });
@@ -289,6 +290,26 @@
             }
         };
 
+        // 🔄 [FIXED] প্রোফাইলের লাইভ ডেটা (নাম/ছবি) সিঙ্ক করার জন্য ডাইনামিক রিয়েল-টাইম ফাংশন
+        function listenToCreatorLiveUpdates(creatorId, elementId, defaultName, defaultPic, isAdmin) {
+            if(!creatorId) return;
+            const userRef = doc(db, "users", creatorId);
+            onSnapshot(userRef, (docSnap) => {
+                if(docSnap.exists()) {
+                    const uData = docSnap.data();
+                    const nameEl = document.getElementById(`name-text-${elementId}`);
+                    const picEl = document.getElementById(`pic-img-${elementId}`);
+                    
+                    if(nameEl) {
+                        nameEl.innerHTML = `@${uData.name || defaultName} ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[11px] ml-0.5"></i>` : ''}`;
+                    }
+                    if(picEl && uData.profilePic) {
+                        picEl.src = uData.profilePic;
+                    }
+                }
+            });
+        }
+
         async function renderViewDOM(postsArray) {
             const wrapper = document.getElementById('reelsWrapper');
             wrapper.innerHTML = "";
@@ -330,53 +351,55 @@
                     </div>
                     <div class="side-bar">
                         <div class="flex flex-col items-center">
-                            <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-lg ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
-                            <span id="likeCount-${id}" class="text-[10px] text-white font-extrabold mt-1.5 drop-shadow-md">${p.likedBy?.length || 0}</span>
+                            <button id="likeBtn-${id}" onclick="window.likeReel('${id}')" class="action-btn text-base ${isLiked ? 'text-red-500' : 'text-white'}"><i class="${isLiked ? 'fas' : 'far'} fa-heart"></i></button>
+                            <span id="likeCount-${id}" class="text-[10px] text-gray-300 font-extrabold mt-1 drop-shadow">${p.likedBy?.length || 0}</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <button onclick="window.openComments('${id}')" class="action-btn text-lg"><i class="far fa-comment-dots"></i></button>
-                            <span id="count-${id}" class="text-[10px] text-white font-extrabold mt-1.5 drop-shadow-md">${p.commentCount || 0}</span>
+                            <button onclick="window.openComments('${id}')" class="action-btn text-base"><i class="far fa-comment-dots"></i></button>
+                            <span id="count-${id}" class="text-[10px] text-gray-300 font-extrabold mt-1 drop-shadow">${p.commentCount || 0}</span>
                         </div>
-                        <button onclick="window.shareReel('${id}')" class="action-btn text-lg"><i class="fas fa-paper-plane"></i></button>
+                        <button onclick="window.shareReel('${id}')" class="action-btn text-base"><i class="fas fa-paper-plane"></i></button>
                     </div>
                     
                     <div class="bottom-info" id="info-box-${id}">
-                        <div class="flex items-center gap-2.5 mb-2 relative">
+                        <div class="flex items-center gap-3 mb-2.5 relative">
                             <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border-2 border-white/40'}">
+                                <img id="pic-img-${id}" src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border border-white/20'}">
                                 ${shouldShowFollowPlus ? `
-                                    <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[9px]">
+                                    <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[8px]">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 ` : ''}
                             </div>
                             <div class="cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <h4 class="text-white font-black text-sm flex items-center gap-1 drop-shadow">
+                                <h4 id="name-text-${id}" class="text-white font-bold text-sm flex items-center gap-0.5 drop-shadow">
                                     @${p.userName || 'creator'}
-                                    ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[11px]"></i>` : ''}
+                                    ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[11px] ml-0.5"></i>` : ''}
                                 </h4>
-                                ${isAdmin ? `<span class="bg-gradient-to-r from-red-500 to-amber-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-star mr-0.5"></i>ADMIN</span>` : (isMonetized ? `<span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase inline-block mt-0.5"><i class="fa-solid fa-circle-check mr-0.5"></i>Monetized</span>` : '')}
                             </div>
                         </div>
                         
-                        <div class="text-white text-[12px] font-medium leading-relaxed pr-2 drop-shadow-sm">
+                        <div class="text-white/90 text-[12px] font-medium leading-relaxed pr-4 drop-shadow-sm">
                             <p id="caption-${id}" class="inline line-clamp-3 transition-all duration-300 break-words">${p.text || ''}</p>
                             ${isLongText ? `<button onclick="window.toggleCaption(this, '${id}')" class="text-blue-400 font-bold ml-1 outline-none text-[11px] lowercase">more</button>` : ''}
                         </div>
                     </div>
                     
                     <div class="bottom-ad-slot ${isMonetized ? '' : 'hidden'}" id="ad-box-${id}" data-ad-code="${encodeURIComponent(adCode)}">
-                        <div class="flex justify-between items-center w-full text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                        <div class="flex justify-between items-center w-full text-[8px] font-bold text-gray-500/80 uppercase tracking-wider mb-1">
                             <div class="flex items-center gap-1">
-                                <i class="fa-solid fa-earth-americas text-blue-500 text-[9px]"></i>
+                                <i class="fa-solid fa-earth-americas text-blue-500/50 text-[9px]"></i>
                                 <span>Sponsored Distribution</span>
                             </div>
-                            <i class="fas fa-ellipsis-h text-gray-500 cursor-pointer"></i>
+                            <i class="fas fa-ellipsis-h text-gray-600/50 cursor-pointer"></i>
                         </div>
-                        <div class="w-full bg-white/[0.02] rounded-xl overflow-hidden border border-white/5" id="ad-content-target-${id}"></div>
+                        <div class="w-full bg-transparent rounded-xl overflow-hidden" id="ad-content-target-${id}"></div>
                     </div>
                 `;
                 wrapper.appendChild(card);
+
+                // 🔄 [FIXED ENGINE] প্রতিটি রিল কার্ড তৈরি হওয়ার পর ব্যাকগ্রাউন্ডে তার লাইভ নাম/ছবি সিঙ্ক লুপ চালু করা হচ্ছে
+                listenToCreatorLiveUpdates(p.userId, id, p.userName || 'creator', p.userPic || '', isAdmin);
             });
             
             setTimeout(initObserver, 200);
@@ -474,7 +497,7 @@
                                     adTarget.appendChild(fragment);
                                 } catch(adErr) { adTarget.innerHTML = rawAd; }
                             } else {
-                                adTarget.innerHTML = '<div class="text-center text-[9px] py-2 text-blue-400 font-bold uppercase tracking-wider">Loading Revenue Partner Ads...</div>';
+                                adTarget.innerHTML = '<div class="text-center text-[9px] py-2 text-blue-500/70 font-bold uppercase tracking-wider">Loading Partner Ad Content...</div>';
                             }
                         }
                         viewTimers[id] = setTimeout(() => handleView(id, owner, isMonetized), 5000);
