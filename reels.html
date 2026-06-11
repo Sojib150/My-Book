@@ -142,7 +142,7 @@
         let cachedRawPosts = []; 
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
-        let callUnsubscribe = null; // সেফটি রিলিজ হ্যান্ডেল
+        let callUnsubscribe = null; 
 
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
@@ -151,7 +151,7 @@
                         window.gonative.push.onesignal.setExternalUserId(uid);
                     }
                 } catch(e) { console.log("OneSignal integration bypassed safely."); }
-            }, 2000); // টাইমআউট বাড়িয়ে দেওয়া হয়েছে যাতে কোর থ্রেড ফ্রিজ না হয়
+            }, 2000); 
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -163,7 +163,6 @@
                     
                     syncUserWithOneSignal(user.uid);
                     
-                    // 🛡️ ইনকামিং কল ম্যাট্রিক্স লুপ প্রুফ ফিক্স
                     if(callUnsubscribe) callUnsubscribe();
                     
                     try {
@@ -174,15 +173,20 @@
                             limit(1)
                         );
 
+                        // 🔄 [FIXED] নতুন চ্যাট ও ডাইনামিক কল আর্কিটেকচারের সাথে সম্পূর্ণ সিঙ্ক
                         callUnsubscribe = onSnapshot(inboundCallQuery, (snapshot) => {
                             if(!snapshot.empty) {
                                 const changeDoc = snapshot.docs[0];
                                 const callData = changeDoc.data();
                                 const callId = changeDoc.id;
                                 
-                                if(callUnsubscribe) callUnsubscribe(); // ইমিডিয়েট রিলিজ
+                                if(callUnsubscribe) callUnsubscribe(); 
+                                
+                                // ইনকামিং কল আসার সাথে সাথে ব্যাকগ্রাউন্ড রিল ভিডিওগুলো পজ করে দেওয়া হচ্ছে
                                 document.querySelectorAll('.reel-video').forEach(v => v.pause());
-                                window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
+                                
+                                // ফিক্সড ইউআরএল রাউটিং লজিক
+                                window.location.href = `call.html?callId=${callId}&role=receiver&targetId=${callData.callerId}`;
                             }
                         }, (err) => { console.log("Call listener matrix ignored safely"); });
                     } catch(err) { console.log("Call stack execution bypassed safely"); }
