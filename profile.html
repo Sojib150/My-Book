@@ -24,9 +24,19 @@
         
         /* Tik-Tok/Reels Style Grid Thumbnails */
         .insta-gallery-item { aspect-ratio: 1/1; position: relative; overflow: hidden; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); }
-        .media-badge { position: absolute; top: 8px; right: 8px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: white; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; z-index: 5; }
-        .text-post-placeholder { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; height: 100%; font-size: 10px; font-weight: 700; color: #a5b4fc; line-height: 1.4; }
         
+        /* Analytics Overlay on Hover/Touch */
+        .metrics-overlay { position: absolute; inset: 0; background: rgba(5, 5, 8, 0.8); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.2s ease; z-index: 10; }
+        .insta-gallery-item:hover .metrics-overlay { opacity: 1; }
+        .insta-gallery-item:active .metrics-overlay { opacity: 1; }
+        
+        .media-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: white; padding: 3px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px; font-size: 8px; z-index: 5; font-weight: 700; }
+        .privacy-badge { position: absolute; top: 8px; right: 8px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: white; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; z-index: 5; }
+        
+        .action-dot-btn { position: absolute; bottom: 8px; right: 8px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); }
+        .action-dot-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); }
+
+        .text-post-placeholder { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 12px; display: flex; align-items: center; justify-content: center; text-align: center; height: 100%; font-size: 10px; font-weight: 700; color: #a5b4fc; line-height: 1.4; }
         .interest-tag { background: rgba(99, 102, 241, 0.08); color: #818cf8; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.12); text-transform: uppercase; }
         
         /* 📱 Bottom Navigation Bar Styling */
@@ -112,7 +122,7 @@
             <div class="mt-2">
                 <button onclick="openComplaintModal()" class="w-full bg-amber-500/5 hover:bg-amber-500/10 text-amber-400/80 py-3 rounded-xl font-bold text-[10px] uppercase tracking-wider active:scale-98 transition flex items-center justify-center gap-2 border border-amber-500/10">
                     <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs"></i>
-                    Report Issue / এডমিনকে কমপ্লেন করুন
+                    Report Issue to Administration
                 </button>
             </div>
                 
@@ -163,7 +173,7 @@
                 </div>
                 <div>
                     <label class="text-[9px] font-black text-indigo-400 uppercase ml-0.5">Problem Context Description</label>
-                    <textarea id="complaintMessage" rows="4" class="w-full bg-white/5 border border-white/5 rounded-xl p-2.5 text-xs font-medium text-gray-200 mt-1 outline-none resize-none placeholder-gray-600 focus:border-indigo-500/30 transition-all" placeholder="আপনার समस्याটি বিস্তারিত লিখুন, সাবমিট করার সাথে সাথে এডমিন প্যানেলে রিয়েল টাইমে আপনার লগ রিপোর্ট পৌছে যাবে..."></textarea>
+                    <textarea id="complaintMessage" rows="4" class="w-full bg-white/5 border border-white/5 rounded-xl p-2.5 text-xs font-medium text-gray-200 mt-1 outline-none resize-none placeholder-gray-600 focus:border-indigo-500/30 transition-all" placeholder="Describe the error log in detail. Submission will transmit live reporting telemetries to the administration..."></textarea>
                 </div>
                 <div class="flex gap-2 pt-1">
                     <button onclick="closeComplaintModal()" class="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-gray-400 rounded-xl font-bold text-xs uppercase tracking-wider transition border border-white/5">Cancel</button>
@@ -190,7 +200,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -213,7 +223,6 @@
                 checkAdminClearance(user.uid);
                 loadProfile(user.uid);
                 loadPosts(user.uid);
-                // ⚡ ফলোয়ার ও ফলোয়িং পেজে সঠিক আইডি পাসিং লজিক
                 document.getElementById('followersBtn').onclick = () => location.href = `followers.html?id=${user.uid}`;
                 document.getElementById('followingBtn').onclick = () => location.href = `following.html?id=${user.uid}`;
             } else { location.href = "index.html"; }
@@ -283,15 +292,22 @@
                 document.getElementById('pCount').innerText = s.size;
                 
                 s.forEach(d => {
+                    const postId = d.id;
                     const p = d.data();
                     const div = document.createElement('div');
-                    div.className = "insta-gallery-item transform active:scale-95 transition-all cursor-pointer";
+                    div.className = "insta-gallery-item transform transition-all";
                     
+                    // Analytics Metrics Initialization
+                    const totalViews = p.viewsCount || 0;
+                    const totalLikes = p.likes ? (Array.isArray(p.likes) ? p.likes.length : p.likes) : 0;
+                    const totalComments = p.commentsCount || 0;
+                    const isPrivate = p.visibility === "private";
+
                     let content = "";
                     if(p.fileUrl) {
                         if(p.fileType === 'video') {
                             content = `<video src="${p.fileUrl}" class="w-full h-full object-cover" muted></video>
-                                       <div class="media-badge"><i class="fas fa-play text-[8px]"></i></div>`;
+                                       <div class="media-badge"><i class="fas fa-play text-[7px]"></i> <span class="text-[8px]">${totalViews}</span></div>`;
                         } else {
                             content = `<img src="${p.fileUrl}" class="w-full h-full object-cover">`;
                         }
@@ -299,11 +315,131 @@
                         content = `<div class="text-post-placeholder"><span>${p.text ? p.text.slice(0,25) + '...' : 'TEXT POST'}</span></div>`;
                     }
                     
-                    div.innerHTML = content;
-                    div.onclick = () => location.href = `post-view.html?id=${d.id}`;
+                    // Dynamic Privacy Badge Layout
+                    let privacyBadge = isPrivate ? `<div class="privacy-badge"><i class="fa-solid fa-lock text-[8px] text-amber-400"></i></div>` : '';
+
+                    // Real-Time Analytics Interactive Metrics Overlay Layout
+                    let overlay = `
+                        <div class="metrics-overlay" onclick="location.href='post-view.html?id=${postId}'">
+                            <div class="flex flex-col items-center text-white">
+                                <i class="fa-solid fa-heart text-xs text-red-500"></i>
+                                <span class="text-[10px] font-black mt-0.5">${totalLikes}</span>
+                            </div>
+                            <div class="flex flex-col items-center text-white">
+                                <i class="fa-solid fa-comment text-xs text-blue-400"></i>
+                                <span class="text-[10px] font-black mt-0.5">${totalComments}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Context Menu Configuration Buttons Trigger
+                    let actionButton = `
+                        <button class="action-dot-btn" onclick="event.stopPropagation(); openPostSettings('${postId}', '${escapeHtml(p.text || "")}', '${p.visibility || "public"}')">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                        </button>
+                    `;
+
+                    div.innerHTML = content + privacyBadge + overlay + actionButton;
                     container.appendChild(div);
                 });
             });
+        }
+
+        // Post Custom Studio Multi-Utility Settings Control Panel
+        window.openPostSettings = (postId, currentCaption, currentVisibility) => {
+            Swal.fire({
+                title: 'Studio Management',
+                text: 'Select an execution command for this asset terminal:',
+                icon: 'info',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonColor: '#6366f1',
+                denyButtonColor: '#d33',
+                cancelButtonColor: '#475569',
+                confirmButtonText: '<i class="fa-solid fa-pen-to-square"></i> Edit Post',
+                denyButtonText: '<i class="fa-solid fa-trash-can"></i> Delete Post',
+                cancelButtonText: 'Dismiss'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processEditPost(postId, currentCaption, currentVisibility);
+                } else if (result.isDenied) {
+                    processDeletePost(postId);
+                }
+            });
+        };
+
+        // Execution Logic: Edit Post Configuration Framework
+        async function processEditPost(postId, currentCaption, currentVisibility) {
+            const { value: formValues } = await Swal.fire({
+                title: 'Modify Configuration Engine',
+                html:
+                    `<div class="text-left space-y-3 p-1">
+                        <div>
+                            <label class="text-[10px] font-black text-indigo-400 uppercase tracking-wider block mb-1">Update Asset Caption</label>
+                            <textarea id="swal-caption" class="w-full bg-[#0b0f19] text-white border border-white/10 rounded-xl p-2.5 text-xs font-medium outline-none resize-none" rows="3">${currentCaption}</textarea>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-indigo-400 uppercase tracking-wider block mb-1">Visibility Framework</label>
+                            <select id="swal-visibility" class="w-full bg-[#0b0f19] text-white border border-white/10 rounded-xl p-2.5 text-xs font-bold outline-none">
+                                <option value="public" ${currentVisibility === 'public' ? 'selected' : ''}>🌍 Public (Visible to Everyone)</option>
+                                <option value="private" ${currentVisibility === 'private' ? 'selected' : ''}>🔒 Private (Only Visible to Me)</option>
+                            </select>
+                        </div>
+                    </div>`,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Apply Synchronizations',
+                preConfirm: () => {
+                    return {
+                        caption: document.getElementById('swal-caption').value.trim(),
+                        visibility: document.getElementById('swal-visibility').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                try {
+                    const postRef = doc(db, "posts", postId);
+                    await updateDoc(postRef, {
+                        text: formValues.caption,
+                        visibility: formValues.visibility
+                    });
+                    Swal.fire({ icon: 'success', title: 'Asset Updates Synced', confirmButtonColor: '#6366f1' });
+                } catch (error) {
+                    console.error("Update error: ", error);
+                    Swal.fire({ icon: 'error', title: 'Telemetry Sync Failed', text: error.message });
+                }
+            }
+        }
+
+        // Execution Logic: Safe Asset Erasure Protocol
+        function processDeletePost(postId) {
+            Swal.fire({
+                title: 'Destructive Protocol Prompt',
+                text: "Are you sure you want to permanently purge this asset from the database? This deployment is irreversible.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#475569',
+                confirmButtonText: 'Purge Asset Permanently'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await deleteDoc(doc(db, "posts", postId));
+                        Swal.fire({ icon: 'success', title: 'Purge Verification Success', text: 'Asset erased.', confirmButtonColor: '#6366f1' });
+                    } catch (error) {
+                        console.error("Purge Error: ", error);
+                        Swal.fire({ icon: 'error', title: 'Purge Sequence Aborted', text: error.message });
+                    }
+                }
+            });
+        }
+
+        // Helper String Encoding Function To Prevent HTML Injection Vulnerabilities
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         window.openComplaintModal = () => {
@@ -321,7 +457,7 @@
             const user = auth.currentUser;
 
             if(!message) {
-                return Swal.fire({ icon: 'warning', title: 'Empty Log Text', text: 'দয়া করে আপনার সমস্যাটি বিস্তারিত লিখুন।' });
+                return Swal.fire({ icon: 'warning', title: 'Empty Log Text', text: 'Please fill in the error details before transmission.' });
             }
 
             try {
@@ -340,13 +476,13 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Report Logs Synced!',
-                    text: 'আপনার কমপ্লেনটি সরাসরি এডমিন কন্ট্রোল ড্যাশবোর্ডে পাঠানো হয়েছে।',
+                    text: 'Your infrastructure diagnostic report has been safely funneled to the Admin Dash.',
                     confirmButtonColor: '#6366f1'
                 });
 
             } catch (error) {
                 console.error("Complaint error: ", error);
-                Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'সার্ভারে সমস্যা হয়েছে, দয়া করে আবার চেষ্টা করুন।' });
+                Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'Server syncing failed, please re-initiate.' });
             }
         };
 
