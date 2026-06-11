@@ -31,7 +31,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, getDocs, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, where, onSnapshot, getDocs, deleteDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyD_TOgrehY8a5JD55FXHdRiFcZhHxctDkM", 
@@ -57,7 +57,12 @@
         });
 
         function streamUserAlerts() {
-            const q = query(collection(db, "users", currentUserId, "notifications"), orderBy("time", "desc"));
+            // 🔄 [FIXED] রুট কালেকশন পাথ এবং ফিল্টারিং লজিক আপনার অ্যাপ আর্কিটেকচারের সাথে সিঙ্ক করা হয়েছে
+            const q = query(
+                collection(db, "notifications"), 
+                where("targetUserId", "==", currentUserId),
+                orderBy("timestamp", "desc")
+            );
             
             onSnapshot(q, (snapshot) => {
                 const stack = document.getElementById('notificationStack');
@@ -89,12 +94,19 @@
                             redirectUrl = `chat.html?id=${n.senderId || n.callerId}`;
                         }
                     }
-                    // 📞 ইনকামিং কল নোটিফিকেশন হ্যান্ডলিং
+                    // 📞 ఇన్কামিং কল নোটিফিকেশন হ্যান্ডলিং
                     else if(n.type === 'calling' || n.type === 'call') {
                         borderClass = "border-l-4 border-red-500";
                         iconHtml = `<div class="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-xs border border-red-500/20 flex-shrink-0"><i class="fas fa-phone-alt animate-pulse"></i></div>`;
-                        if(n.callerId) {
-                            redirectUrl = `call.html?id=${n.callerId}&type=video&action=answering`;
+                        // 🔄 [FIXED] নতুন গ্লোবাল কল মেকানিজমের সাথে রাউটিং সিঙ্ক
+                        redirectUrl = `call.html?callId=${n.callId || changeDoc.id}&role=receiver&targetId=${n.senderId || n.callerId || ''}`;
+                    }
+                    // 👤 ফলো নোটিফিকেশন হ্যান্ডলিং (রিলস স্ক্রিন বা প্রোফাইল থেকে ম্যাচ করা)
+                    else if(n.type === 'follow') {
+                        borderClass = "border-l-4 border-blue-500";
+                        iconHtml = `<div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs border border-blue-500/20 flex-shrink-0"><i class="fas fa-user-plus"></i></div>`;
+                        if(n.senderId) {
+                            redirectUrl = `user.html?id=${n.senderId}`;
                         }
                     }
                     // 👑 অ্যাডমিন নোটিফিকেশন হ্যান্ডলিং
@@ -105,19 +117,20 @@
 
                     card.className = `glass p-3.5 rounded-2xl flex items-center gap-3.5 bg-black/10 active:bg-white/5 transition duration-200 cursor-pointer ${borderClass}`;
                     
-                    // ক্লিকেবল রিডাইরেকশন অ্যাকশন
+                    // ক্লিclickable রিডাইরেকশন অ্যাকশন
                     card.onclick = () => {
                         if(redirectUrl !== "#") window.location.href = redirectUrl;
                     };
 
-                    // ⏰ টাইম ফরম্যাটিং সেফগার্ড
+                    // ⏰ [FIXED] টাইম ফরম্যাটিং সেফগার্ড (timestamp ফিল্ডের সাথে অ্যালাইন করা)
                     let timeText = "Just Now";
-                    if(n.time) {
+                    const targetTime = n.timestamp || n.time;
+                    if(targetTime) {
                         try {
-                            timeText = new Date(n.time.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " • " + new Date(n.time.toDate()).toLocaleDateString();
+                            timeText = new Date(targetTime.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " • " + new Date(targetTime.toDate()).toLocaleDateString();
                         } catch(e) {
-                            if(typeof n.time === 'number') {
-                                timeText = new Date(n.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            if(typeof targetTime === 'number' || typeof targetTime === 'string') {
+                                timeText = new Date(targetTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                             }
                         }
                     }
@@ -137,11 +150,16 @@
 
         window.purgeNotificationStreams = async () => {
             if(!confirm('সব নোটিফিকেশন ডিলিট করে দিতে চান ভাই?')) return;
-            const ref = collection(db, "users", currentUserId, "notifications");
-            const snap = await getDocs(ref);
-            const batch = writeBatch(db);
-            snap.forEach(d => batch.delete(d.ref));
-            await batch.commit();
+            try {
+                const ref = collection(db, "notifications");
+                const q = query(ref, where("targetUserId", "==", currentUserId));
+                const snap = await getDocs(q);
+                const batch = writeBatch(db);
+                snap.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            } catch(e) {
+                console.error("Purge failure:", e);
+            }
         };
     </script>
 </body>
