@@ -12,17 +12,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        /* 📱 টিকটক ও ফেসবুক স্টাইল ১০০% ফুল স্ক্রিন ভিউপোর্ট */
         .reels-container { height: calc(100vh - 80px); height: calc(100dvh - 80px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
         
         .reel-card { height: calc(100vh - 80px); height: calc(100dvh - 80px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* 📱 ট্রু ফুল-স্ক্রিন ভিডিও ইঞ্জিন */
         .video-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
 
-        /* 📱 নচ ফ্রেন্ডলি এলিট হেডার এবং সার্চ ডিজাইন */
         .elite-header { position: fixed; top: 0; left: 0; right: 0; padding-top: calc(env(safe-area-inset-top) + 12px); padding-bottom: 25px; padding-left: 16px; padding-right: 16px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
         .tab-btn { position: relative; font-size: 15px; font-weight: 800; color: rgba(255,255,255,0.6); transition: all 0.25s ease; padding: 6px 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
         .tab-btn.active-tab { color: #fff; font-size: 16px; }
@@ -31,15 +28,12 @@
         .search-glass-box:focus-within { width: 160px; border-color: #1877f2; background: rgba(0, 0, 0, 0.6); }
         .pointer-events-auto { pointer-events: auto; }
 
-        /* 📱 ফেসবুক ও টিকটক লেআউট অনুযায়ী নিখুঁত পজিশনিং */
         .side-bar { position: absolute; right: 12px; bottom: 180px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 30; }
         .bottom-info { position: absolute; bottom: 180px; left: 16px; right: 80px; z-index: 30; text-shadow: 0 2px 6px rgba(0,0,0,0.9); transition: bottom 0.3s ease; }
         .bottom-info.expanded-info { bottom: 240px; } 
         
-        /* 📱 ফেসবুক স্টাইল প্রফেশনাল স্পনসর্ড অ্যাড স্লট (Overlay ও গ্লাস ইফেক্টসহ নিচে ফিক্সড) */
         .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, rgba(0,0,0,0.4) 0%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); display: flex; flex-direction: column; justify-content: center; min-height: 95px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8); }
         
-        /* যদি কোনো পোস্টে অ্যাড না থাকে তবে কন্টেন্ট পজিশন অটোমেটিক আরও নিচে নামবে */
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
         .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 155px; }
@@ -47,7 +41,6 @@
         .action-btn { background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .action-btn:active { transform: scale(0.9); }
         
-        /* 📱 ফেসবুক স্টাইল বটম শীট কমেন্ট বক্স */
         #commentSheet { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1); z-index: 1000; transform: translateY(100%); background: #0b0f19; border-radius: 25px 25px 0 0; border-top: 1px solid rgba(255,255,255,0.08); color: white; touch-action: none; }
         #commentSheet.active { transform: translateY(0); }
         #commentSheet.dragging { transition: none; } 
@@ -57,7 +50,6 @@
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        /* 📱 Bottom Navigation Bar Styling */
         .nav-glass { background: rgba(8, 12, 20, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.04); padding-bottom: env(safe-area-inset-bottom); }
         .nav-btn { color: #64748b; transition: all 0.25s; }
         .nav-btn.active { color: #1877f2; text-shadow: 0 0 10px rgba(24, 119, 242, 0.3); }
@@ -65,7 +57,6 @@
         .follow-plus-btn { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: translate(-50%, 50%) scale(0); } 100% { transform: translate(-50%, 50%) scale(1); } }
         
-        /* 👑 অ্যাডমিন ও ভেরিভাইড গ্লোয়িং বর্ডার */
         .admin-glow-ring { border: 2px solid transparent; background-image: linear-gradient(#000, #000), linear-gradient(to right, #fbbf24, #f59e0b, #ef4444); background-origin: border-box; background-clip: content-box, border-box; box-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
     </style>
 </head>
@@ -151,23 +142,16 @@
         let cachedRawPosts = []; 
         let activeTab = "foryou"; 
         let currentSearchQuery = "";
+        let callUnsubscribe = null; // সেফটি রিলিজ হ্যান্ডেল
 
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
                 try {
                     if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
-                        window.gonative.push.onesignal.setExternalUserId(uid, function(result){
-                            if(result && result.success) {
-                                console.log("OneSignal Native External ID Linked in Reels for UID:", uid);
-                            } else {
-                                console.log("OneSignal Reels Sync Failed.");
-                            }
-                        });
-                    } else {
-                        console.log("Running in standard browser. Median Native Bridge not active in Reels.");
+                        window.gonative.push.onesignal.setExternalUserId(uid);
                     }
-                } catch(e) { console.log("OneSignal integration bypassed inside webview container."); }
-            }, 1200);
+                } catch(e) { console.log("OneSignal integration bypassed safely."); }
+            }, 2000); // টাইমআউট বাড়িয়ে দেওয়া হয়েছে যাতে কোর থ্রেড ফ্রিজ না হয়
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -179,24 +163,28 @@
                     
                     syncUserWithOneSignal(user.uid);
                     
+                    // 🛡️ ইনকামিং কল ম্যাট্রিক্স লুপ প্রুফ ফিক্স
+                    if(callUnsubscribe) callUnsubscribe();
+                    
                     try {
                         const inboundCallQuery = query(
                             collection(db, "calls"),
                             where("receiverId", "==", user.uid),
-                            where("status", "==", "ringing")
+                            where("status", "==", "ringing"),
+                            limit(1)
                         );
 
-                        onSnapshot(inboundCallQuery, (snapshot) => {
+                        callUnsubscribe = onSnapshot(inboundCallQuery, (snapshot) => {
                             if(!snapshot.empty) {
-                                snapshot.forEach(changeDoc => {
-                                    const callData = changeDoc.data();
-                                    const callId = changeDoc.id;
-                                    
-                                    document.querySelectorAll('.reel-video').forEach(v => v.pause());
-                                    window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
-                                });
+                                const changeDoc = snapshot.docs[0];
+                                const callData = changeDoc.data();
+                                const callId = changeDoc.id;
+                                
+                                if(callUnsubscribe) callUnsubscribe(); // ইমিডিয়েট রিলিজ
+                                document.querySelectorAll('.reel-video').forEach(v => v.pause());
+                                window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
                             }
-                        }, (err) => { console.log("Call listener matrix ignored"); });
+                        }, (err) => { console.log("Call listener matrix ignored safely"); });
                     } catch(err) { console.log("Call stack execution bypassed safely"); }
 
                     loadRawDataFromFirebase();
@@ -223,10 +211,10 @@
             } catch(e){}
 
             const wrapper = document.getElementById('reelsWrapper');
-            wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING MOTOR ENGINE...</div>'; 
+            wrapper.innerHTML = '<div class="text-white text-center py-40 text-xs tracking-widest class-load client-sync animate-pulse">SYNCHRONIZING ENGINE...</div>'; 
 
             try {
-                const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(50));
+                const q = query(collection(db, "posts"), where("fileType", "==", "video"), limit(40));
                 const snap = await getDocs(q);
                 cachedRawPosts = [];
                 
