@@ -12,10 +12,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
         
-        .reels-container { height: calc(100vh - 80px); height: calc(100dvh - 80px); overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        /* 📱 ১০০% ফুল স্ক্রিন ভিউপোর্ট সেটআপ (টিকটক স্টাইল) */
+        .reels-container { height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .reels-container::-webkit-scrollbar { display: none; }
         
-        .reel-card { height: calc(100vh - 80px); height: calc(100dvh - 80px); width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; }
+        .reel-card { height: 100vh; height: 100dvh; width: 100vw; scroll-snap-align: start; position: relative; background: #000; display: flex; flex-direction: column; overflow: hidden; }
         
         .video-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; background: #000; }
@@ -31,17 +32,18 @@
         .search-glass-box:focus-within { width: 145px; border-color: rgba(24, 119, 242, 0.4); background: rgba(0, 0, 0, 0.7); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .pointer-events-auto { pointer-events: auto; }
 
-        /* 📐 ব্যালেন্সড স্পেসিং ও লেআউট */
-        .side-bar { position: absolute; right: 14px; bottom: 155px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 30; }
-        .bottom-info { position: absolute; bottom: 155px; left: 16px; right: 80px; z-index: 30; text-shadow: 0 1px 8px rgba(0,0,0,0.9); transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bottom-info.expanded-info { bottom: 220px; } 
+        /* 📐 ব্যালেন্সড সেফ-স্পেসিংস (যাতে ব্যানার বা নেভ বারের ওপরে নাম ও ছবি সবসময় ভেসে থাকে) */
+        .side-bar { position: absolute; right: 14px; bottom: 175px; display: flex; flex-direction: column; gap: 22px; align-items: center; z-index: 35; }
+        .bottom-info { position: absolute; bottom: 175px; left: 16px; right: 86px; z-index: 35; text-shadow: 0 2px 8px rgba(0,0,0,0.8); transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bottom-info.expanded-info { bottom: 240px; } 
         
-        /* 📺 ট্রান্সপারেন্ট প্রিমিয়াম অ্যাড স্লট */
-        .bottom-ad-slot { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.98) 75%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px); display: flex; flex-direction: column; justify-content: center; min-height: 90px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.03); }
+        /* 📺 ট্রান্সপারেন্ট প্রিমিয়াম অ্যাড স্লট ও ওভারলে গ্রাডিয়েন্ট */
+        .bottom-ad-slot { position: absolute; bottom: 80px; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, transparent 100%); padding: 12px 16px calc(env(safe-area-inset-bottom) + 8px); display: flex; flex-direction: column; justify-content: center; min-height: 85px; z-index: 25; border-top: 1px solid rgba(255, 255, 255, 0.02); }
         
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 30px; }
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 30px; }
-        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 90px; }
+        /* যদি কোনো রিলে অ্যাড ব্যানার না থাকে তাহলে এলিমেন্টগুলো আরও নিচে নেমে জায়গা বড় করবে */
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .side-bar { bottom: 95px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info { bottom: 95px; }
+        .reel-card:not(:has(.bottom-ad-slot:not(.hidden))) .bottom-info.expanded-info { bottom: 160px; }
 
         .action-btn { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
         .action-btn:active { transform: scale(0.88); background: rgba(255, 255, 255, 0.15); }
@@ -55,7 +57,7 @@
         .heart-active { opacity: 0.8; transform: scale(1.2); animation: fadeOut 0.8s forwards; }
         @keyframes fadeOut { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        .nav-glass { background: rgba(5, 7, 12, 0.96); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: env(safe-area-inset-bottom); }
+        .nav-glass { background: rgba(5, 7, 12, 0.93); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: env(safe-area-inset-bottom); }
         .nav-btn { color: #475569; transition: all 0.25s; }
         .nav-btn.active { color: #1877f2; text-shadow: 0 0 12px rgba(24, 119, 242, 0.4); }
 
@@ -290,7 +292,6 @@
             }
         };
 
-        // 🔄 [FIXED] প্রোফাইলের লাইভ ডেটা (নাম/ছবি) সিঙ্ক করার জন্য ডাইনামিক রিয়েল-টাইম ফাংশন
         function listenToCreatorLiveUpdates(creatorId, elementId, defaultName, defaultPic, isAdmin) {
             if(!creatorId) return;
             const userRef = doc(db, "users", creatorId);
@@ -342,12 +343,16 @@
                 const isAdmin = p.isAdminPost === true || p.isPinned === true;
                 const isLongText = p.text && p.text.length > 90;
 
+                // 🔄 [FIXED] ডাটা গ্লিচ প্রোটেকশনের জন্য ফলব্যাক ও ব্যাকআপ ভ্যালু হ্যান্ডলিং স্ট্রং করা হয়েছে
+                const userDisplayName = p.userName ? p.userName : 'creator';
+                const userProfilePic = p.userPic ? p.userPic : 'https://via.placeholder.com/150';
+
                 const card = document.createElement('div');
                 card.className = "reel-card";
                 card.innerHTML = `
                     <div class="video-wrapper" ondblclick="window.handleDoubleTap(this, '${id}')">
                         <i class="fas fa-heart heart-animation"></i>
-                        <video src="${p.fileUrl}" loop muted playsinline class="reel-video" onclick="window.handleReelTap(this)" data-id="${id}" data-owner="${p.userId}" data-monetized="${isMonetized}"></video>
+                        <video src="${p.fileUrl}" loop muted playsinline class="reel-video w-full h-full object-cover" onclick="window.handleReelTap(this)" data-id="${id}" data-owner="${p.userId}" data-monetized="${isMonetized}"></video>
                     </div>
                     <div class="side-bar">
                         <div class="flex flex-col items-center">
@@ -364,7 +369,7 @@
                     <div class="bottom-info" id="info-box-${id}">
                         <div class="flex items-center gap-3 mb-2.5 relative">
                             <div class="relative cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
-                                <img id="pic-img-${id}" src="${p.userPic || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border border-white/20'}">
+                                <img id="pic-img-${id}" src="${userProfilePic}" class="w-10 h-10 rounded-full object-cover ${isAdmin ? 'admin-glow-ring' : 'border border-white/20'}">
                                 ${shouldShowFollowPlus ? `
                                     <button id="followPlus-${p.userId}" onclick="event.stopPropagation(); window.followCreatorInline('${p.userId}')" class="follow-plus-btn absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center border border-black text-[8px]">
                                         <i class="fas fa-plus"></i>
@@ -373,7 +378,7 @@
                             </div>
                             <div class="cursor-pointer" onclick="location.href='user.html?id=${p.userId}'">
                                 <h4 id="name-text-${id}" class="text-white font-bold text-sm flex items-center gap-0.5 drop-shadow">
-                                    @${p.userName || 'creator'}
+                                    @${userDisplayName}
                                     ${isAdmin ? `<i class="fa-solid fa-circle-check text-blue-500 text-[11px] ml-0.5"></i>` : ''}
                                 </h4>
                             </div>
@@ -398,8 +403,7 @@
                 `;
                 wrapper.appendChild(card);
 
-                // 🔄 [FIXED ENGINE] প্রতিটি রিল কার্ড তৈরি হওয়ার পর ব্যাকগ্রাউন্ডে তার লাইভ নাম/ছবি সিঙ্ক লুপ চালু করা হচ্ছে
-                listenToCreatorLiveUpdates(p.userId, id, p.userName || 'creator', p.userPic || '', isAdmin);
+                listenToCreatorLiveUpdates(p.userId, id, userDisplayName, userProfilePic, isAdmin);
             });
             
             setTimeout(initObserver, 200);
