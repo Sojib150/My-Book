@@ -213,9 +213,10 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         
-        // 🔄 [FIXED] ইন্ডেক্স/নোটিফিকেশন উভয় প্যারামিটার হ্যান্ডেল করার লজিক
-        const targetId = urlParams.get('targetId') || urlParams.get('id');
-        const action = urlParams.get('action') || urlParams.get('role'); 
+        // 🔄 [FIXED] নতুন প্যারামিটার লজিক সিঙ্ক (chat.html এর সাথে সম্পূর্ণ সামঞ্জস্যপূর্ণ)
+        const callId = urlParams.get('callId');
+        const role = urlParams.get('role'); // 'sender' অথবা 'receiver'
+        const targetId = urlParams.get('targetId');
         
         let myId = null;
         let myName = "Elite User"; 
@@ -235,7 +236,8 @@
         onAuthStateChanged(auth, async user => {
             if(user) {
                 myId = user.uid;
-                chatID = [myId, targetId].sort().join("_");
+                // ডাইনামিক কল আইডিতে যে চ্যাটরুম স্ট্রাকচার বিল্ড হয়েছে সেটি সেট করা হচ্ছে
+                chatID = callId || [myId, targetId].sort().join("_");
                 
                 const mySnap = await getDoc(doc(db, "users", myId));
                 if(mySnap.exists()) myName = mySnap.data().name;
@@ -243,6 +245,8 @@
                 loadTargetName();
                 listenForCallStatus();
                 initInCallChat();
+            } else {
+                window.location.href = "index.html";
             }
         });
 
@@ -276,22 +280,23 @@
             if(!isOpen) panel.classList.add('open');
         };
 
-        // 🔄 [FIXED] কল রিসিভারদের জন্য ফায়ারবেস ট্র্যাকিং এবং রিংটোন ম্যানেজমেন্ট
-        function handleRingtone() {
-            if(action === 'calling') {
+        // 🔄 [FIXED] সুনির্দিষ্ট রোলের ওপর ভিত্তি করে রিংটোন এবং ডেটাবেজ ট্রিগার লজিক
+        async function handleRingtone() {
+            if(!callId) return;
+
+            if(role === 'sender') {
                 dialing.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Dialing Elite...";
                 triggerOneSignalNotification();
             } 
-            // যদি রিসিভার এন্ড থেকে ঢুকে থাকে
-            else if(action === 'answering' || action === 'receiver') {
+            else if(role === 'receiver') {
                 ringtone.play().catch(e => console.error(e));
                 document.getElementById('callStatus').innerText = "Incoming Call...";
                 
-                // রিসিভার বাটনে ক্লিক করা মাত্রই ডেটাবেজে কানেক্টেড স্ট্যাটাস পুশ হবে
-                const callRef = doc(db, "calls", myId);
-                updateDoc(callRef, { status: "connected" }).catch((err)=>{
-                    console.log("Firebase direct bridge failed:", err);
+                // রিসিভার স্ক্রিনে ক্লিক করার সাথে সাথে ডকুমেন্ট আপডেট হয়ে ব্রিজ চালু করবে
+                const callRef = doc(db, "calls", callId);
+                await updateDoc(callRef, { status: "connected" }).catch((err)=>{
+                    console.log("Firebase status upgrade failed:", err);
                 });
             }
         }
@@ -305,7 +310,7 @@
                 target_channel: "push",
                 headings: { "en": "Incoming Elite Call 📞" },
                 contents: { "en": `${myName} is calling you on My Book Elite. Tap to answer.` },
-                data: { action: "calling", callerId: myId }, 
+                data: { action: "calling", callId: callId, callerId: myId }, 
                 android_background_layout: { "headings_color": "D4AF37", "contents_color": "FFFFFF" },
                 priority: 10 
             };
@@ -318,8 +323,8 @@
                 body: JSON.stringify(notificationData)
             })
             .then(res => res.json())
-            .then(data => console.log("OneSignal Global Push Triggered: ", data))
-            .catch(err => console.error("OneSignal Global Push Failed: ", err));
+            .then(data => console.log("OneSignal Realtime Call Push Triggered"), data)
+            .catch(err => console.error("OneSignal Call Push Failed: ", err));
         }
 
         async function loadTargetName() {
@@ -359,11 +364,14 @@
             }
         }
 
+        // 🔄 [FIXED] ডাইনামিক callId ট্র্যাকিং লিসেনার
         function listenForCallStatus() {
-            const docId = action === 'calling' ? targetId : myId;
-            onSnapshot(doc(doc(db, "calls", docId)), snap => {
+            if(!callId) return;
+            
+            onSnapshot(doc(db, "calls", callId), snap => {
                 if(!snap.exists()) {
-                    endCall();
+                    // যদি অন্য প্রান্ত থেকে কল কেটে বা রিজেক্ট করে দেওয়া হয়
+                    exitCallSession();
                 } else {
                     const data = snap.data();
                     if(data.status === "connected") {
@@ -381,17 +389,23 @@
             dialing.currentTime = 0;
         }
 
-        window.endCall = async () => {
+        // লোকাল স্ক্রিন ও ট্র্যাকিং রিলিজ মেকানিজম
+        async function exitCallSession() {
             stopAllAudio();
             localTracks.audio?.stop();
             localTracks.audio?.close();
             localTracks.video?.stop();
             localTracks.video?.close();
             await client.leave().catch(()=>{});
-            
-            const docId = action === 'calling' ? targetId : myId;
-            await deleteDoc(doc(db, "calls", docId)).catch(()=>{});
             window.location.href = "messages.html";
+        }
+
+        // 🔄 [FIXED] কল কাটার মূল এক্সিট হ্যান্ডলার
+        window.endCall = async () => {
+            if(callId) {
+                await deleteDoc(doc(db, "calls", callId)).catch(()=>{});
+            }
+            exitCallSession();
         };
 
         function initInCallChat() {
@@ -404,7 +418,7 @@
                     if(m.type === 'text') {
                         const isMe = m.senderId === myId;
                         const msgDiv = document.createElement('div');
-                        msgDiv.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'}`;
+                        msgDiv.className = `flex w-full mb-2 ${isMe ? 'justify-end' : 'justify-start'}`;
                         msgDiv.innerHTML = `<div class="${isMe ? 'bg-[#D4AF37] text-black font-semibold' : 'bg-white/10 text-white'} px-3 py-1.5 rounded-xl max-w-[75%] break-words">${m.text}</div>`;
                         msgBox.appendChild(msgDiv);
                     }
