@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Messages - My Book Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link class="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
@@ -17,7 +18,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* এলিট লাক্সারি গ্লাস হেডার */
+        /* Elite লাক্সারি গ্লাস হেডার */
         .messenger-header { 
             background: rgba(11, 15, 25, 0.85); 
             backdrop-filter: blur(25px); 
@@ -25,7 +26,7 @@
             border-bottom: 1px solid rgba(212, 175, 55, 0.15); 
         }
         
-        /* প্রিমিয়াম মেটাল সার্চ বক্স */
+        /* Premium মেটাল সার্চ বক্স */
         .search-box { 
             background: rgba(255, 255, 255, 0.04); 
             border-radius: 20px; 
@@ -78,49 +79,9 @@
             color: #000;
             box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
         }
-
-        /* এলিট ভিডিও কলিং উইন্ডো */
-        .call-popup-glass {
-            background: rgba(11, 15, 25, 0.9);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes slideUp {
-            from { transform: translate(-50%, 100%) scale(0.9); opacity: 0; }
-            to { transform: translate(-50%, 0) scale(1); opacity: 1; }
-        }
-        
-        .status-[#D4AF37] { box-shadow: 0 0 10px #D4AF37; }
     </style>
 </head>
 <body class="pb-36">
-
-    <div id="incomingCallPopup" class="hidden fixed top-10 left-1/2 -translate-x-1/2 w-[92%] max-w-[380px] call-popup-glass rounded-[28px] p-5 z-[99999] flex items-center gap-4">
-        <div class="relative">
-            <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#D4AF37] shadow-xl animate-pulse" id="callerImageContainer">
-                <img id="callerPopupImg" src="" class="w-full h-full object-cover" alt="">
-            </div>
-            <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-[#D4AF37] rounded-full flex items-center justify-center border-2 border-[#050508]">
-                <i class="fas fa-video text-[9px] text-black animate-spin"></i>
-            </div>
-        </div>
-        <div class="flex-1 min-w-0">
-            <h3 class="font-extrabold text-sm text-white tracking-wide truncate" id="callerPopupName">Incoming Call...</h3>
-            <p class="text-[10px] text-[#D4AF37] font-black uppercase tracking-[1.5px] animate-pulse">Elite Private Video Call</p>
-        </div>
-        <div class="flex gap-2.5">
-            <button id="declineCallBtn" class="w-10 h-10 bg-red-600 hover:bg-red-700 active:scale-90 transition rounded-xl flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-phone-slash text-sm"></i>
-            </button>
-            <button id="acceptCallBtn" class="w-10 h-10 bg-[#D4AF37] active:scale-90 transition rounded-xl flex items-center justify-center text-black shadow-lg font-black">
-                <i class="fas fa-phone text-sm"></i>
-            </button>
-        </div>
-    </div>
 
     <nav class="messenger-header sticky top-0 z-50 px-5 pt-6 pb-4 max-w-md mx-auto">
         <div>
@@ -175,7 +136,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, deleteDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -189,13 +150,10 @@
         const auth = getAuth(app);
 
         let cachedUsers = {}; 
-        let ringtoneAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-84.wav'); 
-        ringtoneAudio.loop = true;
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 initInboxEngine(user.uid);
-                listenForIncomingCalls(user.uid); 
             } else { 
                 setTimeout(() => {
                     if(!auth.currentUser) {
@@ -215,49 +173,6 @@
                 });
                 renderActiveStories(myId);
                 loadRecentChats(myId);
-            });
-        }
-
-        function listenForIncomingCalls(myId) {
-            onSnapshot(collection(db, "calls"), (snapshot) => {
-                let activeCallFound = false;
-
-                snapshot.forEach((callDoc) => {
-                    const callData = callDoc.data();
-                    const docId = callDoc.id;
-
-                    if (docId === myId || callData.targetId === myId || docId.endsWith(`_${myId}`)) {
-                        if (callData.status === 'dialing' || callData.status === 'ringing') {
-                            activeCallFound = true;
-                            
-                            const callerId = callData.callerId || docId.split('_')[0];
-                            const callerInfo = cachedUsers[callerId] || { name: "Elite User", profilePic: "" };
-
-                            document.getElementById('callerPopupName').innerText = callerInfo.name;
-                            document.getElementById('callerPopupImg').src = callerInfo.profilePic || 'https://via.placeholder.com/150';
-                            document.getElementById('incomingCallPopup').classList.remove('hidden');
-                            
-                            ringtoneAudio.play().catch(()=>{});
-
-                            document.getElementById('acceptCallBtn').onclick = async () => {
-                                ringtoneAudio.pause();
-                                await updateDoc(doc(db, "calls", docId), { status: 'connected' }).catch(()=>{});
-                                window.location.href = `chat.html?id=${callerId}&room=${docId}`;
-                            };
-
-                            document.getElementById('declineCallBtn').onclick = async () => {
-                                ringtoneAudio.pause();
-                                await deleteDoc(doc(db, "calls", docId)).catch(()=>{});
-                                document.getElementById('incomingCallPopup').classList.add('hidden');
-                            };
-                        }
-                    }
-                });
-
-                if (!activeCallFound) {
-                    ringtoneAudio.pause();
-                    document.getElementById('incomingCallPopup').classList.add('hidden');
-                }
             });
         }
 
@@ -375,5 +290,8 @@
             });
         });
     </script>
+
+    <script type="module" src="global-call-listener.js"></script>
+
 </body>
 </html>
