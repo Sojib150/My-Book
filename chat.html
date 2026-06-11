@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Chat Elite - My Book</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link class="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -240,20 +241,26 @@
             }
         });
 
+        // 🚨 ফিক্সড কল ট্রিগার ইঞ্জিন (ডাইনামিক কল আইডি সহ তৈরি)
         window.startCall = async (type) => {
             if(!myId || !targetId) return;
             const mySnap = await getDoc(doc(db, "users", myId));
             const myName = mySnap.exists() ? mySnap.data().name : "Elite Member";
             
-            await setDoc(doc(db, "calls", targetId), {
+            // সেন্ট্রালাইজড চ্যাটরুম আইডিকেই কল ট্র্যাকিং আইডি হিসেবে ব্যবহার করা হচ্ছে
+            const callDocId = chatID; 
+            
+            await setDoc(doc(db, "calls", callDocId), {
                 callerId: myId,
+                receiverId: targetId,
                 callerName: myName,
                 status: "ringing",
                 type: type,
                 timestamp: Date.now()
             });
 
-            window.location.href = `call.html?id=${targetId}&type=${type}&action=calling`;
+            // কলিং পেজে রাউটিং ঠিক করা হয়েছে
+            window.location.href = `call.html?callId=${callDocId}&type=${type}&role=sender&targetId=${targetId}`;
         };
 
         window.toggleMenu = () => {
@@ -452,5 +459,8 @@
             if(e.key === 'Enter') sendMessage();
         });
     </script>
+
+    <script type="module" src="global-call-listener.js"></script>
+
 </body>
 </html>
