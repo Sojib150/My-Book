@@ -97,7 +97,7 @@ body{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -162,27 +162,7 @@ onAuthStateChanged(auth, async (user) => {
                 // নেটিভ নোটিফিকেশন সিস্টেম সিঙ্ক
                 syncUserWithOneSignal(user.uid);
                 
-                // 🚨 [START] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন (ক্র্যাশ সেফটি ভ্যালিডেশন)
-                try {
-                    const inboundCallQuery = query(
-                        collection(db, "calls"),
-                        where("receiverId", "==", user.uid),
-                        where("status", "==", "ringing")
-                    );
-
-                    onSnapshot(inboundCallQuery, (snapshot) => {
-                        if (!snapshot.empty) {
-                            snapshot.forEach(changeDoc => {
-                                const callData = changeDoc.data();
-                                const callId = changeDoc.id;
-                                window.location.href = `call.html?callId=${callId}&type=${callData.type}&role=receiver&targetId=${callData.callerId}`;
-                            });
-                        }
-                    }, (err) => { console.log("Call snapshot error ignored:", err); });
-                } catch(callErr) {
-                    console.log("Call listener engine protected from crash:", callErr);
-                }
-                // 🚨 [END] গ্লোবাল ইনকামিং কল লিসেনার ইঞ্জিন
+                // 🚨 পুরনো ডুপ্লিকেট কল লিসেনার এখান থেকে ফেলে দেওয়া হয়েছে কারণ এখন global-call-listener.js এটা সামলাবে।
 
                 setTimeout(() => {
                     window.location.href = "reels.html";
@@ -290,7 +270,7 @@ function resetLoginBtn() {
     loginBtn.innerText = "Login";
 }
 
-// ⚙️ SERVICE WORKER REGISTRATION (ওয়েব-ভিউ ক্র্যাশ ব্রেকার যুক্ত)
+// ⚙️ SERVICE WORKER REGISTRATION (ওয়েব-ভিউ跨্যাশ ব্রেকার যুক্ত)
 if('serviceWorker' in navigator){
     window.addEventListener('load',()=>{
         try {
@@ -303,5 +283,8 @@ if('serviceWorker' in navigator){
     });
 }
 </script>
+
+<script type="module" src="global-call-listener.js"></script>
+
 </body>
 </html>
