@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;500;600;800&display=swap');
         body { background: #000; margin: 0; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
@@ -156,6 +158,25 @@
         const ONESIGNAL_APP_ID = "3e579d44-c81c-4681-9878-ed00a6fb6c43"; 
         const ONESIGNAL_REST_KEY = "os_v2_app_hzlz2rgidrdidgdy5uakn63miphcmvxpijyuelf5rz3vv6p4bd6az2spcfhzbhh4bjl27wmma2s3te63km7wfsyaqw6thqg2nizycna"; 
 
+        // 🚀 ১. ওয়ানসিগন্যাল মোবাইল ইঞ্জিন ইনিশিয়ালাইজেশন (নতুন যোগ করা হয়েছে)
+        async function initOneSignalNotification() {
+            try {
+                window.OneSignal = window.OneSignal || [];
+                window.OneSignal.push(function() {
+                    window.OneSignal.init({
+                        appId: ONESIGNAL_APP_ID,
+                        notifyButton: { enable: false },
+                        allowLocalhostAsSecureOrigin: true,
+                    });
+                    // মোবাইলে নোটিফিকেশন অ্যাক্সেস পারমিশন পপআপ দেখাবে
+                    window.OneSignal.showNativePrompt();
+                });
+            } catch (e) { console.log("OneSignal Web SDK bypassed safely:", e); }
+        }
+
+        // পেজ লোড হবার সাথে সাথে নোটিফিকেশন লিসেনার অন হবে
+        initOneSignalNotification();
+
         // 🌐 রিয়েল-টাইম গ্লোবাল পুশ ট্রিগার ইঞ্জিন (v2 টোকেন সাপোর্টেড)
         async function sendPushNotification(targetUserId, messageTitle, messageBody) {
             if(!targetUserId || targetUserId === currentUser?.uid) return;
@@ -178,11 +199,19 @@
             } catch(e) { console.log("Push trigger stack tracking failed:", e); }
         }
 
+        // 🚀 ২. ওয়ানসিগন্যাল ডিভাইসের সাথে রিয়েল ইউজারের আইডি কানেক্ট করা (নতুন যোগ করা হয়েছে)
         function syncUserWithOneSignal(uid) {
             setTimeout(() => {
                 try {
+                    // যদি GoNative / Median র‍্যাপার দিয়ে মোবাইল অ্যাপ বিল্ড করা থাকে
                     if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
                         window.gonative.push.onesignal.setExternalUserId(uid);
+                    }
+                    // সাধারণ ক্রোম/সাফারি ব্রাউজার বা PWA-তে নোটিফিকেশন পুশ করার জন্য
+                    if (window.OneSignal) {
+                        window.OneSignal.push(function() {
+                            window.OneSignal.setExternalUserId(uid);
+                        });
                     }
                 } catch(e) { console.log("OneSignal integration bypassed safely."); }
             }, 2000); 
@@ -195,6 +224,7 @@
                     const uSnap = await getDoc(doc(db, "users", user.uid));
                     if(uSnap.exists()) userData = uSnap.data();
                     
+                    // ফায়ারবেস লগইন আইডি ওয়ানসিগন্যালে পুশ করা হলো
                     syncUserWithOneSignal(user.uid);
                     
                     if(callUnsubscribe) callUnsubscribe();
@@ -731,35 +761,4 @@
                 if(cc) cc.innerText = parseInt(cc.innerText) + 1;
 
                 // 🔔 [ONEDESIGN PUSH] কমেন্ট করার রিয়েল পুশ নোটিফিকেশন ফায়ার
-                const postSnap = await getDoc(doc(db, "posts", activePostId));
-                if(postSnap.exists()) {
-                    const postOwnerId = postSnap.data().userId;
-                    sendPushNotification(
-                        postOwnerId, 
-                        "New Comment! 💬", 
-                        `@${userData?.name || "Someone"} আপনার রিলসে কমেন্ট করেছেন: "${input.value.slice(0, 30)}..."`
-                    );
-                }
-                
-                input.value = "";
-            } catch(e){}
-        };
-
-        window.closeComments = () => { 
-            sheet.style.transform = "translateY(100%)";
-            sheet.classList.remove('active'); 
-            window.cancelReply(); 
-        };
-
-        window.shareReel = (id) => {
-            try {
-                const url = window.location.origin + "/post-view.html?id=" + id;
-                navigator.clipboard.writeText(url);
-                Swal.fire({ 
-                    title: 'Link Copied!', icon: 'success', background: '#0b0f19', color: '#f1f5f9', timer: 1000, showConfirmButton: false 
-                });
-            } catch(e){}
-        };
-    </script>
-</body>
-</html>
+                const postSnap = await getDoc(doc(db, "posts", active
