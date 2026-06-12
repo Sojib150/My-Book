@@ -43,13 +43,34 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ১০ সেকেন্ডের ইমার্জেন্সি ব্রেকপয়েন্ট - যদি Firebase রেসপন্স করতে দেরি করে
-        setTimeout(() => {
-            console.log("Emergency Redirect...");
-            window.location.href = "reels.html";
-        }, 10000);
+        // 📱 [NATIVE GATEWAY] MEDIAN ONESIGNAL DEVICE SYNC & PERMISSION ENGINE
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                // অ্যাপ ওপেন হওয়া মাত্রই মোবাইলে পুশ নোটিফিকেশনের পারমিশন চাইবে
+                if (window.gonative && window.gonative.permissions) {
+                    window.gonative.permissions.requestNotificationPermission();
+                }
+            } catch(e) { console.log("Native bridge permission bypassed."); }
+        });
 
-        // মূল সেশন চেকার
+        function syncUserWithOneSignal(uid) {
+            if (window.gonative && window.gonative.push && window.gonative.push.onesignal) {
+                window.gonative.push.onesignal.setExternalUserId(uid, function(result){
+                    if(result.success) {
+                        console.log("OneSignal Native External ID Linked in Index for UID:", uid);
+                    } else {
+                        console.log("OneSignal Sync Failed in Index.");
+                    }
+                });
+            } else if (window.OneSignal) {
+                window.OneSignal.login(uid);
+                console.log("OneSignal Web Bridge Handshake Done in Index for UID:", uid);
+            } else {
+                console.log("Median Native Bridge not active in this environment.");
+            }
+        }
+
+        // 🛡️ গ্লোবাল গেটওয়ে সেশন চেকার
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -57,18 +78,27 @@
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         
+                        // যদি ইউজার হার্ড ব্যান বা পেন্ডিং অবস্থায় থাকে
                         if (userData.isHardBanned || userData.accountStatus === "waiting_approval") {
                             await signOut(auth);
                             window.location.href = "login.html";
-                        } else {
-                            window.location.href = "reels.html";
+                            return;
                         }
+                        
+                        // 📱 ওয়ান-সিগন্যাল পুশ নোটিফিকেশনের সাথে আইডি সিঙ্ক করা হচ্ছে
+                        syncUserWithOneSignal(user.uid);
+                        
+                        // সিঙ্ক কমপ্লিট করার জন্য ১.৫ সেকেন্ড সময় দিয়ে তারপর রিডাইরেক্ট করা হচ্ছে
+                        setTimeout(() => {
+                            window.location.href = "reels.html";
+                        }, 1500);
+
                     } else {
                         window.location.href = "login.html";
                     }
                 } catch (e) {
-                    console.error("Gateway Error:", e);
-                    window.location.href = "reels.html"; // এরর হলেও রিডাইরেক্ট করবে
+                    console.log("Gateway Error:", e);
+                    window.location.href = "login.html";
                 }
             } else {
                 window.location.href = "login.html";
